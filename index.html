@@ -27,6 +27,9 @@
     .payment-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 15px; border-radius: 8px; margin: 15px 0; }
     .contact-box { background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left; }
     .error { color: red; font-size: 14px; margin-top: 10px; }
+    
+    /* กรอบรูป QR Code ให้ดูสวยงามเหมือนแอปธนาคาร */
+    .qr-frame { background: white; padding: 10px; border-radius: 10px; border: 2px dashed #ff9800; display: inline-block; margin: 10px 0; }
   </style>
 </head>
 <body>
@@ -73,11 +76,17 @@
 
   <div id="upload-section" class="section">
     <h2 style="margin-top:0;">ชำระเงินและแนบสลิป</h2>
-    <p style="margin-top:5px;">กรุณาโอนเงินตามยอด และกรอกข้อมูลเพื่อรับใบยืนยัน</p>
+    <p style="margin-top:5px;">สแกน QR Code ด้านล่างเพื่อโอนเงิน (ยอดตรงเป๊ะอัตโนมัติ)</p>
     
     <div class="payment-box">
       <div style="font-size: 14px; color: #d84315;">ยอดที่ต้องโอนชำระ</div>
       <div style="font-size: 28px; font-weight: bold; color: #d84315; margin: 5px 0;"><span id="pay-amount">0</span> บาท</div>
+      
+      <div class="qr-frame">
+        <img id="qr-img" src="" alt="PromptPay QR" style="width: 200px; height: 200px; display: block;">
+      </div>
+      <div style="font-size: 13px; font-weight: bold; color: #333; margin-top: 5px;">พร้อมเพย์: <span id="show-pp-number" style="color:#007bff;"></span></div>
+      <div style="font-size: 11px; color: #666; margin-top: 2px;">(บันทึกหน้าจอหรือสแกนเพื่อจ่ายได้ทันที ยอดเงินจะขึ้นให้อัตโนมัติ)</div>
     </div>
 
     <div class="contact-box">
@@ -117,20 +126,21 @@
 </div>
 
 <script>
-  // ==========================================
-  // ⚙️ ลิงก์ URL เดิมของคุณ Tle ใส่ไว้ให้เรียบร้อยแล้วครับ!
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzKggyH3_xxdGIMWfOvcW7oAwU2VeVWGQDXuzSmeq9-a2oz4LK2YMU6aziWWgOleXKtuA/exec'; 
+  // =========================================================================
+  // ⚙️ ตั้งค่า 2 จุดนี้ครับ:
+  const PROMPTPAY_NUMBER = '0643040487'; // << 1. ใส่เบอร์โทรพร้อมเพย์ หรือเลขบัตรประชาชน 13 หลัก ของบัญชีรับเงิน
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzt4MkTkYptZ3NLA41vRFo_r3XU5NQ7qJGQORiVQisC4_c1T1xC3QJSCTBEEuqRytP7Iw/exec'; // << 2. ลิงก์ API เดิมครับ
+  // =========================================================================
+  
   const PRICE_PER_SHIRT = 250; 
-  // ==========================================
-
   let currentStudentId = '';
+  
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
+  document.getElementById('show-pp-number').innerText = PROMPTPAY_NUMBER;
 
-  // สร้างตัวเลือกชั่วโมง (00-23) และนาที (00-59) แบบระบบ 24 ชั่วโมงให้อัตโนมัติ
   window.onload = function() {
     const hourSelect = document.getElementById('transfer-hour');
     const minuteSelect = document.getElementById('transfer-minute');
-    
     for (let i = 0; i <= 23; i++) {
       const val = i.toString().padStart(2, '0');
       hourSelect.innerHTML += `<option value="${val}">${val}</option>`;
@@ -196,6 +206,9 @@
     document.getElementById('total-qty').innerText = totalQty;
     document.getElementById('total-price').innerText = totalPrice.toLocaleString();
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
+    
+    // --- อัปเดตยอดเงินในรูป QR Code แบบเรียลไทม์ ---
+    document.getElementById('qr-img').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${totalPrice}.png`;
   }
 
   async function submitOrder() {
@@ -232,6 +245,8 @@
         orderData: orderData
       });
       if (res.success) {
+        // ให้แน่ใจว่า QR Code ถูกสร้างด้วยยอดล่าสุดก่อนเปลี่ยนหน้า
+        calculateTotal();
         switchSection('upload-section');
       } else {
         alert(res.message);
@@ -264,7 +279,6 @@
       return;
     }
 
-    // จัดรูปแบบวันเวลาเป็นระบบ 24 ชม. (เช่น 29/07/2026 เวลา 14:30 น.)
     const [year, month, day] = transferDate.split('-');
     const formattedDateTime = `${day}/${month}/${year} เวลา ${transferHour}:${transferMinute} น.`;
 
