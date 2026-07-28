@@ -32,6 +32,7 @@
 <body>
 
 <div class="container">
+  <!-- หน้า 1: ล็อกอิน -->
   <div id="login-section" class="section active">
     <h2>เข้าสู่ระบบจองเสื้อ</h2>
     <p>กรุณากรอกรหัสนักศึกษาเพื่อดำเนินการต่อ</p>
@@ -40,6 +41,7 @@
     <div id="loginError" class="error"></div>
   </div>
 
+  <!-- หน้า 2: เลือกไซส์เสื้อและคำนวณราคา -->
   <div id="booking-section" class="section">
     <h3 style="margin-top:0;">ยินดีต้อนรับ, <span id="studentName" style="color:#007bff;"></span></h3>
     <img src="https://via.placeholder.com/250x250?text=Shirt+Preview" alt="Shirt" class="shirt-preview">
@@ -71,6 +73,7 @@
     </div>
   </div>
 
+  <!-- หน้า 3: อัปโหลดสลิปและกรอกข้อมูลติดต่อ -->
   <div id="upload-section" class="section">
     <h2 style="margin-top:0;">ชำระเงินและแนบสลิป</h2>
     <p style="margin-top:5px;">กรุณาโอนเงินตามยอด และกรอกข้อมูลเพื่อรับใบยืนยัน</p>
@@ -80,15 +83,17 @@
       <div style="font-size: 28px; font-weight: bold; color: #d84315; margin: 5px 0;"><span id="pay-amount">0</span> บาท</div>
     </div>
 
+    <!-- ข้อมูลติดต่อและวันเวลาโอน (ปรับเวลาเป็นแบบ 24 ชม.) -->
     <div class="contact-box">
       <label style="font-weight: bold; font-size: 14px; color: #0d47a1; display: block; margin-bottom: 5px;">📞 ข้อมูลติดต่อกลับ & วันที่โอน</label>
       <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" style="margin-bottom: 8px;">
       <input type="email" id="contact-email" placeholder="2. อีเมล (เพื่อรับใบยืนยันการจอง)" style="margin-bottom: 8px;">
       
-      <label style="font-size: 12px; font-weight: bold; color: #555; display: block; margin-top: 8px;">3. วันที่และเวลาที่โอนเงิน (ตามในสลิป):</label>
+      <label style="font-size: 12px; font-weight: bold; color: #555; display: block; margin-top: 8px;">3. วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม. ตามในสลิป):</label>
       <div style="display: flex; gap: 5px;">
         <input type="date" id="transfer-date" style="flex: 3; margin: 0;">
-        <input type="time" id="transfer-time" style="flex: 2; margin: 0;">
+        <!-- เพิ่ม lang="en-GB" และ step="60" เพื่อบังคับเบราว์เซอร์มือถือให้โชว์เวลาแบบ 24 ชั่วโมง -->
+        <input type="time" id="transfer-time" lang="en-GB" step="60" style="flex: 2; margin: 0;">
       </div>
     </div>
 
@@ -102,6 +107,7 @@
     <div id="uploadMsg" class="error" style="color: blue;"></div>
   </div>
 
+  <!-- หน้า 4: เสร็จสิ้น -->
   <div id="done-section" class="section">
     <h1 style="color: #28a745; font-size: 48px; margin: 0;">✅</h1>
     <h2>การจองเสร็จสมบูรณ์!</h2>
@@ -112,7 +118,7 @@
 
 <script>
   // ==========================================
-  // ⚙️ เอา URL Web App ล่าสุดจาก Google Apps Script มาใส่ตรงนี้ครับ!
+  // ⚙️ ลิงก์ URL จาก Google Apps Script ของคุณ Tle ใส่ไว้ให้เรียบร้อยแล้วครับ!
   const API_URL = 'https://script.google.com/macros/s/AKfycbwJucQYl1fw_DAz9gKPsmrYvKuKzra83l66Rd7HWoaB_7yS6PafIs-fkDTVxA5O6_r6Tw/exec'; 
   const PRICE_PER_SHIRT = 250; 
   // ==========================================
@@ -243,7 +249,7 @@
       return;
     }
 
-    // จัดรูปแบบวันเวลาให้สวยงาม (เช่น 29/07/2026 เวลา 12:30 น.)
+    // จัดรูปแบบวันเวลาให้สวยงาม (เช่น 29/07/2026 เวลา 14:30 น.)
     const [year, month, day] = transferDate.split('-');
     const formattedDateTime = `${day}/${month}/${year} เวลา ${transferTime} น.`;
 
