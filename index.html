@@ -9,7 +9,7 @@
     .container { max-width: 500px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .section { display: none; }
     .active { display: block; }
-    input[type="text"], input[type="number"], input[type="file"], input[type="email"], input[type="tel"], input[type="date"], input[type="time"] { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+    input[type="text"], input[type="number"], input[type="file"], input[type="email"], input[type="tel"], input[type="date"], select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
     button { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; font-weight: bold; transition: 0.2s; }
     button:hover { background: #0056b3; }
     button:disabled { background: #ccc; cursor: not-allowed; }
@@ -32,7 +32,6 @@
 <body>
 
 <div class="container">
-  <!-- หน้า 1: ล็อกอิน -->
   <div id="login-section" class="section active">
     <h2>เข้าสู่ระบบจองเสื้อ</h2>
     <p>กรุณากรอกรหัสนักศึกษาเพื่อดำเนินการต่อ</p>
@@ -41,7 +40,6 @@
     <div id="loginError" class="error"></div>
   </div>
 
-  <!-- หน้า 2: เลือกไซส์เสื้อและคำนวณราคา -->
   <div id="booking-section" class="section">
     <h3 style="margin-top:0;">ยินดีต้อนรับ, <span id="studentName" style="color:#007bff;"></span></h3>
     <img src="https://via.placeholder.com/250x250?text=Shirt+Preview" alt="Shirt" class="shirt-preview">
@@ -73,7 +71,6 @@
     </div>
   </div>
 
-  <!-- หน้า 3: อัปโหลดสลิปและกรอกข้อมูลติดต่อ -->
   <div id="upload-section" class="section">
     <h2 style="margin-top:0;">ชำระเงินและแนบสลิป</h2>
     <p style="margin-top:5px;">กรุณาโอนเงินตามยอด และกรอกข้อมูลเพื่อรับใบยืนยัน</p>
@@ -83,17 +80,21 @@
       <div style="font-size: 28px; font-weight: bold; color: #d84315; margin: 5px 0;"><span id="pay-amount">0</span> บาท</div>
     </div>
 
-    <!-- ข้อมูลติดต่อและวันเวลาโอน (ปรับเวลาเป็นแบบ 24 ชม.) -->
     <div class="contact-box">
       <label style="font-weight: bold; font-size: 14px; color: #0d47a1; display: block; margin-bottom: 5px;">📞 ข้อมูลติดต่อกลับ & วันที่โอน</label>
       <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" style="margin-bottom: 8px;">
       <input type="email" id="contact-email" placeholder="2. อีเมล (เพื่อรับใบยืนยันการจอง)" style="margin-bottom: 8px;">
       
       <label style="font-size: 12px; font-weight: bold; color: #555; display: block; margin-top: 8px;">3. วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม. ตามในสลิป):</label>
-      <div style="display: flex; gap: 5px;">
-        <input type="date" id="transfer-date" style="flex: 3; margin: 0;">
-        <!-- เพิ่ม lang="en-GB" และ step="60" เพื่อบังคับเบราว์เซอร์มือถือให้โชว์เวลาแบบ 24 ชั่วโมง -->
-        <input type="time" id="transfer-time" lang="en-GB" step="60" style="flex: 2; margin: 0;">
+      <div style="display: flex; gap: 5px; align-items: center; margin-top: 5px;">
+        <input type="date" id="transfer-date" style="flex: 2; margin: 0;">
+        <select id="transfer-hour" style="flex: 1; margin: 0; padding: 9px; text-align: center;">
+          <option value="">ชม.</option>
+        </select>
+        <span style="font-weight: bold;">:</span>
+        <select id="transfer-minute" style="flex: 1; margin: 0; padding: 9px; text-align: center;">
+          <option value="">นาที</option>
+        </select>
       </div>
     </div>
 
@@ -107,7 +108,6 @@
     <div id="uploadMsg" class="error" style="color: blue;"></div>
   </div>
 
-  <!-- หน้า 4: เสร็จสิ้น -->
   <div id="done-section" class="section">
     <h1 style="color: #28a745; font-size: 48px; margin: 0;">✅</h1>
     <h2>การจองเสร็จสมบูรณ์!</h2>
@@ -118,13 +118,28 @@
 
 <script>
   // ==========================================
-  // ⚙️ ลิงก์ URL จาก Google Apps Script ของคุณ Tle ใส่ไว้ให้เรียบร้อยแล้วครับ!
+  // ⚙️ ลิงก์ URL เดิมของคุณ Tle ใส่ไว้ให้เรียบร้อยแล้วครับ!
   const API_URL = 'https://script.google.com/macros/s/AKfycbwJucQYl1fw_DAz9gKPsmrYvKuKzra83l66Rd7HWoaB_7yS6PafIs-fkDTVxA5O6_r6Tw/exec'; 
   const PRICE_PER_SHIRT = 250; 
   // ==========================================
 
   let currentStudentId = '';
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
+
+  // สร้างตัวเลือกชั่วโมง (00-23) และนาที (00-59) แบบระบบ 24 ชั่วโมงให้อัตโนมัติ
+  window.onload = function() {
+    const hourSelect = document.getElementById('transfer-hour');
+    const minuteSelect = document.getElementById('transfer-minute');
+    
+    for (let i = 0; i <= 23; i++) {
+      const val = i.toString().padStart(2, '0');
+      hourSelect.innerHTML += `<option value="${val}">${val}</option>`;
+    }
+    for (let i = 0; i <= 59; i++) {
+      const val = i.toString().padStart(2, '0');
+      minuteSelect.innerHTML += `<option value="${val}">${val}</option>`;
+    }
+  };
 
   function switchSection(sectionId) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -230,11 +245,11 @@
   }
 
   function uploadFile() {
-    // 1. ตรวจสอบข้อมูลติดต่อกลับ และวันเวลาโอน
     const phone = document.getElementById('contact-phone').value.trim();
     const email = document.getElementById('contact-email').value.trim();
     const transferDate = document.getElementById('transfer-date').value;
-    const transferTime = document.getElementById('transfer-time').value;
+    const transferHour = document.getElementById('transfer-hour').value;
+    const transferMinute = document.getElementById('transfer-minute').value;
 
     if (!phone) {
       alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ');
@@ -244,16 +259,15 @@
       alert('กรุณากรอกอีเมลให้ถูกต้องเพื่อรับใบยืนยันการจองครับ');
       return;
     }
-    if (!transferDate || !transferTime) {
-      alert('กรุณาระบุวันที่และเวลาที่โอนเงินตามที่ระบุในสลิปด้วยครับ');
+    if (!transferDate || transferHour === "" || transferMinute === "") {
+      alert('กรุณาระบุวันที่และเวลาที่โอนเงิน (ชั่วโมงและนาที) ให้ครบถ้วนด้วยครับ');
       return;
     }
 
-    // จัดรูปแบบวันเวลาให้สวยงาม (เช่น 29/07/2026 เวลา 14:30 น.)
+    // จัดรูปแบบวันเวลาเป็นระบบ 24 ชม. (เช่น 29/07/2026 เวลา 14:30 น.)
     const [year, month, day] = transferDate.split('-');
-    const formattedDateTime = `${day}/${month}/${year} เวลา ${transferTime} น.`;
+    const formattedDateTime = `${day}/${month}/${year} เวลา ${transferHour}:${transferMinute} น.`;
 
-    // 2. ตรวจสอบไฟล์สลิป
     const fileInput = document.getElementById('slipFile');
     const file = fileInput.files[0];
     const msg = document.getElementById('uploadMsg');
