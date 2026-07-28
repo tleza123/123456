@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ระบบจองเสื้อนักศึกษา</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; text-align: center; margin: 0; }
+    .container { max-width: 500px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .section { display: none; }
+    .active { display: block; }
+    input[type="text"], input[type="number"], input[type="file"] { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    button { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; font-weight: bold; transition: 0.2s; }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .nav-group { display: flex; gap: 10px; margin-top: 15px; }
+    .nav-group button { margin-top: 0; width: 50%; }
+    .btn-secondary { background: #6c757d !important; }
+    .btn-secondary:hover { background: #5a6268 !important; }
+    .btn-success { background: #28a745 !important; width: 100% !important; }
+    .btn-success:hover { background: #218838 !important; }
+    .shirt-preview { width: 100%; max-width: 250px; border-radius: 10px; margin-bottom: 10px; }
+    .size-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; text-align: left; }
+    .size-row label { font-weight: bold; width: 60px; font-size: 16px; }
+    .size-row input { margin: 0; text-align: center; }
+    .price-box { background: #e8f5e9; border: 1px solid #c8e6c9; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; }
+    .payment-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .error { color: red; font-size: 14px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="login-section" class="section active">
+    <h2>เข้าสู่ระบบจองเสื้อ</h2>
+    <p>กรุณากรอกรหัสนักศึกษาเพื่อดำเนินการต่อ</p>
+    <input type="text" id="studentId" placeholder="รหัสนักศึกษา (เช่น 693210317-6)">
+    <button id="btnLogin" onclick="checkStudent()">ถัดไป → (เข้าสู่ระบบ)</button>
+    <div id="loginError" class="error"></div>
+  </div>
+
+  <div id="booking-section" class="section">
+    <h3 style="margin-top:0;">ยินดีต้อนรับ, <span id="studentName" style="color:#007bff;"></span></h3>
+    <img src="https://via.placeholder.com/250x250?text=Shirt+Preview" alt="Shirt" class="shirt-preview">
+    <p style="margin: 0 0 15px; font-weight: bold; color: #555;">ราคาตัวละ <span id="show-price">0</span> บาท (เลือกได้หลายไซส์)</p>
+    
+    <div class="size-row"><label>XS</label><input type="number" id="qty-xs" min="0" placeholder="0" oninput="calculateTotal()"></div>
+    <div class="size-row"><label>S</label><input type="number" id="qty-s" min="0" placeholder="0" oninput="calculateTotal()"></div>
+    <div class="size-row"><label>M</label><input type="number" id="qty-m" min="0" placeholder="0" oninput="calculateTotal()"></div>
+    <div class="size-row"><label>L</label><input type="number" id="qty-l" min="0" placeholder="0" oninput="calculateTotal()"></div>
+    <div class="size-row"><label>XL</label><input type="number" id="qty-xl" min="0" placeholder="0" oninput="calculateTotal()"></div>
+    <div class="size-row"><label>2XL</label><input type="number" id="qty-xxl" min="0" placeholder="0" oninput="calculateTotal()"></div>
+    
+    <div style="margin-top: 15px; text-align: left; background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px dashed #ccc;">
+      <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">ไซส์อื่นๆ (ถ้ามี):</label>
+      <div style="display: flex; gap: 5px;">
+        <input type="text" id="qty-other-text" placeholder="ระบุไซส์ เช่น 3XL" style="flex: 2; margin: 0;">
+        <input type="number" id="qty-other-num" min="0" placeholder="จำนวน" style="flex: 1; margin: 0; text-align: center;" oninput="calculateTotal()">
+      </div>
+    </div>
+
+    <div class="price-box">
+      <div style="font-size: 14px; color: #555;">จำนวนรวมทั้งหมด: <span id="total-qty" style="font-weight: bold;">0</span> ตัว</div>
+      <div style="font-size: 20px; font-weight: bold; color: #2e7d32; margin-top: 5px;">ยอดชำระทั้งสิ้น: <span id="total-price">0</span> บาท</div>
+    </div>
+    
+    <div class="nav-group">
+      <button class="btn-secondary" onclick="switchSection('login-section')">← ย้อนกลับ</button>
+      <button id="btnBook" onclick="submitOrder()">ถัดไป →</button>
+    </div>
+  </div>
+
+  <div id="upload-section" class="section">
+    <h2>ชำระเงินและแนบสลิป</h2>
+    <p>กรุณาโอนเงินตามยอดด้านล่าง และแนบสลิปเพื่อยืนยัน</p>
+    
+    <div class="payment-box">
+      <div style="font-size: 14px; color: #d84315;">ยอดที่ต้องโอนชำระ</div>
+      <div style="font-size: 28px; font-weight: bold; color: #d84315; margin: 5px 0;"><span id="pay-amount">0</span> บาท</div>
+      <div style="font-size: 12px; color: #666; margin-top: 5px;">( สามารถแนบรูปภาพสลิปด้านล่างได้ทันที )</div>
+    </div>
+
+    <input type="file" id="slipFile" accept="image/*">
+    <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป และเสร็จสิ้น ✓</button>
+    <button class="btn-secondary" style="margin-top: 10px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขจำนวนเสื้อ</button>
+    <div id="uploadMsg" class="error" style="color: blue;"></div>
+  </div>
+
+  <div id="done-section" class="section">
+    <h1 style="color: #28a745; font-size: 48px; margin: 0;">✅</h1>
+    <h2>การจองเสร็จสมบูรณ์!</h2>
+    <p>ระบบได้บันทึกข้อมูลการจองและรูปสลิปของคุณเรียบร้อยแล้ว ขอบคุณครับ</p>
+    <button class="btn-secondary" style="margin-top:20px;" onclick="location.reload()">← กลับสู่หน้าแรก (สำหรับจองคนต่อไป)</button>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // ⚙️ เอา URL Web App ล่าสุดจาก Google Apps Script มาใส่ตรงนี้ครับ!
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxr9NyH2wgD_neBFGt-WUSBHODyg61asT9O4-EF9ojapY5oqYWbO1Kc8l-BeJ-fkIpCyQ/exec'; 
+  const PRICE_PER_SHIRT = 250; 
+  // ==========================================
+
+  let currentStudentId = '';
+  document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
+
+  function switchSection(sectionId) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ฟังก์ชันคุยกับ Google Apps Script ผ่าน API
+  async function callAPI(action, dataPayload = {}) {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: action, ...dataPayload })
+    });
+    return await response.json();
+  }
+
+  async function checkStudent() {
+    const id = document.getElementById('studentId').value.trim();
+    if (!id) return;
+    
+    const btn = document.getElementById('btnLogin');
+    btn.disabled = true;
+    btn.innerText = 'กำลังตรวจสอบ...';
+    
+    try {
+      const res = await callAPI('verifyStudent', { studentId: id });
+      if (res.success) {
+        currentStudentId = id;
+        document.getElementById('studentName').innerText = res.name;
+        switchSection('booking-section');
+      } else {
+        document.getElementById('loginError').innerText = res.message;
+        btn.disabled = false;
+        btn.innerText = 'ถัดไป → (เข้าสู่ระบบ)';
+      }
+    } catch (e) {
+      document.getElementById('loginError').innerText = 'ไม่สามารถเชื่อมต่อระบบได้ โปรดลองอีกครั้ง';
+      btn.disabled = false;
+      btn.innerText = 'ถัดไป → (เข้าสู่ระบบ)';
+    }
+  }
+
+  function calculateTotal() {
+    const xs = parseInt(document.getElementById('qty-xs').value) || 0;
+    const s = parseInt(document.getElementById('qty-s').value) || 0;
+    const m = parseInt(document.getElementById('qty-m').value) || 0;
+    const l = parseInt(document.getElementById('qty-l').value) || 0;
+    const xl = parseInt(document.getElementById('qty-xl').value) || 0;
+    const xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
+    const otherQty = parseInt(document.getElementById('qty-other-num').value) || 0;
+
+    const totalQty = xs + s + m + l + xl + xxl + otherQty;
+    const totalPrice = totalQty * PRICE_PER_SHIRT;
+
+    document.getElementById('total-qty').innerText = totalQty;
+    document.getElementById('total-price').innerText = totalPrice.toLocaleString();
+    document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
+  }
+
+  async function submitOrder() {
+    const totalQty = parseInt(document.getElementById('total-qty').innerText) || 0;
+    if (totalQty === 0) {
+      alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
+      return;
+    }
+
+    const btn = document.getElementById('btnBook');
+    btn.disabled = true;
+    btn.innerText = 'กำลังบันทึก...';
+
+    const otherText = document.getElementById('qty-other-text').value.trim();
+    const otherNum = document.getElementById('qty-other-num').value || 0;
+    let otherCombined = '';
+    if (otherNum > 0) {
+      otherCombined = (otherText ? otherText : 'ไซส์อื่นๆ') + ' (' + otherNum + ' ตัว)';
+    }
+
+    const orderData = {
+      xs: document.getElementById('qty-xs').value || 0,
+      s: document.getElementById('qty-s').value || 0,
+      m: document.getElementById('qty-m').value || 0,
+      l: document.getElementById('qty-l').value || 0,
+      xl: document.getElementById('qty-xl').value || 0,
+      xxl: document.getElementById('qty-xxl').value || 0,
+      other: otherCombined
+    };
+
+    try {
+      const res = await callAPI('submitBooking', { studentId: currentStudentId, orderData: orderData });
+      if (res.success) {
+        switchSection('upload-section');
+      } else {
+        alert(res.message);
+      }
+    } catch(e) {
+      alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'ถัดไป →';
+    }
+  }
+
+  function uploadFile() {
+    const fileInput = document.getElementById('slipFile');
+    const file = fileInput.files[0];
+    const msg = document.getElementById('uploadMsg');
+    
+    if (!file) {
+      msg.innerText = 'กรุณาเลือกไฟล์รูปภาพสลิปก่อนครับ';
+      msg.style.color = 'red';
+      return;
+    }
+
+    const btn = document.getElementById('btnUpload');
+    btn.disabled = true;
+    btn.innerText = 'กำลังอัปโหลด...';
+    msg.innerText = 'กำลังส่งข้อมูลไปที่ตาราง Google Sheet กรุณารอสักครู่...';
+    msg.style.color = 'blue';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const base64 = e.target.result.split(',')[1];
+      try {
+        const res = await callAPI('uploadSlip', {
+          studentId: currentStudentId,
+          base64Data: base64,
+          fileName: file.name,
+          mimeType: file.type
+        });
+        if (res.success) {
+          switchSection('done-section');
+        } else {
+          msg.innerText = 'เกิดข้อผิดพลาด: ' + res.message;
+          msg.style.color = 'red';
+          btn.disabled = false;
+          btn.innerText = 'อัปโหลดสลิป และเสร็จสิ้น ✓';
+        }
+      } catch(e) {
+        msg.innerText = 'ไม่สามารถส่งไฟล์ได้ โปรดลองอีกครั้ง';
+        msg.style.color = 'red';
+        btn.disabled = false;
+        btn.innerText = 'อัปโหลดสลิป และเสร็จสิ้น ✓';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+</script>
+</body>
+</html>
