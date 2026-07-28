@@ -9,7 +9,7 @@
     .container { max-width: 500px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .section { display: none; }
     .active { display: block; }
-    input[type="text"], input[type="number"], input[type="file"] { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    input[type="text"], input[type="number"], input[type="file"], input[type="email"], input[type="tel"], input[type="date"], input[type="time"] { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
     button { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; font-weight: bold; transition: 0.2s; }
     button:hover { background: #0056b3; }
     button:disabled { background: #ccc; cursor: not-allowed; }
@@ -25,6 +25,7 @@
     .size-row input { margin: 0; text-align: center; }
     .price-box { background: #e8f5e9; border: 1px solid #c8e6c9; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; }
     .payment-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .contact-box { background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left; }
     .error { color: red; font-size: 14px; margin-top: 10px; }
   </style>
 </head>
@@ -66,21 +67,36 @@
     
     <div class="nav-group">
       <button class="btn-secondary" onclick="switchSection('login-section')">← ย้อนกลับ</button>
-      <button id="btnBook" onclick="submitOrder()">ถัดไป →</button>
+      <button id="btnBook" onclick="submitOrder()">ถัดไป → (ไปหน้าชำระเงิน)</button>
     </div>
   </div>
 
   <div id="upload-section" class="section">
-    <h2>ชำระเงินและแนบสลิป</h2>
-    <p>กรุณาโอนเงินตามยอดด้านล่าง และแนบสลิปเพื่อยืนยัน</p>
+    <h2 style="margin-top:0;">ชำระเงินและแนบสลิป</h2>
+    <p style="margin-top:5px;">กรุณาโอนเงินตามยอด และกรอกข้อมูลเพื่อรับใบยืนยัน</p>
     
     <div class="payment-box">
       <div style="font-size: 14px; color: #d84315;">ยอดที่ต้องโอนชำระ</div>
       <div style="font-size: 28px; font-weight: bold; color: #d84315; margin: 5px 0;"><span id="pay-amount">0</span> บาท</div>
-      <div style="font-size: 12px; color: #666; margin-top: 5px;">( สามารถแนบรูปภาพสลิปด้านล่างได้ทันที )</div>
     </div>
 
-    <input type="file" id="slipFile" accept="image/*">
+    <div class="contact-box">
+      <label style="font-weight: bold; font-size: 14px; color: #0d47a1; display: block; margin-bottom: 5px;">📞 ข้อมูลติดต่อกลับ & วันที่โอน</label>
+      <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" style="margin-bottom: 8px;">
+      <input type="email" id="contact-email" placeholder="2. อีเมล (เพื่อรับใบยืนยันการจอง)" style="margin-bottom: 8px;">
+      
+      <label style="font-size: 12px; font-weight: bold; color: #555; display: block; margin-top: 8px;">3. วันที่และเวลาที่โอนเงิน (ตามในสลิป):</label>
+      <div style="display: flex; gap: 5px;">
+        <input type="date" id="transfer-date" style="flex: 3; margin: 0;">
+        <input type="time" id="transfer-time" style="flex: 2; margin: 0;">
+      </div>
+    </div>
+
+    <div style="text-align: left; margin-top: 15px;">
+      <label style="font-weight: bold; font-size: 14px; color: #333;">4. แนบรูปภาพสลิป:</label>
+      <input type="file" id="slipFile" accept="image/*" style="margin-top: 5px;">
+    </div>
+
     <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป และเสร็จสิ้น ✓</button>
     <button class="btn-secondary" style="margin-top: 10px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขจำนวนเสื้อ</button>
     <div id="uploadMsg" class="error" style="color: blue;"></div>
@@ -89,7 +105,7 @@
   <div id="done-section" class="section">
     <h1 style="color: #28a745; font-size: 48px; margin: 0;">✅</h1>
     <h2>การจองเสร็จสมบูรณ์!</h2>
-    <p>ระบบได้บันทึกข้อมูลการจองและรูปสลิปของคุณเรียบร้อยแล้ว ขอบคุณครับ</p>
+    <p>ระบบบันทึกข้อมูลเรียบร้อยแล้ว และจัดส่งใบยืนยันไปที่อีเมลของคุณแล้วครับ</p>
     <button class="btn-secondary" style="margin-top:20px;" onclick="location.reload()">← กลับสู่หน้าแรก (สำหรับจองคนต่อไป)</button>
   </div>
 </div>
@@ -97,7 +113,7 @@
 <script>
   // ==========================================
   // ⚙️ เอา URL Web App ล่าสุดจาก Google Apps Script มาใส่ตรงนี้ครับ!
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxr9NyH2wgD_neBFGt-WUSBHODyg61asT9O4-EF9ojapY5oqYWbO1Kc8l-BeJ-fkIpCyQ/exec'; 
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyinOyLWi2ixyZEJVISfeJk4fb6vRN7fzBOfED6YA0Rg3H6dpt4iDSg95k0v1FrdzE3FA/exec'; 
   const PRICE_PER_SHIRT = 250; 
   // ==========================================
 
@@ -110,7 +126,6 @@
     window.scrollTo(0, 0);
   }
 
-  // ฟังก์ชันคุยกับ Google Apps Script ผ่าน API
   async function callAPI(action, dataPayload = {}) {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -191,7 +206,10 @@
     };
 
     try {
-      const res = await callAPI('submitBooking', { studentId: currentStudentId, orderData: orderData });
+      const res = await callAPI('submitBooking', { 
+        studentId: currentStudentId, 
+        orderData: orderData
+      });
       if (res.success) {
         switchSection('upload-section');
       } else {
@@ -201,11 +219,35 @@
       alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
     } finally {
       btn.disabled = false;
-      btn.innerText = 'ถัดไป →';
+      btn.innerText = 'ถัดไป → (ไปหน้าชำระเงิน)';
     }
   }
 
   function uploadFile() {
+    // 1. ตรวจสอบข้อมูลติดต่อกลับ และวันเวลาโอน
+    const phone = document.getElementById('contact-phone').value.trim();
+    const email = document.getElementById('contact-email').value.trim();
+    const transferDate = document.getElementById('transfer-date').value;
+    const transferTime = document.getElementById('transfer-time').value;
+
+    if (!phone) {
+      alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ');
+      return;
+    }
+    if (!email || !email.includes('@')) {
+      alert('กรุณากรอกอีเมลให้ถูกต้องเพื่อรับใบยืนยันการจองครับ');
+      return;
+    }
+    if (!transferDate || !transferTime) {
+      alert('กรุณาระบุวันที่และเวลาที่โอนเงินตามที่ระบุในสลิปด้วยครับ');
+      return;
+    }
+
+    // จัดรูปแบบวันเวลาให้สวยงาม (เช่น 28/07/2026 เวลา 22:30 น.)
+    const [year, month, day] = transferDate.split('-');
+    const formattedDateTime = `${day}/${month}/${year} เวลา ${transferTime} น.`;
+
+    // 2. ตรวจสอบไฟล์สลิป
     const fileInput = document.getElementById('slipFile');
     const file = fileInput.files[0];
     const msg = document.getElementById('uploadMsg');
@@ -218,8 +260,8 @@
 
     const btn = document.getElementById('btnUpload');
     btn.disabled = true;
-    btn.innerText = 'กำลังอัปโหลด...';
-    msg.innerText = 'กำลังส่งข้อมูลไปที่ตาราง Google Sheet กรุณารอสักครู่...';
+    btn.innerText = 'กำลังอัปโหลดและส่งอีเมล...';
+    msg.innerText = 'กำลังส่งข้อมูลและจัดส่งอีเมลยืนยัน กรุณารอสักครู่...';
     msg.style.color = 'blue';
 
     const reader = new FileReader();
@@ -230,7 +272,12 @@
           studentId: currentStudentId,
           base64Data: base64,
           fileName: file.name,
-          mimeType: file.type
+          mimeType: file.type,
+          contactData: {
+            phone: phone,
+            email: email,
+            transferDateTime: formattedDateTime
+          }
         });
         if (res.success) {
           switchSection('done-section');
