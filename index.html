@@ -170,20 +170,20 @@
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
 
+ <!-- หน้า 4: เสร็จสิ้น (เร็วทันใจ) -->
   <div id="done-section" class="section">
-    <div style="font-size: 64px; margin-bottom: 10px;"></div>
-    <h2>การจองเสร็จสมบูรณ์!</h2>
-    <p style="color: #15803d;">ระบบบันทึกข้อมูลและจัดส่งใบเสร็จยืนยันไปที่อีเมลของคุณเรียบร้อยแล้วครับ</p>
-    <div class="nav-group">
-      <button onclick="switchSection('home-section')">กลับหน้าโฮม</button>
-      <button class="btn-secondary" onclick="logout()">ออกจากระบบ</button>
+    <div style="font-size: 64px; margin-bottom: 10px;">🎉</div>
+    <h2 style="color: #15803d;">ทำรายการสำเร็จ!</h2>
+    <p>ระบบบันทึกข้อมูลและจัดส่งใบเสร็จยืนยัน<br>ไปที่อีเมลของคุณเรียบร้อยแล้วครับ </p>
+    <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:14px; margin:20px 0; font-size:13px; color:#166534; text-align: center;">
+      💡 คุณสามารถปิดหน้าเว็บนี้ หรือกลับไปจองให้เพื่อนต่อได้เลยครับ
     </div>
+    <button class="btn-success" style="margin-top:10px;" onclick="location.reload()">← กลับสู่หน้าแรก</button>
   </div>
-</div>
 
 <script>
   // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwRZNJX__bCkzu2DNnOIAw0dtHMgxi7-cM2oNkP2thZFdJzsalCf0M5A39QFV_RN5RVrQ/exec'; 
+  const API_URL = 'https://script.google.com/macros/s/AKfycbw2QYo_URSwDUJorEtcoXz6L3oEqmQMQGRqx8__oKPLZyA-btXJTOmk1lzYFOoWlmGnnA/exec'; 
   const PRICE_PER_SHIRT = 359; 
   
   let currentStudentId = '';
