@@ -288,11 +288,34 @@
     finally { btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →'; }
   }
 
-  function calculateTotal() {
-    const totalQty = (parseInt(document.getElementById('qty-xs').value)||0) + (parseInt(document.getElementById('qty-s').value)||0) + (parseInt(document.getElementById('qty-m').value)||0) + (parseInt(document.getElementById('qty-l').value)||0) + (parseInt(document.getElementById('qty-xl').value)||0) + (parseInt(document.getElementById('qty-xxl').value)||0) + (parseInt(document.getElementById('qty-other-num').value)||0);
+ function calculateTotal() {
+    const totalQty = (parseInt(document.getElementById('qty-xs').value)||0) + 
+                     (parseInt(document.getElementById('qty-s').value)||0) + 
+                     (parseInt(document.getElementById('qty-m').value)||0) + 
+                     (parseInt(document.getElementById('qty-l').value)||0) + 
+                     (parseInt(document.getElementById('qty-xl').value)||0) + 
+                     (parseInt(document.getElementById('qty-xxl').value)||0) + 
+                     (parseInt(document.getElementById('qty-other-num').value)||0);
+                     
     const totalPrice = totalQty * PRICE_PER_SHIRT;
-    document.getElementById('total-qty').innerText = totalQty; document.getElementById('total-price').innerText = totalPrice.toLocaleString(); document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
-    if(appConfig.PROMPTPAY_NUMBER) document.getElementById('qr-img').src = `https://promptpay.io/${appConfig.PROMPTPAY_NUMBER}/${totalPrice}.png`;
+    
+    document.getElementById('total-qty').innerText = totalQty; 
+    document.getElementById('total-price').innerText = totalPrice.toLocaleString(); 
+    document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
+    
+    // --- โค้ดส่วนที่อัปเกรดแก้ปัญหา QR Code ไม่ขึ้น ---
+    if(appConfig.PROMPTPAY_NUMBER) {
+      // 1. ดึงเบอร์มาแปลงเป็นข้อความ และลบอักขระพิเศษ/ช่องว่าง/ขีด ออกให้หมด
+      let ppNumber = appConfig.PROMPTPAY_NUMBER.toString().replace(/[^0-9]/g, '');
+      
+      // 2. ถ้า Google Sheet แอบตัดเลข 0 ข้างหน้าออก (จนเหลือ 9 หลัก) ให้เติม 0 กลับเข้าไปอัตโนมัติ
+      if (ppNumber.length === 9) {
+        ppNumber = '0' + ppNumber;
+      }
+      
+      // 3. สร้างรูป QR Code
+      document.getElementById('qr-img').src = `https://promptpay.io/${ppNumber}/${totalPrice}.png`;
+    }
   }
 
   async function submitOrder() {
