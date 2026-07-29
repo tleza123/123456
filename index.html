@@ -147,18 +147,18 @@
     </div>
     
     <div class="menu-item" style="opacity: 0.5; cursor: not-allowed;" onclick="alert('ระบบนี้กำลังพัฒนา เร็วๆ นี้ครับ')">
-      <div class="menu-item-icon">💸</div>
+      <div class="menu-item-icon"></div>
       <div class="menu-item-text">
-        <div class="menu-item-title">ชำระค่าบำรุงสาขา</div>
-        <div class="menu-item-desc">ชำระเงินบำรุงสาขาประจำภาคเรียน (เร็วๆ นี้)</div>
+        <div class="menu-item-title">ช</div>
+        <div class="menu-item-desc">ช)</div>
       </div>
     </div>
 
     <div class="menu-item" style="opacity: 0.5; cursor: not-allowed;" onclick="alert('ระบบนี้กำลังพัฒนา เร็วๆ นี้ครับ')">
-      <div class="menu-item-icon">📝</div>
+      <div class="menu-item-icon"></div>
       <div class="menu-item-text">
-        <div class="menu-item-title">แบบฟอร์มเช็คชื่อกิจกรรม</div>
-        <div class="menu-item-desc">ลงทะเบียนเข้าร่วมกิจกรรมต่างๆ (เร็วๆ นี้)</div>
+        <div class="menu-item-title">ม</div>
+        <div class="menu-item-desc"></div>
       </div>
     </div>
     
@@ -170,9 +170,9 @@
   
   <!-- หน้า 1: ล็อกอิน -->
   <div id="login-section" class="section active">
-    <div class="header-badge">🔥 DIGITAL ENTREPRENEUR รุ่น 06</div>
+    <div class="header-badge"> DIGITAL ENTREPRENEUR รุ่น 06</div>
     <h2>เข้าสู่ระบบนักศึกษา</h2>
-    <p>ระบบ Portal สาขาวิชาผู้ประกอบการดิจิทัล</p>
+    <p>สาขาวิชาผู้ประกอบการดิจิทัล</p>
     <div style="text-align: left; margin-top: 20px;">
       <label style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-left: 4px;">รหัสนักศึกษา</label>
       <input type="text" id="studentId" placeholder="เช่น 693210317-6">
@@ -183,12 +183,12 @@
 
   <!-- หน้า 2: หน้าโฮม (Dashboard) แสดงกิจกรรมเรียงตามเวลา -->
   <div id="home-section" class="section">
-    <div class="header-badge">🏠 HOME • DE 06 PORTAL</div>
+    <div class="header-badge">HOME • DE 06 </div>
     <h3 style="margin-bottom: 5px; color: var(--text-main); font-size:18px;">ยินดีต้อนรับ,</h3>
     <h2 style="color:var(--main-blue); margin-bottom: 25px; font-size: 20px;"><span id="homeStudentName"></span></h2>
     
     <div style="text-align: left; margin-bottom: 15px;">
-      <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">🔥 กิจกรรมที่กำลังดำเนินการ</h3>
+      <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">กิจกรรมที่กำลังดำเนินการ</h3>
     </div>
 
     <!-- โค้ด JS จะมาสร้างการ์ดกิจกรรมใส่ใน div นี้อัตโนมัติ -->
@@ -197,7 +197,7 @@
 
   <!-- หน้า 3: เลือกไซส์เสื้อ (เหมือนเดิม) -->
   <div id="booking-section" class="section">
-    <div class="header-badge">👕 STEP 1: เลือกไซส์เสื้อช็อป</div>
+    <div class="header-badge">STEP 1: เลือกไซส์เสื้อช็อป</div>
     <h3>ผู้จอง: <span id="studentName" style="color:var(--main-blue-light);"></span></h3>
     
     <div class="shirt-gallery">
@@ -235,9 +235,9 @@
 
   <!-- หน้า 4: อัปโหลดสลิป (เหมือนเดิม) -->
   <div id="upload-section" class="section">
-    <div class="header-badge">💳 STEP 2: ชำระเงิน & ยืนยัน</div>
+    <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>สแกน QR เพื่อชำระเงิน</h2>
-    <p>ระบบจะสร้างยอดโอนตรงเป๊ะให้อัตโนมัติ</p>
+    <p>ระบบจะสร้างยอดโอนให้อัตโนมัติ</p>
     
     <div class="payment-box">
       <div style="font-size: 13px; color: #b45309; font-weight: 600;">ยอดที่ต้องโอนชำระ</div>
@@ -246,8 +246,9 @@
       <div class="qr-frame">
         <img id="qr-img" src="" alt="PromptPay QR">
       </div>
+      <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 4px;">=ชื่อบัญชี นายพิชยะ ประจิตต์<span style="color:var(--main-blue);"></span></div>
       <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 4px;">พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 11px; color: #78350f; margin-top: 4px;">(บันทึกจอหรือใช้แอปธนาคารสแกนได้ทันที ไม่ต้องพิมพ์ยอดเอง)</div>
+      <div style="font-size: 11px; color: #78350f; margin-top: 4px;">(บันทึกจอหรือใช้แอปธนาคารสแกนได้ทันที)</div>
     </div>
 
     <div class="contact-box">
@@ -308,8 +309,8 @@
   const allTasks = [
     {
       id: 'booking-shirt',
-      icon: '👕',
-      title: 'จองเสื้อช็อป รุ่น 06',
+      icon: '',
+      title: 'จองเสื้อช็อป DE รุ่น 06',
       desc: 'ระบบสั่งจองและชำระเงินค่าเสื้อช็อปรุ่น',
       // ตั้งวันหมดเขต (รูปแบบ YYYY-MM-DDTHH:MM:00)
       endDate: new Date('2026-08-31T23:59:00').getTime(), 
@@ -317,10 +318,10 @@
     },
     {
       id: 'mock-task-1',
-      icon: '📝',
-      title: 'สำรวจไซส์เสื้อกีฬาสี',
-      desc: 'กรอกข้อมูลเพื่อเตรียมพร้อมงานกีฬาสี',
-      endDate: new Date('2026-08-15T12:00:00').getTime(), 
+      icon: '',
+      title: 'SOON',
+      desc: '',
+      endDate: new Date('2100-09-15T12:00:00').getTime(), 
       action: "alert('ยังไม่เปิดให้กรอกข้อมูลครับ')"
     }
   ];
