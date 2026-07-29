@@ -160,18 +160,21 @@
         <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">นาที</option></select>
       </div>
     </div>
-    <div style="text-align: left; margin-top: 15px;">
+  <div style="text-align: left; margin-top: 15px;">
       <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
       <!-- เพิ่ม onchange เข้ามาเพื่อสั่งให้อัปโหลดรูปล่วงหน้า -->
-    <input type="file" id="slipFile" accept="image/*" style="margin-top: 5px; background:white;" onchange="handleBackgroundUpload(this)">
+      <input type="file" id="slipFile" accept="image/*" style="margin-top: 5px; background:white;" onchange="handleBackgroundUpload(this)">
+    </div> <!-- 🔥 เพิ่ม </div> ปิดช่องอัปโหลดไฟล์ตรงนี้ -->
 
     <!-- เปลี่ยน onclick เป็น finalizeOrderFast() และตั้งต้นให้ disabled ไว้ก่อน -->
     <button id="btnUpload" class="btn-success" onclick="finalizeOrderFast()" disabled>กรุณาเลือกรูปสลิปก่อน ⏳</button>
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
+  </div> <!-- 🔥 เพิ่ม </div> ปิดหน้าอัปโหลดสลิปตรงนี้ (สำคัญมาก!) -->
 
-      <div id="done-section" class="section">
- 
+
+  <!-- หน้า 4: ทำรายการสำเร็จ (แยกออกมาเป็นหน้าใหม่) -->
+  <div id="done-section" class="section">
     <div id="status-box" style="background:#fff7ed; border:1px solid #fed7aa; padding:15px; border-radius:14px; margin:20px 0; font-size:14px; color:#c2410c; text-align: center;">
       <b>จองสำเร็จ</b><br>
       <span style="font-size: 12px; margin-top: 5px; display: inline-block;">ระบบกำลังบันทึกข้อมูลและส่งอีเมลยืนยัน<br>อาจใช้เวลาประมาณ 3-5 วินาที</span>
@@ -179,7 +182,16 @@
     
     <button id="btnReload" class="btn-success" style="margin-top:10px; display:none;" onclick="location.reload()">← กลับสู่หน้าแรก (จองคนต่อไป)</button>
   </div>
+</div> <!-- ปิด container หลัก -->
+
 <script>
+  // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
+  const API_URL = 'https://script.google.com/macros/s/AKfycbw2QYo_URSwDUJorEtcoXz6L3oEqmQMQGRqx8__oKPLZyA-btXJTOmk1lzYFOoWlmGnnA/exec'; 
+  const PRICE_PER_SHIRT = 359; 
+  
+  let currentStudentId = '';
+  let appConfig = {};
+  let allTasks = [];
   // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
   const API_URL = 'https://script.google.com/macros/s/AKfycbw2QYo_URSwDUJorEtcoXz6L3oEqmQMQGRqx8__oKPLZyA-btXJTOmk1lzYFOoWlmGnnA/exec'; 
   const PRICE_PER_SHIRT = 359; 
