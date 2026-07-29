@@ -200,7 +200,7 @@
     <p>สาขาวิชาผู้ประกอบการดิจิทัล รุ่น 06</p>
     <div style="text-align: left; margin-top: 20px;">
       <label style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-left: 4px;">รหัสนักศึกษา</label>
-      <input type="text" id="studentId" placeholder="เช่น 693210317-6">
+      <input type="text" id="studentId" placeholder="เช่น 693210000-0">
     </div>
     <button id="btnLogin" onclick="checkStudent()">เข้าสู่ระบบเพื่อจองเสื้อช็อป →</button>
     <div id="loginError" class="error"></div>
@@ -242,7 +242,7 @@
 
   <!-- หน้า 3: อัปโหลดสลิปและแสดง QR Code พร้อมเพย์ -->
   <div id="upload-section" class="section">
-    <div class="header-badge">💳 STEP 2: ชำระเงิน & ยืนยัน</div>
+    <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>สแกน QR เพื่อชำระเงิน</h2>
     
     
@@ -254,15 +254,15 @@
         <img id="qr-img" src="" alt="PromptPay QR">
       </div>
       <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 4px;">พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 11px; color: #78350f; margin-top: 4px;">(บันทึกจอหรือใช้แอปธนาคารสแกนได้ทันที ไม่ต้องพิมพ์ยอดเอง)</div>
+      <div style="font-size: 11px; color: #78350f; margin-top: 4px;">(บันทึกจอหรือใช้แอปธนาคารสแกนได้เลย)</div>
     </div>
 
     <div class="contact-box">
-      <label>📞 ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
+      <label>ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
       <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" style="margin-bottom: 10px;">
       <input type="email" id="contact-email" placeholder="2. อีเมล (เช่น name@email.com)" style="margin-bottom: 10px;">
       
-      <label style="margin-top: 10px;">📅 วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม. ตามในสลิป):</label>
+      <label style="margin-top: 10px;">📅 วันที่และเวลาที่โอนเงิน:</label>
       <div style="display: flex; gap: 6px; align-items: center;">
         <input type="date" id="transfer-date" style="flex: 2; margin: 0;">
         <select id="transfer-hour" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;">
@@ -276,11 +276,11 @@
     </div>
 
     <div style="text-align: left; margin-top: 15px;">
-      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); margin-left: 4px;">📎 แนบรูปภาพสลิปชำระเงิน:</label>
+      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); margin-left: 4px;">แนบรูปภาพสลิปชำระเงิน:</label>
       <input type="file" id="slipFile" accept="image/*" style="background:white;">
     </div>
 
-    <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป & เสร็จสิ้นการจอง ✓</button>
+    <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป & เสร็จสิ้นการจอง </button>
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
   </div>
@@ -465,7 +465,7 @@
     const btn = document.getElementById('btnUpload');
     btn.disabled = true;
     btn.innerText = 'กำลังอัปโหลดสลิป & ส่งอีเมลยืนยัน...';
-    msg.innerText = '⏳ กำลังบันทึกข้อมูลและจัดส่งใบเสร็จไปทางอีเมล กรุณารอสักครู่...';
+    msg.innerText = 'กำลังบันทึกข้อมูลและจัดส่งใบเสร็จไปทางอีเมล กรุณารอสักครู่...';
     msg.style.color = 'var(--main-blue)';
 
     const reader = new FileReader();
