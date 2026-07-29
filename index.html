@@ -191,7 +191,7 @@
 
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
 
-  window.onload = async function() {
+ window.onload = async function() {
     // โหลดเวลา
     const hSel = document.getElementById('transfer-hour');
     const mSel = document.getElementById('transfer-minute');
@@ -203,7 +203,16 @@
     if(res.success) {
       appConfig = res.config;
       allTasks = res.tasks;
-      document.getElementById('show-pp-number').innerText = appConfig.PROMPTPAY_NUMBER || '';
+      
+      // --- โค้ดดักจับและเติมเลข 0 ให้เบอร์พร้อมเพย์ที่โชว์หน้าเว็บ ---
+      let ppNumberStr = (appConfig.PROMPTPAY_NUMBER || '').toString().replace(/[^0-9]/g, '');
+      if (ppNumberStr.length === 9) {
+        ppNumberStr = '0' + ppNumberStr;
+      }
+      appConfig.PROMPTPAY_NUMBER = ppNumberStr; // เซฟทับค่าเดิมให้ถูกต้อง
+      
+      // แสดงผลเบอร์พร้อมเพย์ (ที่เติม 0 แล้ว) และชื่อบัญชี
+      document.getElementById('show-pp-number').innerText = ppNumberStr;
       document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
     }
     
