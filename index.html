@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ระบบจองเสื้อช็อป • DIGITAL ENTREPRENEUR รุ่น 06</title>
+  <title>ระบบนักศึกษา • DIGITAL ENTREPRENEUR 06</title>
   <!-- ดึงฟอนต์ Prompt จาก Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +45,6 @@
       text-align: center;
     }
 
-    /* เฮดเดอร์โลโก้สาขา */
     .header-badge {
       display: inline-block;
       background: #e0f2fe;
@@ -71,147 +70,137 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* อินพุตแบบโมเดิร์น */
+    /* สไตล์ปุ่มเมนูหลักในหน้า Dashboard */
+    .menu-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+    .menu-btn {
+      background: white; border: 2px solid #e2e8f0; border-radius: 16px;
+      padding: 20px 15px; text-align: left; display: flex; align-items: center;
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      color: var(--text-main); width: 100%; margin-top: 0;
+    }
+    .menu-btn:hover:not(:disabled) {
+      border-color: var(--main-blue);
+      box-shadow: 0 8px 15px rgba(0, 53, 102, 0.1);
+      transform: translateY(-2px);
+    }
+    .menu-btn.disabled { opacity: 0.6; cursor: not-allowed; background: #f8fafc; }
+    .menu-icon { font-size: 36px; margin-right: 15px; min-width: 45px; text-align: center; }
+    .menu-text { display: flex; flex-direction: column; }
+    .menu-title { font-weight: 700; font-size: 16px; color: var(--main-blue); }
+    .menu-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+
     input[type="text"], input[type="number"], input[type="file"], input[type="email"], input[type="tel"], input[type="date"], select { 
-      width: 100%; 
-      padding: 12px 16px; 
-      margin: 6px 0 14px 0; 
-      border: 1.5px solid #cbd5e1; 
-      border-radius: 12px; 
-      font-size: 14px; 
-      color: var(--text-main);
-      background: #f8fafc;
-      transition: all 0.2s;
+      width: 100%; padding: 12px 16px; margin: 6px 0 14px 0; 
+      border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 14px; 
+      color: var(--text-main); background: #f8fafc; transition: all 0.2s;
     }
     input:focus, select:focus {
-      outline: none;
-      border-color: var(--main-blue);
-      background: white;
+      outline: none; border-color: var(--main-blue); background: white;
       box-shadow: 0 0 0 4px rgba(0, 53, 102, 0.1);
     }
 
-    /* ปุ่มกดหลัก (น้ำเงินไล่เฉด) */
-    button { 
+    button.btn-primary { 
       background: linear-gradient(135deg, var(--main-blue) 0%, var(--main-blue-light) 100%); 
-      color: white; 
-      border: none; 
-      padding: 14px 20px; 
-      border-radius: 14px; 
-      cursor: pointer; 
-      width: 100%; 
-      font-size: 16px; 
-      font-weight: 600; 
-      margin-top: 15px; 
-      box-shadow: 0 4px 12px rgba(0, 53, 102, 0.2);
-      transition: all 0.2s;
+      color: white; border: none; padding: 14px 20px; border-radius: 14px; 
+      cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; 
+      margin-top: 15px; box-shadow: 0 4px 12px rgba(0, 53, 102, 0.2); transition: all 0.2s;
     }
-    button:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 16px rgba(0, 53, 102, 0.3); 
-    }
-    button:active { transform: translateY(0); }
-    button:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; transform: none; }
+    button.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 53, 102, 0.3); }
+    button.btn-primary:active { transform: translateY(0); }
+    button.btn-primary:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; transform: none; }
     
-    /* กลุ่มปุ่มย้อนกลับ/ถัดไป */
     .nav-group { display: flex; gap: 12px; margin-top: 15px; }
     .nav-group button { margin-top: 0; width: 50%; }
     
-    /* ปุ่มย้อนกลับ (สีเทาโมเดิร์น) */
     .btn-secondary { 
-      background: #f1f5f9 !important; 
-      color: #475569 !important; 
-      border: 1px solid #e2e8f0 !important;
-      box-shadow: none !important;
+      background: #f1f5f9 !important; color: #475569 !important; 
+      border: 1px solid #e2e8f0 !important; box-shadow: none !important;
+      padding: 14px 20px; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 16px; width: 100%; transition: all 0.2s;
     }
     .btn-secondary:hover { background: #e2e8f0 !important; color: #1e293b !important; }
     
-    /* ปุ่มอัปโหลด (สีเขียวเหนี่ยวทรัพย์) */
     .btn-success { 
       background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important; 
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+      color: white; border: none; padding: 14px 20px; border-radius: 14px; 
+      cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; margin-top: 15px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important; transition: all 0.2s;
     }
-    .btn-success:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3) !important; }
+    .btn-success:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3) !important; transform: translateY(-2px); }
 
-    .shirt-preview { 
-      width: 100%; 
-      max-width: 240px; 
-      border-radius: 16px; 
-      margin-bottom: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-      border: 3px solid white;
-    }
+    .shirt-gallery { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 15px; }
+    .shirt-preview { width: 100%; max-width: 260px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 3px solid white; }
 
-    /* ตารางเลือกไซส์ */
     .size-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; text-align: left; background: #f8fafc; padding: 6px 16px; border-radius: 12px; border: 1px solid #f1f5f9; }
     .size-row label { font-weight: 600; width: 60px; font-size: 16px; color: var(--main-blue); }
     .size-row input { margin: 0; text-align: center; width: 80px; background: white; }
 
-    /* กล่องสรุปราคา */
-    .price-box { 
-      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); 
-      border: 1px solid #bbf7d0; 
-      padding: 18px; 
-      border-radius: 16px; 
-      margin: 20px 0; 
-    }
-    
-    /* กล่องชำระเงิน */
-    .payment-box { 
-      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); 
-      border: 1px solid #fde68a; 
-      padding: 20px; 
-      border-radius: 20px; 
-      margin: 15px 0; 
-    }
-
-    /* กล่องข้อมูลติดต่อ */
-    .contact-box { 
-      background: #f8fafc; 
-      border: 1px solid #e2e8f0; 
-      padding: 18px; 
-      border-radius: 16px; 
-      margin: 15px 0; 
-      text-align: left; 
-    }
+    .price-box { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; padding: 18px; border-radius: 16px; margin: 20px 0; }
+    .payment-box { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; padding: 20px; border-radius: 20px; margin: 15px 0; }
+    .contact-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 18px; border-radius: 16px; margin: 15px 0; text-align: left; }
     .contact-box label { color: var(--main-blue); font-weight: 600; font-size: 13px; display: block; margin-bottom: 6px; }
     
-    /* กรอบ QR Code สไตล์ใบเสร็จ */
-    .qr-frame { 
-      background: white; 
-      padding: 15px; 
-      border-radius: 16px; 
-      border: 2px dashed #f59e0b; 
-      display: inline-block; 
-      margin: 12px 0;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
+    .qr-frame { background: white; padding: 15px; border-radius: 16px; border: 2px dashed #f59e0b; display: inline-block; margin: 12px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     .qr-frame img { width: 190px; height: 190px; display: block; margin: 0 auto; }
-
     .error { color: #e11d48; font-size: 13px; margin-top: 10px; font-weight: 500; }
   </style>
 </head>
 <body>
 
 <div class="container">
+  
   <!-- หน้า 1: ล็อกอิน -->
   <div id="login-section" class="section active">
-    <div class="header-badge">DIGITAL ENTREPRENEUR รุ่น 06</div>
-    <h2>ระบบจองเสื้อช็อป</h2>
+    <div class="header-badge">🔥 DIGITAL ENTREPRENEUR รุ่น 06</div>
+    <h2>เข้าสู่ระบบนักศึกษา</h2>
     <p>สาขาวิชาผู้ประกอบการดิจิทัล รุ่น 06</p>
     <div style="text-align: left; margin-top: 20px;">
       <label style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-left: 4px;">รหัสนักศึกษา</label>
-      <input type="text" id="studentId" placeholder="เช่น 693210000-0">
+      <input type="text" id="studentId" placeholder="เช่น 693210317-6">
     </div>
-    <button id="btnLogin" onclick="checkStudent()">เข้าสู่ระบบเพื่อจองเสื้อช็อป →</button>
+    <button class="btn-primary" id="btnLogin" onclick="checkStudent()">เข้าสู่ระบบ →</button>
     <div id="loginError" class="error"></div>
   </div>
 
-  <!-- หน้า 2: เลือกไซส์เสื้อและคำนวณราคา -->
+  <!-- หน้า 2: เมนูหลัก (Dashboard) -->
+  <div id="menu-section" class="section">
+    <div class="header-badge">📱 DE 06 PORTAL</div>
+    <h3 style="margin-bottom: 5px;">ยินดีต้อนรับ,</h3>
+    <h2 style="color:var(--main-blue-light); margin-bottom: 20px; font-size: 22px;"><span id="menuStudentName"></span></h2>
+    <p>กรุณาเลือกบริการที่ต้องการใช้งาน</p>
+    
+    <div class="menu-grid">
+      <!-- ปุ่มเมนู 1: จองเสื้อช็อป -->
+      <button class="menu-btn" onclick="switchSection('booking-section')">
+        <div class="menu-icon">👕</div>
+        <div class="menu-text">
+          <span class="menu-title">จองเสื้อช็อป</span>
+          <span class="menu-desc">ระบบสั่งจองและชำระเงินค่าเสื้อช็อปรุ่น</span>
+        </div>
+      </button>
+
+      <!-- ปุ่มเมนู 2: เผื่อไว้ในอนาคต (ตอนนี้ตั้งเป็น disabled กดไม่ได้) -->
+      <button class="menu-btn disabled" disabled>
+        <div class="menu-icon">🚧</div>
+        <div class="menu-text">
+          <span class="menu-title">ระบบอื่นๆ (เร็วๆ นี้)</span>
+          <span class="menu-desc">กำลังพัฒนาเมนูเพิ่มเติม...</span>
+        </div>
+      </button>
+    </div>
+
+    <button class="btn-secondary" style="margin-top: 25px;" onclick="logout()">← ออกจากระบบ</button>
+  </div>
+
+  <!-- หน้า 3: เลือกไซส์เสื้อและคำนวณราคา -->
   <div id="booking-section" class="section">
-    <div class="header-badge">STEP 1: เลือกไซส์เสื้อช็อป</div>
-    <h3>ยินดีต้อนรับ, <span id="studentName" style="color:var(--main-blue-light);"></span></h3>
-    <img src="755732903_3416811905158788_5651129749747833900_n.jpg" alt="Shirt" class="shirt-preview">
-    <img src="70E819B1-2C1F-43A8-AB86-C013FBE67789.jpg" alt="Shirt" class="shirt-preview">
+    <div class="header-badge">👕 STEP 1: เลือกไซส์เสื้อช็อป</div>
+    <h3>ผู้จอง: <span id="studentName" style="color:var(--main-blue-light);"></span></h3>
+    
+    <div class="shirt-gallery">
+      <img src="755732903_3416811905158788_5651129749747833900_n.jpg" alt="Shirt Front/Details" class="shirt-preview">
+      <img src="70E819B1-2C1F-43A8-AB86-C013FBE67789.jpg" alt="Shirt Size/Back" class="shirt-preview">
+    </div>
+
     <p style="margin: 0 0 15px; font-weight: 600; color: var(--main-blue);">ราคาตัวละ <span id="show-price" style="color:#d97706; font-size: 18px;">0</span> บาท</p>
     
     <div class="size-row"><label>XS</label><input type="number" id="qty-xs" min="0" placeholder="0" oninput="calculateTotal()"></div>
@@ -235,16 +224,17 @@
     </div>
     
     <div class="nav-group">
-      <button class="btn-secondary" onclick="switchSection('login-section')">← ย้อนกลับ</button>
-      <button id="btnBook" onclick="submitOrder()">ถัดไป →</button>
+      <!-- ปรับปุ่มย้อนกลับให้กลับไปหน้า Dashboard -->
+      <button class="btn-secondary" onclick="switchSection('menu-section')">← กลับเมนูหลัก</button>
+      <button class="btn-primary" id="btnBook" style="margin-top:0;" onclick="submitOrder()">ถัดไป →</button>
     </div>
   </div>
 
-  <!-- หน้า 3: อัปโหลดสลิปและแสดง QR Code พร้อมเพย์ -->
+  <!-- หน้า 4: อัปโหลดสลิปและแสดง QR Code พร้อมเพย์ -->
   <div id="upload-section" class="section">
-    <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
+    <div class="header-badge">💳 STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>สแกน QR เพื่อชำระเงิน</h2>
-    
+    <p>ระบบจะสร้างยอดโอนตรงเป๊ะให้อัตโนมัติ</p>
     
     <div class="payment-box">
       <div style="font-size: 13px; color: #b45309; font-weight: 600;">ยอดที่ต้องโอนชำระ</div>
@@ -253,17 +243,16 @@
       <div class="qr-frame">
         <img id="qr-img" src="" alt="PromptPay QR">
       </div>
-      <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 4px;">ชื่อบัญชี นายพิชยะ ประจิตต์<span style="color:var(--main-blue);"></span></div>
       <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 4px;">พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 11px; color: #78350f; margin-top: 4px;">(บันทึกจอหรือใช้แอปธนาคารสแกนได้เลย)</div>
+      <div style="font-size: 11px; color: #78350f; margin-top: 4px;">(บันทึกจอหรือใช้แอปธนาคารสแกนได้ทันที ไม่ต้องพิมพ์ยอดเอง)</div>
     </div>
 
     <div class="contact-box">
-      <label>ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
+      <label>📞 ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
       <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" style="margin-bottom: 10px;">
       <input type="email" id="contact-email" placeholder="2. อีเมล (เช่น name@email.com)" style="margin-bottom: 10px;">
       
-      <label style="margin-top: 10px;">📅 วันที่และเวลาที่โอนเงิน:</label>
+      <label style="margin-top: 10px;">📅 วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม. ตามในสลิป):</label>
       <div style="display: flex; gap: 6px; align-items: center;">
         <input type="date" id="transfer-date" style="flex: 2; margin: 0;">
         <select id="transfer-hour" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;">
@@ -277,16 +266,16 @@
     </div>
 
     <div style="text-align: left; margin-top: 15px;">
-      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); margin-left: 4px;">แนบรูปภาพสลิปชำระเงิน:</label>
+      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); margin-left: 4px;">📎 แนบรูปภาพสลิปชำระเงิน:</label>
       <input type="file" id="slipFile" accept="image/*" style="background:white;">
     </div>
 
-    <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป & เสร็จสิ้นการจอง </button>
+    <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป & เสร็จสิ้นการจอง ✓</button>
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
   </div>
 
-  <!-- หน้า 4: เสร็จสิ้น -->
+  <!-- หน้า 5: เสร็จสิ้น -->
   <div id="done-section" class="section">
     <div style="font-size: 64px; margin-bottom: 10px;">🎉</div>
     <h2>การจองเสร็จสมบูรณ์!</h2>
@@ -294,18 +283,21 @@
     <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:14px; margin:20px 0; font-size:13px; color:#166534;">
       💡 อย่าลืมตรวจสอบกล่องจดหมายเข้า หรือจดหมายขยะ (Spam) ในอีเมลของคุณนะครับ
     </div>
-    <button class="btn-secondary" style="margin-top:10px;" onclick="location.reload()">← กลับสู่หน้าแรก (สำหรับจองคนต่อไป)</button>
+    <!-- กลับไปหน้าเมนู หรือล็อกเอาท์ -->
+    <div class="nav-group">
+      <button class="btn-primary" style="margin-top:0;" onclick="switchSection('menu-section')">กลับเมนูหลัก</button>
+      <button class="btn-secondary" onclick="logout()">ออกจากระบบ</button>
+    </div>
   </div>
 </div>
 
 <script>
   // =========================================================================
-  // ⚙️ ตั้งค่าเบอร์พร้อมเพย์ และ API URL เรียบร้อยแล้ว:
   const PROMPTPAY_NUMBER = '0643040487'; 
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwae4_LuKl8JqiLOeFvfveobwj9zn8SWNYwZvnWBrqSa-NcjjXk_JAXkIFORLy_C7ePuA/exec'; 
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwJucQYl1fw_DAz9gKPsmrYvKuKzra83l66Rd7HWoaB_7yS6PafIs-fkDTVxA5O6_r6Tw/exec'; 
+  const PRICE_PER_SHIRT = 359; 
   // =========================================================================
   
-  const PRICE_PER_SHIRT = 359; 
   let currentStudentId = '';
   
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
@@ -330,6 +322,14 @@
     window.scrollTo(0, 0);
   }
 
+  // ฟังก์ชันออกจากระบบ
+  function logout() {
+    currentStudentId = '';
+    document.getElementById('studentId').value = '';
+    document.getElementById('loginError').innerText = '';
+    switchSection('login-section');
+  }
+
   async function callAPI(action, dataPayload = {}) {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -350,17 +350,20 @@
       const res = await callAPI('verifyStudent', { studentId: id });
       if (res.success) {
         currentStudentId = id;
+        // ใส่ชื่อในหน้า Dashboard และหน้าจองเสื้อ
+        document.getElementById('menuStudentName').innerText = res.name;
         document.getElementById('studentName').innerText = res.name;
-        switchSection('booking-section');
+        
+        // เมื่อล็อกอินผ่าน ให้พาไปหน้า Menu แทน
+        switchSection('menu-section');
       } else {
         document.getElementById('loginError').innerText = res.message;
-        btn.disabled = false;
-        btn.innerText = 'เข้าสู่ระบบเพื่อจองเสื้อช็อป →';
       }
     } catch (e) {
       document.getElementById('loginError').innerText = 'ไม่สามารถเชื่อมต่อระบบได้ โปรดลองอีกครั้ง';
+    } finally {
       btn.disabled = false;
-      btn.innerText = 'เข้าสู่ระบบเพื่อจองเสื้อช็อป →';
+      btn.innerText = 'เข้าสู่ระบบ →';
     }
   }
 
@@ -408,7 +411,8 @@
       l: document.getElementById('qty-l').value || 0,
       xl: document.getElementById('qty-xl').value || 0,
       xxl: document.getElementById('qty-xxl').value || 0,
-      other: otherCombined
+      other: otherCombined,
+      otherNum: otherNum
     };
 
     try {
@@ -466,7 +470,7 @@
     const btn = document.getElementById('btnUpload');
     btn.disabled = true;
     btn.innerText = 'กำลังอัปโหลดสลิป & ส่งอีเมลยืนยัน...';
-    msg.innerText = 'กำลังบันทึกข้อมูลและจัดส่งใบเสร็จไปทางอีเมล กรุณารอสักครู่...';
+    msg.innerText = '⏳ กำลังบันทึกข้อมูลและจัดส่งใบเสร็จไปทางอีเมล กรุณารอสักครู่...';
     msg.style.color = 'var(--main-blue)';
 
     const reader = new FileReader();
