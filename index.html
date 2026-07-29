@@ -174,16 +174,21 @@
 
 
   <!-- หน้า 4: ทำรายการสำเร็จ (แยกออกมาเป็นหน้าใหม่) -->
+ <!-- หน้า 4: ทำรายการสำเร็จ (ต้องมี status-icon และ status-title โค้ด JS ถึงจะไม่พังครับ) -->
   <div id="done-section" class="section">
+    
+    <!-- 🔥 2 บรรทัดที่เคยหายไปครับ (ห้ามลบนะครับ) -->
+    <div id="status-icon" class="pulse" style="font-size: 64px; margin-bottom: 10px;">⏳</div>
+    <h2 id="status-title" style="color: var(--main-blue);">กำลังส่งข้อมูลเข้าระบบ...</h2>
+
     <div id="status-box" style="background:#fff7ed; border:1px solid #fed7aa; padding:15px; border-radius:14px; margin:20px 0; font-size:14px; color:#c2410c; text-align: center;">
-      <b>จองสำเร็จ</b><br>
+      <b>กำลังดำเนินการ</b><br>
       <span style="font-size: 12px; margin-top: 5px; display: inline-block;">ระบบกำลังบันทึกข้อมูลและส่งอีเมลยืนยัน<br>อาจใช้เวลาประมาณ 3-5 วินาที</span>
     </div>
     
     <button id="btnReload" class="btn-success" style="margin-top:10px; display:none;" onclick="location.reload()">← กลับสู่หน้าแรก (จองคนต่อไป)</button>
   </div>
 </div> <!-- ปิด container หลัก -->
-
 <script>
   // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
   const API_URL = 'https://script.google.com/macros/s/AKfycbw2QYo_URSwDUJorEtcoXz6L3oEqmQMQGRqx8__oKPLZyA-btXJTOmk1lzYFOoWlmGnnA/exec'; 
