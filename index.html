@@ -162,12 +162,13 @@
     </div>
     <div style="text-align: left; margin-top: 15px;">
       <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
-      <input type="file" id="slipFile" accept="image/*" style="background:white;">
-    </div>
-    <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป & เสร็จสิ้นการจอง ✓</button>
-    <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับ</button>
+      <!-- เพิ่ม onchange เข้ามาเพื่อสั่งให้อัปโหลดรูปล่วงหน้า -->
+    <input type="file" id="slipFile" accept="image/*" style="margin-top: 5px; background:white;" onchange="handleBackgroundUpload(this)">
+
+    <!-- เปลี่ยน onclick เป็น finalizeOrderFast() และตั้งต้นให้ disabled ไว้ก่อน -->
+    <button id="btnUpload" class="btn-success" onclick="finalizeOrderFast()" disabled>กรุณาเลือกรูปสลิปก่อน ⏳</button>
+    <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
-  </div>
 
   <div id="done-section" class="section">
     <div style="font-size: 64px; margin-bottom: 10px;"></div>
@@ -342,22 +343,97 @@
     } catch(e) { alert('ส่งข้อมูลไม่สำเร็จ'); } finally { btn.disabled = false; btn.innerText = 'ถัดไป →'; }
   }
 
-  function uploadFile() {
-    const phone = document.getElementById('contact-phone').value.trim(), email = document.getElementById('contact-email').value.trim(), date = document.getElementById('transfer-date').value, h = document.getElementById('transfer-hour').value, m = document.getElementById('transfer-minute').value;
-    if (!phone) return alert('กรุณากรอกเบอร์โทรศัพท์'); if (!email || !email.includes('@')) return alert('กรุณากรอกอีเมลให้ถูกต้อง'); if (!date || !h || !m) return alert('กรุณาระบุวัน-เวลาโอนให้ครบ');
+ // เพิ่มตัวแปรนี้ไว้สำหรับเก็บลิงก์รูปที่อัปโหลดล่วงหน้าเสร็จแล้ว
+  let preUploadedImageUrl = ''; 
+  let preUploadedFileUrl = '';
+
+  // ฟังก์ชัน 1: ระบบแอบอัปโหลดรูปเบื้องหลังทันทีที่เลือกไฟล์
+  function handleBackgroundUpload(input) {
+    const file = input.files[0];
+    const uploadMsg = document.getElementById('uploadMsg');
+    const btnUpload = document.getElementById('btnUpload');
     
-    const file = document.getElementById('slipFile').files[0], msg = document.getElementById('uploadMsg'), btn = document.getElementById('btnUpload');
-    if (!file) { msg.innerText = 'กรุณาเลือกไฟล์สลิป'; return; }
+    if (!file) return;
+
+    preUploadedImageUrl = '';
+    preUploadedFileUrl = '';
     
-    btn.disabled = true; btn.innerText = 'กำลังอัปโหลด...'; msg.innerText = 'กำลังบันทึกสลิปและจัดส่งอีเมล...';
+    uploadMsg.innerHTML = '⏳ กำลังเตรียมไฟล์สลิปล่วงหน้า (ไม่ต้องรอ)...';
+    uploadMsg.style.color = '#d97706';
+    btnUpload.disabled = true;
+    btnUpload.innerText = 'กำลังเตรียมข้อมูล... ⏳';
+
     const reader = new FileReader();
     reader.onload = async function(e) {
+      const base64 = e.target.result.split(',')[1];
       try {
-        const res = await callAPI('uploadSlip', { studentId: currentStudentId, base64Data: e.target.result.split(',')[1], fileName: file.name, mimeType: file.type, contactData: { phone: phone, email: email, transferDateTime: `${date.split('-').reverse().join('/')} เวลา ${h}:${m} น.` } });
-        if (res.success) switchSection('done-section'); else { msg.innerText = 'Error: ' + res.message; btn.disabled = false; btn.innerText = 'อัปโหลดอีกครั้ง'; }
-      } catch(e) { msg.innerText = 'ไม่สามารถส่งไฟล์ได้'; btn.disabled = false; btn.innerText = 'อัปโหลดอีกครั้ง'; }
+        const res = await callAPI('preUploadImage', {
+          studentId: currentStudentId,
+          base64Data: base64,
+          fileName: file.name,
+          mimeType: file.type
+        });
+        
+        if (res.success) {
+          preUploadedImageUrl = res.imageUrl;
+          preUploadedFileUrl = res.fileUrl;
+          uploadMsg.innerHTML = '✅ เตรียมรูปภาพสลิปพร้อมใช้งานแล้ว!';
+          uploadMsg.style.color = '#15803d';
+          btnUpload.disabled = false;
+          btnUpload.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
+        } else {
+          uploadMsg.innerHTML = '❌ อัปโหลดรูปล้มเหลว โปรดเลือกรูปใหม่อีกครั้ง';
+          uploadMsg.style.color = '#e11d48';
+        }
+      } catch(err) {
+        uploadMsg.innerHTML = '❌ การเชื่อมต่อขัดข้อง โปรดเลือกรูปใหม่อีกครั้ง';
+        uploadMsg.style.color = '#e11d48';
+      }
     };
     reader.readAsDataURL(file);
+  }
+
+  // ฟังก์ชัน 2: ระบบยืนยันขั้นสุดท้าย (ไม่ต้องรอโหลดรูปแล้ว เพราะรูปอัปเสร็จแล้ว)
+  async function finalizeOrderFast() {
+    const phone = document.getElementById('contact-phone').value.trim();
+    const email = document.getElementById('contact-email').value.trim();
+    const transferDate = document.getElementById('transfer-date').value;
+    const transferHour = document.getElementById('transfer-hour').value;
+    const transferMinute = document.getElementById('transfer-minute').value;
+
+    if (!phone) { alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ'); return; }
+    if (!email || !email.includes('@')) { alert('กรุณากรอกอีเมลให้ถูกต้องครับ'); return; }
+    if (!transferDate || transferHour === "" || transferMinute === "") { alert('กรุณาระบุวันที่และเวลาที่โอนเงินครับ'); return; }
+    if (!preUploadedImageUrl) { alert('ระบบกำลังประมวลผลรูปภาพ กรุณารอสักครู่'); return; }
+
+    const [year, month, day] = transferDate.split('-');
+    const formattedDateTime = `${day}/${month}/${year} เวลา ${transferHour}:${transferMinute} น.`;
+
+    const btn = document.getElementById('btnUpload');
+    btn.disabled = true;
+    btn.innerText = 'กำลังบันทึกข้อมูล... ⚡';
+
+    try {
+      const res = await callAPI('finalizeOrder', {
+        studentId: currentStudentId,
+        imageUrl: preUploadedImageUrl,
+        fileUrl: preUploadedFileUrl,
+        contactData: { phone: phone, email: email, transferDateTime: formattedDateTime }
+      });
+      
+      if (res.success) {
+        // เด้งไปหน้าเสร็จสิ้นทันที
+        switchSection('done-section'); 
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + res.message);
+        btn.disabled = false;
+        btn.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
+      }
+    } catch(e) {
+      alert('ไม่สามารถส่งข้อมูลได้ โปรดลองอีกครั้ง');
+      btn.disabled = false;
+      btn.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
+    }
   }
 // =======================================================
   // ฟังก์ชันอเนกประสงค์: ดึงข้อมูลฟอร์ม และส่งไปบันทึกลง Google Sheet
