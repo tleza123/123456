@@ -359,6 +359,55 @@
     };
     reader.readAsDataURL(file);
   }
+// =======================================================
+  // ฟังก์ชันอเนกประสงค์: ดึงข้อมูลฟอร์ม และส่งไปบันทึกลง Google Sheet
+  // =======================================================
+  async function submitCustomForm(event, activityId, containerId) {
+    if (!currentStudentId) return alert("กรุณาเข้าสู่ระบบก่อนทำรายการ");
+    
+    const container = document.getElementById(containerId);
+    if (!container) return alert("เกิดข้อผิดพลาด: ไม่พบแบบฟอร์ม");
+
+    // ดึงค่าจาก input, select, textarea ทุกอันที่มีการตั้งชื่อ (name) ไว้
+    const inputs = container.querySelectorAll('input[name], select[name], textarea[name]');
+    let formData = {};
+    inputs.forEach(el => {
+      if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked) formData[el.name] = el.value;
+      } else {
+          formData[el.name] = el.value;
+      }
+    });
+
+    if (Object.keys(formData).length === 0) {
+       return alert("ไม่พบข้อมูลที่จะส่ง (โปรดตรวจสอบว่าได้ตั้งค่า name ให้กับช่องกรอกข้อมูลแล้ว)");
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'กำลังบันทึกข้อมูล...';
+
+    try {
+      const res = await callAPI('submitDynamicForm', { 
+        studentId: currentStudentId, 
+        activityId: activityId, 
+        formData: formData 
+      });
+      
+      if (res.success) {
+        alert('🎉 ' + res.message);
+        switchSection('home-section'); // ส่งสำเร็จ เด้งกลับหน้าโฮม
+      } else {
+        alert('❌ ' + res.message);
+      }
+    } catch(e) {
+      alert('เกิดข้อผิดพลาด ไม่สามารถเชื่อมต่อระบบได้');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = originalText;
+    }
+  }
 </script>
 </body>
 </html>
