@@ -170,6 +170,15 @@
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
 
+      <div id="done-section" class="section">
+ 
+    <div id="status-box" style="background:#fff7ed; border:1px solid #fed7aa; padding:15px; border-radius:14px; margin:20px 0; font-size:14px; color:#c2410c; text-align: center;">
+      <b>จองสำเร็จ</b><br>
+      <span style="font-size: 12px; margin-top: 5px; display: inline-block;">ระบบกำลังบันทึกข้อมูลและส่งอีเมลยืนยัน<br>อาจใช้เวลาประมาณ 3-5 วินาที</span>
+    </div>
+    
+    <button id="btnReload" class="btn-success" style="margin-top:10px; display:none;" onclick="location.reload()">← กลับสู่หน้าแรก (จองคนต่อไป)</button>
+  </div>
 <script>
   // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
   const API_URL = 'https://script.google.com/macros/s/AKfycbw2QYo_URSwDUJorEtcoXz6L3oEqmQMQGRqx8__oKPLZyA-btXJTOmk1lzYFOoWlmGnnA/exec'; 
