@@ -10,167 +10,84 @@
   
   <style>
     :root {
-      --main-blue: #003566;
-      --main-blue-light: #004e98;
-      --main-gold: #ffc300;
+      --main-blue: #003566; --main-blue-light: #004e98; --main-gold: #ffc300;
       --bg-gradient: linear-gradient(135deg, #f0f4f8 0%, #dbeafe 100%);
-      --text-main: #1e293b;
-      --text-muted: #64748b;
+      --text-main: #1e293b; --text-muted: #64748b;
     }
-
     * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
-    
-    body { 
-      background: var(--bg-gradient); min-height: 100vh; margin: 0; padding: 20px 10px; 
-      color: var(--text-main); display: flex; justify-content: center; align-items: flex-start;
-    }
-
-    .container { 
-      width: 100%; max-width: 480px; background: rgba(255, 255, 255, 0.95); 
-      padding: 30px 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 53, 102, 0.1);
-      backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8);
-      margin-top: 10px; margin-bottom: 80px; text-align: center; position: relative;
-    }
-
-    .header-badge {
-      display: inline-block; background: #e0f2fe; color: var(--main-blue); font-size: 12px;
-      font-weight: 600; padding: 6px 16px; border-radius: 50px; margin-bottom: 15px;
-      letter-spacing: 0.5px; border: 1px solid #bae6fd;
-    }
-
+    body { background: var(--bg-gradient); min-height: 100vh; margin: 0; padding: 20px 10px; color: var(--text-main); display: flex; justify-content: center; align-items: flex-start; }
+    .container { width: 100%; max-width: 480px; background: rgba(255, 255, 255, 0.95); padding: 30px 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 53, 102, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8); margin-top: 10px; margin-bottom: 80px; text-align: center; position: relative; }
+    .header-badge { display: inline-block; background: #e0f2fe; color: var(--main-blue); font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 50px; margin-bottom: 15px; border: 1px solid #bae6fd; }
     h2 { color: var(--main-blue); font-weight: 700; margin: 0 0 8px 0; font-size: 24px; }
     h3 { color: var(--main-blue); font-weight: 600; margin: 0 0 15px 0; font-size: 20px; }
     p { color: var(--text-muted); font-size: 14px; margin: 0 0 20px 0; }
-
     .section { display: none; animation: fadeIn 0.3s ease-in-out; }
     .active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* สไตล์การ์ดกิจกรรมในหน้าโฮม */
-    .task-card {
-      background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px;
-      margin-bottom: 12px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-      position: relative; overflow: hidden; transition: 0.2s; border-left: 5px solid var(--main-blue);
-    }
+    .task-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; margin-bottom: 12px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid var(--main-blue); transition: 0.2s; }
     .task-card:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
     .task-title { font-weight: 700; font-size: 16px; color: var(--main-blue); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-    .task-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4; }
+    .task-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
     .task-timer { font-size: 12px; font-weight: 600; color: #d97706; background: #fef3c7; padding: 6px 10px; border-radius: 8px; display: inline-block; }
     .task-btn { margin-top: 12px; padding: 8px 12px; font-size: 14px; border-radius: 8px; }
 
-    /* ปุ่มเมนูลอยมุมซ้ายล่าง (FAB) */
-    .fab-menu {
-      position: fixed; bottom: 25px; left: 25px; background: var(--main-blue); color: white;
-      border-radius: 50px; padding: 12px 20px; font-weight: 700; font-size: 15px;
-      box-shadow: 0 8px 20px rgba(0, 35, 102, 0.4); cursor: pointer; z-index: 1000;
-      display: none; align-items: center; gap: 8px; transition: 0.2s; border: 2px solid white;
-    }
-    .fab-menu:hover { transform: scale(1.05); background: var(--main-blue-light); }
-
-    /* Modal เมนูเต็มรูปแบบ */
-    .menu-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6);
-      z-index: 1001; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(3px);
-    }
-    .menu-content {
-      background: white; width: 100%; max-width: 500px; border-radius: 24px 24px 0 0;
-      padding: 30px 25px; animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto;
-    }
+    .fab-menu { position: fixed; bottom: 25px; left: 25px; background: var(--main-blue); color: white; border-radius: 50px; padding: 12px 20px; font-weight: 700; font-size: 15px; box-shadow: 0 8px 20px rgba(0, 35, 102, 0.4); cursor: pointer; z-index: 1000; display: none; align-items: center; gap: 8px; border: 2px solid white; }
+    .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1001; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(3px); }
+    .menu-content { background: white; width: 100%; max-width: 500px; border-radius: 24px 24px 0 0; padding: 30px 25px; animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    
-    .menu-item {
-      display: flex; align-items: center; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0;
-      border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: 0.2s;
-    }
-    .menu-item:hover { border-color: var(--main-blue); background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    .menu-item-icon { font-size: 28px; margin-right: 15px; min-width: 40px; text-align: center; }
-    .menu-item-text { text-align: left; }
+    .menu-item { display: flex; align-items: center; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 10px; cursor: pointer; }
+    .menu-item-icon { font-size: 28px; margin-right: 15px; }
     .menu-item-title { font-weight: 700; font-size: 15px; color: var(--main-blue); }
-    .menu-item-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .menu-item-desc { font-size: 12px; color: var(--text-muted); }
 
-    /* อินพุตและปุ่มฟอร์มต่างๆ */
-    input[type="text"], input[type="number"], input[type="file"], input[type="email"], input[type="tel"], input[type="date"], select { 
-      width: 100%; padding: 12px 16px; margin: 6px 0 14px 0; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 14px; color: var(--text-main); background: #f8fafc; transition: all 0.2s;
-    }
-    input:focus, select:focus { outline: none; border-color: var(--main-blue); background: white; box-shadow: 0 0 0 4px rgba(0, 53, 102, 0.1); }
-
-    button { background: linear-gradient(135deg, var(--main-blue) 0%, var(--main-blue-light) 100%); color: white; border: none; padding: 14px 20px; border-radius: 14px; cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; margin-top: 15px; box-shadow: 0 4px 12px rgba(0, 53, 102, 0.2); transition: all 0.2s; }
-    button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 53, 102, 0.3); }
-    button:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; transform: none; }
-    
+    input, select { width: 100%; padding: 12px 16px; margin: 6px 0 14px 0; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 14px; background: #f8fafc; }
+    button { background: linear-gradient(135deg, var(--main-blue) 0%, var(--main-blue-light) 100%); color: white; border: none; padding: 14px 20px; border-radius: 14px; cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; margin-top: 15px; }
     .nav-group { display: flex; gap: 12px; margin-top: 15px; }
     .nav-group button { margin-top: 0; width: 50%; }
-    .btn-secondary { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
-    .btn-secondary:hover { background: #e2e8f0 !important; color: #1e293b !important; }
-    .btn-success { background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important; }
+    .btn-secondary { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; }
+    .btn-success { background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important; }
     
     .shirt-gallery { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 15px; }
     .shirt-preview { width: 100%; max-width: 260px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 3px solid white; }
-    .size-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; text-align: left; background: #f8fafc; padding: 6px 16px; border-radius: 12px; border: 1px solid #f1f5f9; }
+    .size-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: #f8fafc; padding: 6px 16px; border-radius: 12px; border: 1px solid #f1f5f9; }
     .size-row label { font-weight: 600; width: 60px; font-size: 16px; color: var(--main-blue); }
-    .size-row input { margin: 0; text-align: center; width: 80px; background: white; }
-    .price-box { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; padding: 18px; border-radius: 16px; margin: 20px 0; }
-    .payment-box { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; padding: 20px; border-radius: 20px; margin: 15px 0; }
+    .size-row input { margin: 0; text-align: center; width: 80px; }
+    .price-box, .payment-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 18px; border-radius: 16px; margin: 20px 0; }
     .contact-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 18px; border-radius: 16px; margin: 15px 0; text-align: left; }
-    .contact-box label { color: var(--main-blue); font-weight: 600; font-size: 13px; display: block; margin-bottom: 6px; }
     .qr-frame { background: white; padding: 15px; border-radius: 16px; border: 2px dashed #f59e0b; display: inline-block; margin: 12px 0; }
-    .qr-frame img { width: 190px; height: 190px; display: block; margin: 0 auto; }
     .error { color: #e11d48; font-size: 13px; margin-top: 10px; font-weight: 500; }
+    
+    /* หน้าโหลดดิ้ง */
+    #loading-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
   </style>
 </head>
 <body>
 
-<!-- ปุ่มลอยเมนู มุมซ้ายล่าง (โชว์เฉพาะหน้าโฮม) -->
-<div id="fabMenuBtn" class="fab-menu" onclick="openMenuModal()">
-  <span style="font-size: 18px;">☰</span> Menu
+<!-- หน้าจอกำลังโหลดเพื่อดึงข้อมูลจากหลังบ้าน -->
+<div id="loading-screen">
+  <h2 style="color:var(--main-blue);">กำลังโหลดระบบ...</h2>
+  <p>DE 06 PORTAL</p>
 </div>
 
-<!-- กล่อง Modal เมนูบริการทั้งหมด -->
+<!-- ปุ่มลอยเมนู -->
+<div id="fabMenuBtn" class="fab-menu" onclick="openMenuModal()"><span style="font-size: 18px;">☰</span> Menu</div>
+
 <div id="menuOverlay" class="menu-overlay" onclick="closeMenuModal(event)">
   <div class="menu-content" onclick="event.stopPropagation()">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h3 style="margin:0;">เมนูบริการทั้งหมด</h3>
       <button style="width: auto; padding: 6px 12px; margin: 0; background: #f1f5f9; color: #333;" onclick="closeMenuModal()">✕ ปิด</button>
     </div>
-    
-    <!-- รายการเมนูทั้งหมด -->
-    <div class="menu-item" onclick="goToSection('booking-section')">
-      <div class="menu-item-icon">👕</div>
-      <div class="menu-item-text">
-        <div class="menu-item-title">จองเสื้อช็อป รุ่น 06</div>
-        <div class="menu-item-desc">ระบบสั่งจองและชำระเงินค่าเสื้อช็อป</div>
-      </div>
-    </div>
-    
-    <div class="menu-item" style="opacity: 0.5; cursor: not-allowed;" onclick="alert('ระบบนี้กำลังพัฒนา เร็วๆ นี้ครับ')">
-      <div class="menu-item-icon"></div>
-      <div class="menu-item-text">
-        <div class="menu-item-title">ช</div>
-        <div class="menu-item-desc">ช)</div>
-      </div>
-    </div>
-
-    <div class="menu-item" style="opacity: 0.5; cursor: not-allowed;" onclick="alert('ระบบนี้กำลังพัฒนา เร็วๆ นี้ครับ')">
-      <div class="menu-item-icon"></div>
-      <div class="menu-item-text">
-        <div class="menu-item-title">ม</div>
-        <div class="menu-item-desc"></div>
-      </div>
-    </div>
-    
+    <div id="menu-list-container"></div>
     <button class="btn-secondary" style="margin-top: 15px;" onclick="logout()">← ออกจากระบบ</button>
   </div>
 </div>
 
 <div class="container">
   
-  <!-- หน้า 1: ล็อกอิน -->
   <div id="login-section" class="section active">
-    <div class="header-badge"> DIGITAL ENTREPRENEUR รุ่น 06</div>
+    <div class="header-badge">🔥 DIGITAL ENTREPRENEUR รุ่น 06</div>
     <h2>เข้าสู่ระบบนักศึกษา</h2>
     <p>สาขาวิชาผู้ประกอบการดิจิทัล</p>
     <div style="text-align: left; margin-top: 20px;">
@@ -181,30 +98,21 @@
     <div id="loginError" class="error"></div>
   </div>
 
-  <!-- หน้า 2: หน้าโฮม (Dashboard) แสดงกิจกรรมเรียงตามเวลา -->
   <div id="home-section" class="section">
-    <div class="header-badge">HOME • DE 06 </div>
+    <div class="header-badge">HOME • DE 06</div>
     <h3 style="margin-bottom: 5px; color: var(--text-main); font-size:18px;">ยินดีต้อนรับ,</h3>
     <h2 style="color:var(--main-blue); margin-bottom: 25px; font-size: 20px;"><span id="homeStudentName"></span></h2>
-    
-    <div style="text-align: left; margin-bottom: 15px;">
-      <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">กิจกรรมที่กำลังดำเนินการ</h3>
-    </div>
-
-    <!-- โค้ด JS จะมาสร้างการ์ดกิจกรรมใส่ใน div นี้อัตโนมัติ -->
+    <div style="text-align: left; margin-bottom: 15px;"><h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">กิจกรรมที่กำลังดำเนินการ</h3></div>
     <div id="active-tasks-container"></div>
   </div>
 
-  <!-- หน้า 3: เลือกไซส์เสื้อ (เหมือนเดิม) -->
   <div id="booking-section" class="section">
     <div class="header-badge">STEP 1: เลือกไซส์เสื้อช็อป</div>
     <h3>ผู้จอง: <span id="studentName" style="color:var(--main-blue-light);"></span></h3>
-    
     <div class="shirt-gallery">
-      <img src="755732903_3416811905158788_5651129749747833900_n.jpg" alt="Shirt Front/Details" class="shirt-preview">
-      <img src="70E819B1-2C1F-43A8-AB86-C013FBE67789.jpg" alt="Shirt Size/Back" class="shirt-preview">
+      <img src="755732903_3416811905158788_5651129749747833900_n.jpg" class="shirt-preview">
+      <img src="70E819B1-2C1F-43A8-AB86-C013FBE67789.jpg" class="shirt-preview">
     </div>
-
     <p style="margin: 0 0 15px; font-weight: 600; color: var(--main-blue);">ราคาตัวละ <span id="show-price" style="color:#d97706; font-size: 18px;">0</span> บาท</p>
     
     <div class="size-row"><label>XS</label><input type="number" id="qty-xs" min="0" placeholder="0" oninput="calculateTotal()"></div>
@@ -213,7 +121,6 @@
     <div class="size-row"><label>L</label><input type="number" id="qty-l" min="0" placeholder="0" oninput="calculateTotal()"></div>
     <div class="size-row"><label>XL</label><input type="number" id="qty-xl" min="0" placeholder="0" oninput="calculateTotal()"></div>
     <div class="size-row"><label>2XL</label><input type="number" id="qty-xxl" min="0" placeholder="0" oninput="calculateTotal()"></div>
-    
     <div style="margin-top: 12px; text-align: left; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px dashed #cbd5e1;">
       <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); display: block; margin-bottom: 8px;">✨ ไซส์พิเศษอื่นๆ (ถ้ามี):</label>
       <div style="display: flex; gap: 8px;">
@@ -221,336 +128,202 @@
         <input type="number" id="qty-other-num" min="0" placeholder="จำนวน" style="flex: 1; margin: 0; text-align: center;" oninput="calculateTotal()">
       </div>
     </div>
-
     <div class="price-box">
       <div style="font-size: 13px; color: #15803d; font-weight: 500;">จำนวนเสื้อรวมทั้งหมด: <span id="total-qty" style="font-weight: 700; font-size: 16px;">0</span> ตัว</div>
       <div style="font-size: 22px; font-weight: 700; color: #15803d; margin-top: 4px;">ยอดชำระทั้งสิ้น: <span id="total-price">0</span> บาท</div>
     </div>
-    
     <div class="nav-group">
       <button class="btn-secondary" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
-      <button id="btnBook" onclick="submitOrder()" style="margin-top:0;">ถัดไป →</button>
+      <button id="btnBook" onclick="submitOrder()">ถัดไป →</button>
     </div>
   </div>
 
-  <!-- หน้า 4: อัปโหลดสลิป (เหมือนเดิม) -->
   <div id="upload-section" class="section">
     <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>สแกน QR เพื่อชำระเงิน</h2>
-    <p>ระบบจะสร้างยอดโอนให้อัตโนมัติ</p>
-    
     <div class="payment-box">
       <div style="font-size: 13px; color: #b45309; font-weight: 600;">ยอดที่ต้องโอนชำระ</div>
       <div style="font-size: 32px; font-weight: 700; color: #d97706; margin: 2px 0;"><span id="pay-amount">0</span> บาท</div>
-      
-      <div class="qr-frame">
-        <img id="qr-img" src="" alt="PromptPay QR">
-      </div>
-      <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 4px;">ชื่อบัญชี นายพิชยะ ประจิตต์<span style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 4px;">พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 11px; color: #78350f; margin-top: 4px;">(บันทึกจอหรือใช้แอปธนาคารสแกนได้ทันที)</div>
+      <div class="qr-frame"><img id="qr-img" src=""></div>
+      <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">ชื่อบัญชี: <span id="show-acc-name" style="color:var(--main-blue);"></span></div>
+      <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
     </div>
-
     <div class="contact-box">
       <label>📞 ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
-      <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" style="margin-bottom: 10px;">
-      <input type="email" id="contact-email" placeholder="2. อีเมล (เช่น name@email.com)" style="margin-bottom: 10px;">
-      
-      <label style="margin-top: 10px;">📅 วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม. ตามในสลิป):</label>
+      <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ">
+      <input type="email" id="contact-email" placeholder="2. อีเมล">
+      <label style="margin-top: 10px;">📅 วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม.):</label>
       <div style="display: flex; gap: 6px; align-items: center;">
         <input type="date" id="transfer-date" style="flex: 2; margin: 0;">
-        <select id="transfer-hour" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;">
-          <option value="">ชม.</option>
-        </select>
+        <select id="transfer-hour" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">ชม.</option></select>
         <span style="font-weight: 700; color: var(--main-blue);">:</span>
-        <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;">
-          <option value="">นาที</option>
-        </select>
+        <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">นาที</option></select>
       </div>
     </div>
-
     <div style="text-align: left; margin-top: 15px;">
-      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); margin-left: 4px;">📎 แนบรูปภาพสลิปชำระเงิน:</label>
+      <label style="font-weight: 600; font-size: 13px;">📎 แนบรูปภาพสลิปชำระเงิน:</label>
       <input type="file" id="slipFile" accept="image/*" style="background:white;">
     </div>
-
     <button id="btnUpload" class="btn-success" onclick="uploadFile()">อัปโหลดสลิป & เสร็จสิ้นการจอง ✓</button>
-    <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
+    <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับ</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
   </div>
 
-  <!-- หน้า 5: เสร็จสิ้น -->
   <div id="done-section" class="section">
     <div style="font-size: 64px; margin-bottom: 10px;">🎉</div>
     <h2>การจองเสร็จสมบูรณ์!</h2>
-    <p style="color: #15803d; font-weight: 500;">ระบบบันทึกข้อมูลและจัดส่งใบเสร็จยืนยัน<br>ไปที่อีเมลของคุณเรียบร้อยแล้วครับ</p>
-    <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:14px; margin:20px 0; font-size:13px; color:#166534;">
-      💡 อย่าลืมตรวจสอบกล่องจดหมายเข้า หรือจดหมายขยะ (Spam) ในอีเมลของคุณนะครับ
-    </div>
+    <p style="color: #15803d;">ระบบบันทึกข้อมูลและจัดส่งใบเสร็จยืนยันไปที่อีเมลของคุณเรียบร้อยแล้วครับ</p>
     <div class="nav-group">
-      <button style="margin-top:0;" onclick="switchSection('home-section')">กลับหน้าโฮม</button>
-      <button class="btn-secondary" style="margin-top:0;" onclick="logout()">ออกจากระบบ</button>
+      <button onclick="switchSection('home-section')">กลับหน้าโฮม</button>
+      <button class="btn-secondary" onclick="logout()">ออกจากระบบ</button>
     </div>
   </div>
 </div>
 
 <script>
-  // =========================================================================
-  const PROMPTPAY_NUMBER = '0643040487'; 
+  // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
   const API_URL = 'https://script.google.com/macros/s/AKfycbwJucQYl1fw_DAz9gKPsmrYvKuKzra83l66Rd7HWoaB_7yS6PafIs-fkDTVxA5O6_r6Tw/exec'; 
   const PRICE_PER_SHIRT = 359; 
-  // =========================================================================
   
   let currentStudentId = '';
+  let appConfig = {};
+  let allTasks = [];
+
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
-  document.getElementById('show-pp-number').innerText = PROMPTPAY_NUMBER;
 
-  // 📝 ข้อมูลกิจกรรมทั้งหมด (สามารถเพิ่มกิจกรรมในอนาคตได้ตรงนี้)
-  const allTasks = [
-    {
-      id: 'booking-shirt',
-      icon: '',
-      title: 'จองเสื้อช็อป DE รุ่น 06',
-      desc: 'ระบบสั่งจองและชำระเงินค่าเสื้อช็อปรุ่น',
-      // ตั้งวันหมดเขต (รูปแบบ YYYY-MM-DDTHH:MM:00)
-      endDate: new Date('2026-08-31T23:59:00').getTime(), 
-      action: "goToSection('booking-section')"
-    },
-    {
-      id: 'mock-task-1',
-      icon: '',
-      title: 'SOON',
-      desc: '',
-      endDate: new Date('2100-09-15T12:00:00').getTime(), 
-      action: "alert('ยังไม่เปิดให้กรอกข้อมูลครับ')"
-    }
-  ];
-
-  window.onload = function() {
-    const hourSelect = document.getElementById('transfer-hour');
-    const minuteSelect = document.getElementById('transfer-minute');
-    for (let i = 0; i <= 23; i++) {
-      const val = i.toString().padStart(2, '0');
-      hourSelect.innerHTML += `<option value="${val}">${val}</option>`;
-    }
-    for (let i = 0; i <= 59; i++) {
-      const val = i.toString().padStart(2, '0');
-      minuteSelect.innerHTML += `<option value="${val}">${val}</option>`;
+  window.onload = async function() {
+    // โหลดเวลา
+    const hSel = document.getElementById('transfer-hour');
+    const mSel = document.getElementById('transfer-minute');
+    for (let i=0; i<=23; i++) hSel.innerHTML += `<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}</option>`;
+    for (let i=0; i<=59; i++) mSel.innerHTML += `<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}</option>`;
+    
+    // ดึงค่าตั้งค่าจากฐานข้อมูล
+    const res = await callAPI('getAppConfig');
+    if(res.success) {
+      appConfig = res.config;
+      allTasks = res.tasks;
+      document.getElementById('show-pp-number').innerText = appConfig.PROMPTPAY_NUMBER || '';
+      document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
     }
     
-    // เริ่มระบบนับถอยหลังทุกๆ 1 วินาที
+    document.getElementById('loading-screen').style.display = 'none';
     setInterval(updateTimers, 1000);
   };
 
-  // จัดการการเปลี่ยนหน้าและปุ่ม FAB เมนู
   function switchSection(sectionId) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById(sectionId).classList.add('active');
     window.scrollTo(0, 0);
     
-    // โชว์ปุ่ม FAB เมนูซ้ายล่างเฉพาะในหน้า home-section
-    const fab = document.getElementById('fabMenuBtn');
     if (sectionId === 'home-section') {
-      fab.style.display = 'flex';
-      renderHomeTasks(); // เรนเดอร์กิจกรรมใหม่ทุกครั้งที่กลับมาหน้าโฮม
+      document.getElementById('fabMenuBtn').style.display = 'flex';
+      renderHomeTasks(); 
+      renderMenu();
     } else {
-      fab.style.display = 'none';
+      document.getElementById('fabMenuBtn').style.display = 'none';
     }
   }
 
-  // ระบบ Modal เมนู
   function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
-  function closeMenuModal(e) { 
-    if(!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; 
-  }
-  function goToSection(id) { closeMenuModal(); switchSection(id); }
+  function closeMenuModal(e) { if(!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
+  function logout() { currentStudentId = ''; document.getElementById('studentId').value = ''; closeMenuModal(); switchSection('login-section'); }
 
-  function logout() {
-    currentStudentId = '';
-    document.getElementById('studentId').value = '';
-    closeMenuModal();
-    switchSection('login-section');
+  function renderMenu() {
+    const list = document.getElementById('menu-list-container');
+    list.innerHTML = '';
+    allTasks.forEach(t => {
+      list.innerHTML += `<div class="menu-item" onclick="${t.action}; closeMenuModal();"><div class="menu-item-icon">${t.icon}</div><div class="menu-item-text"><div class="menu-item-title">${t.title}</div><div class="menu-item-desc">${t.desc}</div></div></div>`;
+    });
   }
 
-  // สร้างและจัดเรียงการ์ดกิจกรรมในหน้าโฮม
   function renderHomeTasks() {
     const container = document.getElementById('active-tasks-container');
     const now = new Date().getTime();
+    let activeTasks = allTasks.filter(t => new Date(t.endDate).getTime() > now);
+    activeTasks.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
     
-    // กรองเอากิจกรรมที่ยังไม่หมดเวลา และจัดเรียงจากเวลาใกล้หมดสุด (ค่าน้อยไปมาก)
-    let activeTasks = allTasks.filter(task => task.endDate > now);
-    activeTasks.sort((a, b) => a.endDate - b.endDate);
-    
-    if (activeTasks.length === 0) {
-      container.innerHTML = `<div style="text-align:center; padding: 20px; color:var(--text-muted);">ไม่มีกิจกรรมที่กำลังดำเนินการในขณะนี้</div>`;
-      return;
-    }
+    if (activeTasks.length === 0) { container.innerHTML = `<div style="text-align:center; padding:20px; color:gray;">ไม่มีกิจกรรมที่กำลังดำเนินการ</div>`; return; }
 
-    let html = '';
-    activeTasks.forEach(task => {
-      html += `
-        <div class="task-card">
-          <div class="task-title"><span>${task.icon}</span> ${task.title}</div>
-          <div class="task-desc">${task.desc}</div>
-          <div class="task-timer" data-end="${task.endDate}">⏳ กำลังคำนวณเวลา...</div>
-          <button class="task-btn" onclick="${task.action}">เข้าสู่กิจกรรม →</button>
-        </div>
-      `;
-    });
-    container.innerHTML = html;
-    updateTimers(); // เรียกคำนวณทันที 1 รอบไม่ต้องรอ 1 วินาที
+    container.innerHTML = activeTasks.map(task => `
+      <div class="task-card">
+        <div class="task-title"><span>${task.icon}</span> ${task.title}</div>
+        <div class="task-desc">${task.desc}</div>
+        <div class="task-timer" data-end="${task.endDate}">⏳ กำลังคำนวณเวลา...</div>
+        <button class="task-btn" onclick="${task.action}">เข้าสู่กิจกรรม →</button>
+      </div>
+    `).join('');
+    updateTimers(); 
   }
 
-  // ระบบคำนวณเวลานับถอยหลัง (Countdown)
   function updateTimers() {
     const now = new Date().getTime();
     document.querySelectorAll('.task-timer').forEach(el => {
-      const end = parseInt(el.getAttribute('data-end'));
+      const end = new Date(el.getAttribute('data-end')).getTime();
       const diff = end - now;
-      
-      if (diff <= 0) {
-        el.innerHTML = "❌ หมดเวลาทำรายการแล้ว";
-        el.style.background = "#fee2e2"; el.style.color = "#dc2626";
-      } else {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        let timeStr = "⏳ เหลือเวลา: ";
-        if (d > 0) timeStr += `${d} วัน `;
-        timeStr += `${h} ชม. ${m} นาที ${s} วิ`;
-        el.innerHTML = timeStr;
+      if (diff <= 0) { el.innerHTML = "❌ หมดเวลาแล้ว"; el.style.background = "#fee2e2"; el.style.color = "#dc2626"; } 
+      else {
+        const d = Math.floor(diff / (1000*60*60*24)), h = Math.floor((diff % (1000*60*60*24))/(1000*60*60)), m = Math.floor((diff % (1000*60*60))/(1000*60)), s = Math.floor((diff % (1000*60))/1000);
+        el.innerHTML = `⏳ เหลือเวลา: ${d>0?d+' วัน ':''}${h} ชม. ${m} นาที ${s} วิ`;
       }
     });
   }
 
   async function callAPI(action, dataPayload = {}) {
-    const response = await fetch(API_URL, {
-      method: 'POST', body: JSON.stringify({ action: action, ...dataPayload })
-    });
+    const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: action, ...dataPayload }) });
     return await response.json();
   }
 
   async function checkStudent() {
     const id = document.getElementById('studentId').value.trim();
     if (!id) return;
-    
-    const btn = document.getElementById('btnLogin');
-    btn.disabled = true; btn.innerText = 'กำลังตรวจสอบข้อมูล...';
-    
+    const btn = document.getElementById('btnLogin'); btn.disabled = true; btn.innerText = 'กำลังตรวจสอบ...';
     try {
       const res = await callAPI('verifyStudent', { studentId: id });
       if (res.success) {
-        currentStudentId = id;
-        document.getElementById('homeStudentName').innerText = res.name;
-        document.getElementById('studentName').innerText = res.name;
-        
-        // เมื่อล็อกอินผ่าน ให้พาไปหน้า Home 
+        currentStudentId = id; document.getElementById('homeStudentName').innerText = res.name; document.getElementById('studentName').innerText = res.name;
         switchSection('home-section');
-      } else {
-        document.getElementById('loginError').innerText = res.message;
-      }
-    } catch (e) {
-      document.getElementById('loginError').innerText = 'ไม่สามารถเชื่อมต่อระบบได้ โปรดลองอีกครั้ง';
-    } finally {
-      btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →';
-    }
+      } else document.getElementById('loginError').innerText = res.message;
+    } catch (e) { document.getElementById('loginError').innerText = 'ติดต่อเซิร์ฟเวอร์ไม่ได้'; } 
+    finally { btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →'; }
   }
 
   function calculateTotal() {
-    const xs = parseInt(document.getElementById('qty-xs').value) || 0;
-    const s = parseInt(document.getElementById('qty-s').value) || 0;
-    const m = parseInt(document.getElementById('qty-m').value) || 0;
-    const l = parseInt(document.getElementById('qty-l').value) || 0;
-    const xl = parseInt(document.getElementById('qty-xl').value) || 0;
-    const xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
-    const otherQty = parseInt(document.getElementById('qty-other-num').value) || 0;
-
-    const totalQty = xs + s + m + l + xl + xxl + otherQty;
+    const totalQty = (parseInt(document.getElementById('qty-xs').value)||0) + (parseInt(document.getElementById('qty-s').value)||0) + (parseInt(document.getElementById('qty-m').value)||0) + (parseInt(document.getElementById('qty-l').value)||0) + (parseInt(document.getElementById('qty-xl').value)||0) + (parseInt(document.getElementById('qty-xxl').value)||0) + (parseInt(document.getElementById('qty-other-num').value)||0);
     const totalPrice = totalQty * PRICE_PER_SHIRT;
-
-    document.getElementById('total-qty').innerText = totalQty;
-    document.getElementById('total-price').innerText = totalPrice.toLocaleString();
-    document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
-    document.getElementById('qr-img').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${totalPrice}.png`;
+    document.getElementById('total-qty').innerText = totalQty; document.getElementById('total-price').innerText = totalPrice.toLocaleString(); document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
+    if(appConfig.PROMPTPAY_NUMBER) document.getElementById('qr-img').src = `https://promptpay.io/${appConfig.PROMPTPAY_NUMBER}/${totalPrice}.png`;
   }
 
   async function submitOrder() {
-    const totalQty = parseInt(document.getElementById('total-qty').innerText) || 0;
-    if (totalQty === 0) { alert('กรุณาเลือกเสื้อช็อปอย่างน้อย 1 ตัวครับ'); return; }
-
-    const btn = document.getElementById('btnBook');
-    btn.disabled = true; btn.innerText = 'กำลังบันทึกรายการ...';
-
-    const otherText = document.getElementById('qty-other-text').value.trim();
+    if ((parseInt(document.getElementById('total-qty').innerText)||0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
+    const btn = document.getElementById('btnBook'); btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
     const otherNum = document.getElementById('qty-other-num').value || 0;
-    let otherCombined = '';
-    if (otherNum > 0) { otherCombined = (otherText ? otherText : 'ไซส์อื่นๆ') + ' (' + otherNum + ' ตัว)'; }
-
     const orderData = {
-      xs: document.getElementById('qty-xs').value || 0,
-      s: document.getElementById('qty-s').value || 0,
-      m: document.getElementById('qty-m').value || 0,
-      l: document.getElementById('qty-l').value || 0,
-      xl: document.getElementById('qty-xl').value || 0,
-      xxl: document.getElementById('qty-xxl').value || 0,
-      other: otherCombined,
-      otherNum: otherNum
+      xs: document.getElementById('qty-xs').value||0, s: document.getElementById('qty-s').value||0, m: document.getElementById('qty-m').value||0,
+      l: document.getElementById('qty-l').value||0, xl: document.getElementById('qty-xl').value||0, xxl: document.getElementById('qty-xxl').value||0,
+      other: otherNum > 0 ? `${document.getElementById('qty-other-text').value.trim()||'ไซส์อื่นๆ'} (${otherNum} ตัว)` : '', otherNum: otherNum
     };
-
     try {
       const res = await callAPI('submitBooking', { studentId: currentStudentId, orderData: orderData });
-      if (res.success) {
-        calculateTotal();
-        switchSection('upload-section');
-      } else { alert(res.message); }
-    } catch(e) { alert('เกิดข้อผิดพลาดในการส่งข้อมูล'); } 
-    finally { btn.disabled = false; btn.innerText = 'ถัดไป →'; }
+      if (res.success) { calculateTotal(); switchSection('upload-section'); } else alert(res.message);
+    } catch(e) { alert('ส่งข้อมูลไม่สำเร็จ'); } finally { btn.disabled = false; btn.innerText = 'ถัดไป →'; }
   }
 
   function uploadFile() {
-    const phone = document.getElementById('contact-phone').value.trim();
-    const email = document.getElementById('contact-email').value.trim();
-    const transferDate = document.getElementById('transfer-date').value;
-    const transferHour = document.getElementById('transfer-hour').value;
-    const transferMinute = document.getElementById('transfer-minute').value;
-
-    if (!phone) { alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ'); return; }
-    if (!email || !email.includes('@')) { alert('กรุณากรอกอีเมลให้ถูกต้องเพื่อรับใบยืนยันครับ'); return; }
-    if (!transferDate || transferHour === "" || transferMinute === "") { alert('กรุณาระบุวันที่และเวลาที่โอนเงินให้ครบถ้วนด้วยครับ'); return; }
-
-    const [year, month, day] = transferDate.split('-');
-    const formattedDateTime = `${day}/${month}/${year} เวลา ${transferHour}:${transferMinute} น.`;
-
-    const fileInput = document.getElementById('slipFile');
-    const file = fileInput.files[0];
-    const msg = document.getElementById('uploadMsg');
+    const phone = document.getElementById('contact-phone').value.trim(), email = document.getElementById('contact-email').value.trim(), date = document.getElementById('transfer-date').value, h = document.getElementById('transfer-hour').value, m = document.getElementById('transfer-minute').value;
+    if (!phone) return alert('กรุณากรอกเบอร์โทรศัพท์'); if (!email || !email.includes('@')) return alert('กรุณากรอกอีเมลให้ถูกต้อง'); if (!date || !h || !m) return alert('กรุณาระบุวัน-เวลาโอนให้ครบ');
     
-    if (!file) { msg.innerText = 'กรุณาเลือกไฟล์รูปภาพสลิปก่อนครับ'; msg.style.color = 'red'; return; }
-
-    const btn = document.getElementById('btnUpload');
-    btn.disabled = true; btn.innerText = 'กำลังอัปโหลดสลิป & ส่งอีเมลยืนยัน...';
-    msg.innerText = '⏳ กำลังบันทึกข้อมูลและจัดส่งใบเสร็จไปทางอีเมล กรุณารอสักครู่...';
-    msg.style.color = 'var(--main-blue)';
-
+    const file = document.getElementById('slipFile').files[0], msg = document.getElementById('uploadMsg'), btn = document.getElementById('btnUpload');
+    if (!file) { msg.innerText = 'กรุณาเลือกไฟล์สลิป'; return; }
+    
+    btn.disabled = true; btn.innerText = 'กำลังอัปโหลด...'; msg.innerText = 'กำลังบันทึกสลิปและจัดส่งอีเมล...';
     const reader = new FileReader();
     reader.onload = async function(e) {
-      const base64 = e.target.result.split(',')[1];
       try {
-        const res = await callAPI('uploadSlip', {
-          studentId: currentStudentId, base64Data: base64, fileName: file.name, mimeType: file.type,
-          contactData: { phone: phone, email: email, transferDateTime: formattedDateTime }
-        });
-        if (res.success) { switchSection('done-section'); } 
-        else {
-          msg.innerText = 'เกิดข้อผิดพลาด: ' + res.message; msg.style.color = 'red';
-          btn.disabled = false; btn.innerText = 'อัปโหลดสลิป & เสร็จสิ้นการจอง ✓';
-        }
-      } catch(e) {
-        msg.innerText = 'ไม่สามารถส่งไฟล์ได้ โปรดลองอีกครั้ง'; msg.style.color = 'red';
-        btn.disabled = false; btn.innerText = 'อัปโหลดสลิป & เสร็จสิ้นการจอง ✓';
-      }
+        const res = await callAPI('uploadSlip', { studentId: currentStudentId, base64Data: e.target.result.split(',')[1], fileName: file.name, mimeType: file.type, contactData: { phone: phone, email: email, transferDateTime: `${date.split('-').reverse().join('/')} เวลา ${h}:${m} น.` } });
+        if (res.success) switchSection('done-section'); else { msg.innerText = 'Error: ' + res.message; btn.disabled = false; btn.innerText = 'อัปโหลดอีกครั้ง'; }
+      } catch(e) { msg.innerText = 'ไม่สามารถส่งไฟล์ได้'; btn.disabled = false; btn.innerText = 'อัปโหลดอีกครั้ง'; }
     };
     reader.readAsDataURL(file);
   }
