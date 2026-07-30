@@ -329,10 +329,6 @@ function calculateTotal() {
     document.getElementById('total-price').innerText = totalPrice.toLocaleString();
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
     
-    // อัปเดตยอดเงินใน QR Code พร้อมเพย์ให้บวกยอดเรียบร้อยแล้ว
-    document.getElementById('qr-img').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${totalPrice}.png`;
-  }
-    
     // --- โค้ดส่วนที่อัปเกรดแก้ปัญหา QR Code ไม่ขึ้น ---
     if(appConfig.PROMPTPAY_NUMBER) {
       // 1. ดึงเบอร์มาแปลงเป็นข้อความ และลบอักขระพิเศษ/ช่องว่าง/ขีด ออกให้หมด
