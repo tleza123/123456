@@ -122,7 +122,7 @@
     <div class="size-row"><label>XL</label><input type="number" id="qty-xl" min="0" placeholder="0" oninput="calculateTotal()"></div>
     <div class="size-row"><label>2XL</label><input type="number" id="qty-xxl" min="0" placeholder="0" oninput="calculateTotal()"></div>
     <div style="margin-top: 12px; text-align: left; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px dashed #cbd5e1;">
-      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); display: block; margin-bottom: 8px;">✨ ไซส์พิเศษอื่นๆ (ถ้ามี):</label>
+      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); display: block; margin-bottom: 8px;">ไซส์ 3XL ขึ้นไป (+บวกเพิ่ม 25 บาท/ตัว):</label>
       <div style="display: flex; gap: 8px;">
         <input type="text" id="qty-other-text" placeholder="ระบุไซส์ เช่น 3XL" style="flex: 2; margin: 0;">
         <input type="number" id="qty-other-num" min="0" placeholder="จำนวน" style="flex: 1; margin: 0; text-align: center;" oninput="calculateTotal()">
@@ -190,6 +190,7 @@
   // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
   const API_URL = 'https://script.google.com/macros/s/AKfycbw2QYo_URSwDUJorEtcoXz6L3oEqmQMQGRqx8__oKPLZyA-btXJTOmk1lzYFOoWlmGnnA/exec'; 
   const PRICE_PER_SHIRT = 359; 
+  const EXTRA_PRICE = 50; 
   
   let currentStudentId = '';
   let appConfig = {};
@@ -303,20 +304,34 @@
     finally { btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →'; }
   }
 
- function calculateTotal() {
-    const totalQty = (parseInt(document.getElementById('qty-xs').value)||0) + 
-                     (parseInt(document.getElementById('qty-s').value)||0) + 
-                     (parseInt(document.getElementById('qty-m').value)||0) + 
-                     (parseInt(document.getElementById('qty-l').value)||0) + 
-                     (parseInt(document.getElementById('qty-xl').value)||0) + 
-                     (parseInt(document.getElementById('qty-xxl').value)||0) + 
-                     (parseInt(document.getElementById('qty-other-num').value)||0);
-                     
-    const totalPrice = totalQty * PRICE_PER_SHIRT;
+function calculateTotal() {
+    const xs = parseInt(document.getElementById('qty-xs').value) || 0;
+    const s = parseInt(document.getElementById('qty-s').value) || 0;
+    const m = parseInt(document.getElementById('qty-m').value) || 0;
+    const l = parseInt(document.getElementById('qty-l').value) || 0;
+    const xl = parseInt(document.getElementById('qty-xl').value) || 0;
+    const xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
     
-    document.getElementById('total-qty').innerText = totalQty; 
-    document.getElementById('total-price').innerText = totalPrice.toLocaleString(); 
+    // ช่องนี้จะถูกใช้เป็นจำนวนเสื้อ 3XL ขึ้นไป
+    const otherQty = parseInt(document.getElementById('qty-other-num').value) || 0;
+
+    // รวมจำนวนเสื้อทั้งหมด
+    const totalQty = xs + s + m + l + xl + xxl + otherQty;
+    
+    // 🔥 สูตรคำนวณราคาใหม่: (เสื้อไซส์ปกติ * ราคาปกติ) + (เสื้อไซส์ใหญ่ * (ราคาปกติ + ราคาบวกเพิ่ม))
+    const normalQty = xs + s + m + l + xl + xxl;
+    const normalPrice = normalQty * PRICE_PER_SHIRT;
+    const extraPrice = otherQty * (PRICE_PER_SHIRT + EXTRA_PRICE);
+    const totalPrice = normalPrice + extraPrice;
+
+    // อัปเดตตัวเลขแสดงผลบนหน้าเว็บ
+    document.getElementById('total-qty').innerText = totalQty;
+    document.getElementById('total-price').innerText = totalPrice.toLocaleString();
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
+    
+    // อัปเดตยอดเงินใน QR Code พร้อมเพย์ให้บวกยอดเรียบร้อยแล้ว
+    document.getElementById('qr-img').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${totalPrice}.png`;
+  }
     
     // --- โค้ดส่วนที่อัปเกรดแก้ปัญหา QR Code ไม่ขึ้น ---
     if(appConfig.PROMPTPAY_NUMBER) {
