@@ -182,34 +182,53 @@
 
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
 
- window.onload = async function() {
-    // โหลดเวลา
+window.onload = function() {
+    // 1. โหลดเวลา
     const hSel = document.getElementById('transfer-hour');
     const mSel = document.getElementById('transfer-minute');
     for (let i=0; i<=23; i++) hSel.innerHTML += `<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}</option>`;
     for (let i=0; i<=59; i++) mSel.innerHTML += `<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}</option>`;
     
-    // ดึงค่าตั้งค่าจากฐานข้อมูล
-    const res = await callAPI('getAppConfig');
-    if(res.success) {
-      appConfig = res.config;
-      allTasks = res.tasks;
-      
-      // --- โค้ดดักจับและเติมเลข 0 ให้เบอร์พร้อมเพย์ที่โชว์หน้าเว็บ ---
-      let ppNumberStr = (appConfig.PROMPTPAY_NUMBER || '').toString().replace(/[^0-9]/g, '');
-      if (ppNumberStr.length === 9) {
-        ppNumberStr = '0' + ppNumberStr;
-      }
-      appConfig.PROMPTPAY_NUMBER = ppNumberStr; // เซฟทับค่าเดิมให้ถูกต้อง
-      
-      // แสดงผลเบอร์พร้อมเพย์ (ที่เติม 0 แล้ว) และชื่อบัญชี
-      document.getElementById('show-pp-number').innerText = ppNumberStr;
-      document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
-    }
-    
+    // 2. ปิดหน้า Loading ทันที (ไม่ต้องรอหลังบ้าน)
     document.getElementById('loading-screen').style.display = 'none';
     setInterval(updateTimers, 1000);
+
+    // 3. สั่งดึงข้อมูลเบื้องหลัง
+    loadConfigInBackground();
   };
+
+  // ฟังก์ชันแยกสำหรับแอบดึงข้อมูลเบื้องหลัง + จำข้อมูลลงเครื่อง (โหลดไวสุดๆ)
+  async function loadConfigInBackground() {
+    const cachedData = localStorage.getItem('de06_config');
+    if (cachedData) {
+       applyConfigToUI(JSON.parse(cachedData)); // โชว์ข้อมูลเก่าทันทีถ้ามี
+    }
+
+    try {
+      const res = await callAPI('getAppConfig');
+      if(res.success) {
+        localStorage.setItem('de06_config', JSON.stringify(res)); // เซฟของใหม่
+        applyConfigToUI(res); // อัปเดตของใหม่
+      }
+    } catch (e) {
+      console.log("Error loading config:", e);
+    }
+  }
+
+  // ฟังก์ชันย่อยสำหรับจัดการหน้าจอ
+  function applyConfigToUI(res) {
+    appConfig = res.config;
+    allTasks = res.tasks;
+    
+    let ppNumberStr = (appConfig.PROMPTPAY_NUMBER || '').toString().replace(/[^0-9]/g, '');
+    if (ppNumberStr.length === 9) {
+      ppNumberStr = '0' + ppNumberStr;
+    }
+    appConfig.PROMPTPAY_NUMBER = ppNumberStr;
+    
+    document.getElementById('show-pp-number').innerText = ppNumberStr;
+    document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
+  }
 
   function switchSection(sectionId) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
