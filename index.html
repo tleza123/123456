@@ -170,7 +170,10 @@
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
   </div> <!-- ✅ ปิด upload-section ตรงนี้ (แก้โครงสร้างให้ถูกต้องแล้ว) -->
-<script>
+
+</div>
+  
+  <script>
   // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
   const API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec'; 
   const PRICE_PER_SHIRT = 379; 
@@ -333,7 +336,6 @@ function calculateTotal() {
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
     
     }
-  }
 
   async function submitOrder() {
     if ((parseInt(document.getElementById('total-qty').innerText)||0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
