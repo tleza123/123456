@@ -138,7 +138,7 @@
     </div>
   </div>
 
-  <div id="upload-section" class="section">
+ <div id="upload-section" class="section">
     <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>สแกน QR เพื่อชำระเงิน</h2>
     <div class="payment-box">
@@ -148,6 +148,7 @@
       <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">ชื่อบัญชี: <span id="show-acc-name" style="color:var(--main-blue);"></span></div>
       <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
     </div>
+    
     <div class="contact-box">
       <label>ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
       <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ">
@@ -159,33 +160,17 @@
         <span style="font-weight: 700; color: var(--main-blue);">:</span>
         <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">นาที</option></select>
       </div>
-    </div>
-  <div style="text-align: left; margin-top: 15px;">
-      <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
-      <!-- เพิ่ม onchange เข้ามาเพื่อสั่งให้อัปโหลดรูปล่วงหน้า -->
-      <input type="file" id="slipFile" accept="image/*" style="margin-top: 5px; background:white;" onchange="handleBackgroundUpload(this)">
-    </div> <!-- 🔥 เพิ่ม </div> ปิดช่องอัปโหลดไฟล์ตรงนี้ -->
+    </div> <!-- จบ contact-box -->
 
-    <!-- เปลี่ยน onclick เป็น finalizeOrderFast() และตั้งต้นให้ disabled ไว้ก่อน -->
+    <div style="text-align: left; margin-top: 15px;">
+      <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
+      <input type="file" id="slipFile" accept="image/*" style="margin-top: 5px; background:white;" onchange="handleBackgroundUpload(this)">
+    </div> 
+
     <button id="btnUpload" class="btn-success" onclick="finalizeOrderFast()" disabled>กรุณาเลือกรูปสลิปก่อน ⏳</button>
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
-  </div> <!-- 🔥 เพิ่ม </div> ปิดหน้าอัปโหลดสลิปตรงนี้ (สำคัญมาก!) -->
-
-  <div id="done-section" class="section">
-    
-    <!-- 🔥 2 บรรทัดที่เคยหายไปครับ (ห้ามลบนะครับ) -->
-    <div id="status-icon" class="pulse" style="font-size: 64px; margin-bottom: 10px;">✅</div>
-    <h2 id="status-title" style="color: var(--main-blue);">จองสำเร็จ</h2>
-
-    <div id="status-box" style="background:#fff7ed; border:1px solid #fed7aa; padding:15px; border-radius:14px; margin:20px 0; font-size:14px; color:#c2410c; text-align: center;">
-      <b>กำลังดำเนินการ</b><br>
-      <span style="font-size: 12px; margin-top: 5px; display: inline-block;">ระบบกำลังบันทึกข้อมูลและส่งอีเมลยืนยัน<br>อาจใช้เวลาประมาณ 3-5 วินาที</span>
-    
-    <button id="btnReload" class="btn-success" style="margin-top:10px; display:none;" onclick="location.reload()">← กลับสู่หน้าแรก (จองคนต่อไป)</button>
-  
-  </div>
-</div> <!-- ปิด container หลัก -->
+  </div> <!-- ✅ ปิด upload-section ตรงนี้ (แก้โครงสร้างให้ถูกต้องแล้ว) -->
 <script>
   // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
   const API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec'; 
