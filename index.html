@@ -363,8 +363,9 @@ function calculateTotal() {
     const normalPrice = normalQty * PRICE_PER_SHIRT;
     const extraPrice = otherQty * (PRICE_PER_SHIRT + EXTRA_PRICE);
     const totalPrice = normalPrice + extraPrice;
+    
     if (totalQty >= 2) {
-            totalPrice = totalPrice - 10;
+      totalPrice = totalPrice - 10;
     }
     // อัปเดตตัวเลขแสดงผลบนหน้าเว็บ
     document.getElementById('total-qty').innerText = totalQty;
