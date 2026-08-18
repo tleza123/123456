@@ -358,21 +358,23 @@ function calculateTotal() {
     // รวมจำนวนเสื้อทั้งหมด
     const totalQty = xs + s + m + l + xl + xxl + otherQty;
     
-    // 🔥 สูตรคำนวณราคาใหม่: (เสื้อไซส์ปกติ * ราคาปกติ) + (เสื้อไซส์ใหญ่ * (ราคาปกติ + ราคาบวกเพิ่ม))
+    // คำนวณราคา: (เสื้อไซส์ปกติ * ราคาปกติ) + (เสื้อไซส์ใหญ่ * (ราคาปกติ + ราคาบวกเพิ่ม))
     const normalQty = xs + s + m + l + xl + xxl;
     const normalPrice = normalQty * PRICE_PER_SHIRT;
     const extraPrice = otherQty * (PRICE_PER_SHIRT + EXTRA_PRICE);
-    const totalPrice = normalPrice + extraPrice;
     
+    let totalPrice = normalPrice + extraPrice;
+
+    // 🔥 ส่วนที่เพิ่มเข้ามา: โปรโมชั่น ซื้อ 2 ตัวขึ้นไป ลด 10 บาท
     if (totalQty >= 2) {
       totalPrice = totalPrice - 10;
     }
+
     // อัปเดตตัวเลขแสดงผลบนหน้าเว็บ
     document.getElementById('total-qty').innerText = totalQty;
     document.getElementById('total-price').innerText = totalPrice.toLocaleString();
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
-    
-    }
+  }
 
   async function submitOrder() {
     if ((parseInt(document.getElementById('total-qty').innerText)||0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
