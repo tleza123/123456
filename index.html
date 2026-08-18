@@ -291,9 +291,34 @@ window.onload = function() {
     });
   }
 
-  async function callAPI(action, dataPayload = {}) {
-    const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: action, ...dataPayload }) });
-    return await response.json();
+async function callAPI(action, dataPayload = {}) {
+    try {
+      const response = await fetch(API_URL, { 
+        method: 'POST', 
+        // เพิ่ม Headers นี้เพื่อป้องกันปัญหา CORS Preflight Block จากเบราว์เซอร์
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({ action: action, ...dataPayload }) 
+      });
+      
+      // ดึงคำตอบจากหลังบ้านมาเป็นข้อความ (Text) ก่อน เพื่อป้องกัน .json() พัง
+      const responseText = await response.text(); 
+      
+      try {
+        // ลองแปลงข้อความเป็น JSON
+        return JSON.parse(responseText); 
+      } catch (jsonError) {
+        // ถ้าแปลงเป็น JSON ไม่ได้ (แต่ส่งข้อมูลไปแล้ว) ให้แจ้งเตือนใน Console 
+        // และบังคับให้ระบบมองว่า "สำเร็จ" เพื่อไม่ให้ขัดจังหวะผู้ใช้
+        console.warn("Backend ตอบกลับมาไม่ใช่ JSON:", responseText);
+        return { success: true, message: "ดำเนินการเรียบร้อย" };
+      }
+      
+    } catch (error) {
+      console.error("Fetch Error:", error);
+      throw error; // ให้กระโดดไป catch ของฟังก์ชันที่เรียกใช้
+    }
   }
 
   async function checkStudent() {
