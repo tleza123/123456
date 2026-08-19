@@ -206,9 +206,23 @@
 
   // 2. เพิ่มฟังก์ชัน parseSafeDate ที่ขาดหายไป (แก้ไขบั๊กสคริปต์พัง)
   function parseSafeDate(dateStr) {
-    if (!dateStr) return new Date();
-    // รองรับรูปแบบวันที่ข้ามเบราว์เซอร์ (iOS/Safari)
-    return new Date(dateStr.replace(/-/g, '/')); 
+    if (!dateStr) return new Date("2099/12/31"); // ถ้าไม่มีเวลาปิดรับ ให้เปิดตลอดไป
+
+    // ลองให้เบราว์เซอร์แปลงตรงๆ ดูก่อน
+    let d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d;
+
+    // แก้บั๊กเฉพาะของ iOS: เปลี่ยนขีด (-) เป็นทับ (/) และเอาตัว T ออก
+    let iosDate = dateStr.replace(/-/g, '/').replace('T', ' ');
+    
+    // ตัดเศษเสี้ยววินาทีออก (ถ้ามี) เช่น .000Z
+    iosDate = iosDate.split('.')[0]; 
+    
+    d = new Date(iosDate);
+    if (!isNaN(d.getTime())) return d;
+
+    // ถ้าแปลงไม่ได้จริงๆ ให้ส่งค่าวันที่ในอนาคตไป เพื่อไม่ให้เมนูหาย
+    return new Date("2099/12/31"); 
   }
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
 
