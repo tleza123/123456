@@ -273,7 +273,7 @@ window.onload = function() {
   function renderHomeTasks() {
     const container = document.getElementById('active-tasks-container');
     const now = new Date().getTime();
-    let activeTasks = allTasks.filter(t => new Date(t.endDate.toString().replace(/-/g, '/').replace('T', ' ')).getTime() > now);
+    let activeTasks = allTasks.filter(t => parseSafeDate(t.endDate).getTime() > now);
     activeTasks.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
     
     if (activeTasks.length === 0) { container.innerHTML = `<div style="text-align:center; padding:20px; color:gray;">ไม่มีกิจกรรมที่กำลังดำเนินการ</div>`; return; }
@@ -292,7 +292,7 @@ window.onload = function() {
   function updateTimers() {
     const now = new Date().getTime();
     document.querySelectorAll('.task-timer').forEach(el => {
-      const end = new Date(el.getAttribute('data-end').toString().replace(/-/g, '/').replace('T', ' ')).getTime();
+      const end = parseSafeDate(el.getAttribute('data-end')).getTime();
       const diff = end - now;
       if (diff <= 0) { el.innerHTML = "❌ หมดเวลาแล้ว"; el.style.background = "#fee2e2"; el.style.color = "#dc2626"; } 
       else {
