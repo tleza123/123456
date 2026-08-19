@@ -192,8 +192,24 @@
   
   let currentStudentId = '';
   let appConfig = {};
-  let allTasks = [];
+  
+  // 1. เพิ่มข้อมูลเมนูจองเสื้อไว้เป็นค่าเริ่มต้น (เพื่อให้มีเมนูขึ้นทันทีโดยไม่ต้องรอหลังบ้าน)
+  let allTasks = [
+    {
+      title: "สั่งจองเสื้อช็อป DE 06",
+      desc: "ระบบเลือกไซส์และส่งสลิปชำระเงิน",
+      icon: "👕",
+      action: "switchSection('booking-section')",
+      endDate: "2026-12-31 23:59:59" // กำหนดเวลาหมดอายุ (เปลี่ยนได้)
+    }
+  ];
 
+  // 2. เพิ่มฟังก์ชัน parseSafeDate ที่ขาดหายไป (แก้ไขบั๊กสคริปต์พัง)
+  function parseSafeDate(dateStr) {
+    if (!dateStr) return new Date();
+    // รองรับรูปแบบวันที่ข้ามเบราว์เซอร์ (iOS/Safari)
+    return new Date(dateStr.replace(/-/g, '/')); 
+  }
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
 
 window.onload = function() {
