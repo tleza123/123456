@@ -426,7 +426,10 @@
             '<h3 style="margin:0 0 12px 0; font-size:16px; color:#15803d; display:flex; align-items:center; gap:8px;"><span>👕</span> รายการเสื้อที่จอง</h3>' +
             '<p style="margin:5px 0; font-size:16px; font-weight:600; color:var(--text-main); line-height:1.6;">' + data.summary + '</p>' +
             '<hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">' +
-            '<p style="margin:5px 0; font-size:16px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">' + (data.totalPrice > 0 ? (data.xs+data.s+data.m+data.l+data.xl+data.xxl+data.otherNum) : 0) + ' ตัว</span></p>' +
+            (function(){ 
+              var q = (parseInt(data.xs)||0) + (parseInt(data.s)||0) + (parseInt(data.m)||0) + (parseInt(data.l)||0) + (parseInt(data.xl)||0) + (parseInt(data.xxl)||0) + (parseInt(data.otherNum)||0);
+              return q > 0 ? '<p style="margin:5px 0; font-size:16px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">' + q + ' ตัว</span></p>' : '';
+            })() +
             '<p style="margin:5px 0; font-size:20px; color:var(--text-main);"><b>ยอดชำระ:</b> <span style="color:#dc2626; font-weight:700;">' + (data.totalPrice || 0).toLocaleString() + ' บาท</span></p>' +
           '</div>' +
           
@@ -746,3 +749,4 @@
 </script>
 </body>
 </html>
+
