@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ระบบนักศึกษา • DIGITAL ENTREPRENEUR 06</title>
+  <meta name="description" content="ระบบจองเสื้อช็อปและกิจกรรมสาขาวิชาผู้ประกอบการดิจิทัล รุ่น 06">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -58,16 +59,41 @@
     .qr-frame { background: white; padding: 15px; border-radius: 16px; border: 2px dashed #f59e0b; display: inline-block; margin: 12px 0; }
     .error { color: #e11d48; font-size: 13px; margin-top: 10px; font-weight: 500; }
     
-    /* หน้าโหลดดิ้ง */
-    #loading-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+    /* หน้าโหลดดิ้ง — ปรับปรุงใหม่ */
+    #loading-screen { 
+      position: fixed; top:0; left:0; width:100%; height:100%; 
+      background: linear-gradient(135deg, #f0f4f8 0%, #dbeafe 100%);
+      z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; 
+    }
+    .loading-spinner {
+      width: 48px; height: 48px; border: 4px solid #e2e8f0;
+      border-top: 4px solid var(--main-blue); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin-bottom: 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-status { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+    .loading-retry { display: none; margin-top: 15px; }
+    .loading-retry button { width: auto; padding: 10px 24px; font-size: 14px; }
+
+    /* Dynamic section styling */
+    .dynamic-section { text-align: left; }
+    .dynamic-section .header-badge { display: inline-block; margin-bottom: 15px; }
+    .dynamic-section h3 { text-align: center; }
+    .dynamic-section p { text-align: center; }
   </style>
 </head>
 <body>
 
-<!-- หน้าจอกำลังโหลดเพื่อดึงข้อมูลจากหลังบ้าน -->
+<!-- หน้าจอกำลังโหลด — ปรับปรุงใหม่ -->
 <div id="loading-screen">
-  <h2 style="color:var(--main-blue);">กำลังโหลดระบบ...</h2>
-  <p>DE 06</p>
+  <div class="loading-spinner"></div>
+  <h2 style="color:var(--main-blue); margin-bottom: 4px;">กำลังโหลดระบบ...</h2>
+  <p style="margin:0;">DE 06</p>
+  <div class="loading-status" id="loading-status">กำลังเชื่อมต่อเซิร์ฟเวอร์...</div>
+  <div class="loading-retry" id="loading-retry">
+    <p style="color:#e11d48; font-size:13px;">ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้</p>
+    <button onclick="retryLoadConfig()">🔄 ลองอีกครั้ง</button>
+  </div>
 </div>
 
 <!-- ปุ่มลอยเมนู -->
@@ -84,7 +110,7 @@
   </div>
 </div>
 
-<div class="container">
+<div class="container" id="main-container">
   
   <div id="login-section" class="section active">
     <div class="header-badge">DIGITAL ENTREPRENEUR รุ่น 06</div>
@@ -139,7 +165,7 @@
     </div>
   </div>
 
- <div id="upload-section" class="section">
+  <div id="upload-section" class="section">
     <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>ชำระเงินผ่านบัญชีธนาคาร</h2>
     <div class="payment-box">
@@ -162,7 +188,7 @@
         <span style="font-weight: 700; color: var(--main-blue);">:</span>
         <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">นาที</option></select>
       </div>
-    </div> <!-- จบ contact-box -->
+    </div>
 
     <div style="text-align: left; margin-top: 15px;">
       <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
@@ -172,8 +198,9 @@
     <button id="btnUpload" class="btn-success" onclick="finalizeOrderFast()" disabled>กรุณาเลือกรูปสลิปก่อน ⏳</button>
     <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
-  </div> <!-- ✅ ปิด upload-section ตรงนี้ (แก้โครงสร้างให้ถูกต้องแล้ว) -->
-<!-- หน้าทำรายการเสร็จสิ้น -->
+  </div>
+
+  <!-- หน้าทำรายการเสร็จสิ้น -->
   <div id="done-section" class="section">
     <div class="header-badge" style="background: #dcfce7; color: #16a34a; border-color: #bbf7d0;">สำเร็จ </div>
     <h2 style="color: #16a34a;">ทำรายการเรียบร้อย!</h2>
@@ -183,10 +210,14 @@
     
     <button class="btn-success" onclick="switchSection('home-section')">กลับสู่หน้าหลัก</button>
   </div>
+
+  <!-- Dynamic sections จะถูกสร้างตรงนี้โดย JavaScript -->
 </div>
   
-  <script>
-  // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ (เชื่อมกับหลังบ้าน)
+<script>
+  // =============================================
+  // ⚙️ Configuration
+  // =============================================
   const API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec'; 
   const PRICE_PER_SHIRT = 379; 
   const EXTRA_PRICE = 30; 
@@ -194,73 +225,108 @@
   let currentStudentId = '';
   let appConfig = {};
   
-  // 1. เพิ่มข้อมูลเมนูจองเสื้อไว้เป็นค่าเริ่มต้น (เพื่อให้มีเมนูขึ้นทันทีโดยไม่ต้องรอหลังบ้าน)
+  // ข้อมูลเมนูเริ่มต้น (แสดงทันทีไม่ต้องรอหลังบ้าน)
   let allTasks = [
     {
+      id: 'booking-shirt',
       title: "สั่งจองเสื้อช็อป DE 06",
       desc: "ระบบเลือกไซส์และส่งสลิปชำระเงิน",
       icon: "👕",
-      action: "switchSection('booking-section')",
-      endDate: "2026-12-31 23:59:59" // กำหนดเวลาหมดอายุ (เปลี่ยนได้)
+      action: "goToSection('booking-section')",
+      endDate: "2026-12-31 23:59:59",
+      htmlCode: ""
     }
   ];
 
-  // 2. เพิ่มฟังก์ชัน parseSafeDate ที่ขาดหายไป (แก้ไขบั๊กสคริปต์พัง)
+  // =============================================
+  // 🔧 Utility Functions
+  // =============================================
   function parseSafeDate(dateStr) {
-    if (!dateStr) return new Date("2099/12/31"); // ถ้าไม่มีเวลาปิดรับ ให้เปิดตลอดไป
-
-    // ลองให้เบราว์เซอร์แปลงตรงๆ ดูก่อน
+    if (!dateStr) return new Date("2099/12/31");
     let d = new Date(dateStr);
     if (!isNaN(d.getTime())) return d;
-
-    // แก้บั๊กเฉพาะของ iOS: เปลี่ยนขีด (-) เป็นทับ (/) และเอาตัว T ออก
     let iosDate = dateStr.replace(/-/g, '/').replace('T', ' ');
-    
-    // ตัดเศษเสี้ยววินาทีออก (ถ้ามี) เช่น .000Z
     iosDate = iosDate.split('.')[0]; 
-    
     d = new Date(iosDate);
     if (!isNaN(d.getTime())) return d;
-
-    // ถ้าแปลงไม่ได้จริงๆ ให้ส่งค่าวันที่ในอนาคตไป เพื่อไม่ให้เมนูหาย
     return new Date("2099/12/31"); 
   }
+
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
 
-window.onload = function() {
-    // 1. โหลดเวลา
+  // =============================================
+  // 🚀 Page Load — Pre-warm + Load Config
+  // =============================================
+  window.onload = function() {
+    // 1. โหลดตัวเลือกเวลา
     const hSel = document.getElementById('transfer-hour');
     const mSel = document.getElementById('transfer-minute');
-    for (let i=0; i<=23; i++) hSel.innerHTML += `<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}</option>`;
-    for (let i=0; i<=59; i++) mSel.innerHTML += `<option value="${i.toString().padStart(2,'0')}">${i.toString().padStart(2,'0')}</option>`;
+    for (let i=0; i<=23; i++) hSel.innerHTML += '<option value="' + i.toString().padStart(2,'0') + '">' + i.toString().padStart(2,'0') + '</option>';
+    for (let i=0; i<=59; i++) mSel.innerHTML += '<option value="' + i.toString().padStart(2,'0') + '">' + i.toString().padStart(2,'0') + '</option>';
     
-    // 2. ปิดหน้า Loading ทันที (ไม่ต้องรอหลังบ้าน)
-    document.getElementById('loading-screen').style.display = 'none';
-    setInterval(updateTimers, 1000);
-
-    // 3. สั่งดึงข้อมูลเบื้องหลัง
+    // 2. ⚡ Pre-warm API ด้วย GET request (ปลุก cold start ล่วงหน้า)
+    try { fetch(API_URL, { method: 'GET', mode: 'no-cors' }).catch(function(){}); } catch(e) {}
+    
+    // 3. โหลด config จาก cache ก่อน แล้ว update ทีหลัง
     loadConfigInBackground();
+    
+    // 4. เริ่มนับเวลา
+    setInterval(updateTimers, 1000);
   };
 
-  // ฟังก์ชันแยกสำหรับแอบดึงข้อมูลเบื้องหลัง + จำข้อมูลลงเครื่อง (โหลดไวสุดๆ)
+  // =============================================
+  // 📦 Load Config — Cache + Background Refresh
+  // =============================================
+  let configLoadAttempts = 0;
+
   async function loadConfigInBackground() {
+    const statusEl = document.getElementById('loading-status');
+    const retryEl = document.getElementById('loading-retry');
+    const loadingScreen = document.getElementById('loading-screen');
+    
+    // ลองใช้ cache ก่อน
     const cachedData = localStorage.getItem('de06_config');
     if (cachedData) {
-       applyConfigToUI(JSON.parse(cachedData)); // โชว์ข้อมูลเก่าทันทีถ้ามี
+      try {
+        applyConfigToUI(JSON.parse(cachedData));
+        loadingScreen.style.display = 'none'; // ปิด loading ทันที
+      } catch(e) {}
     }
 
+    statusEl.innerText = 'กำลังดึงข้อมูลจากเซิร์ฟเวอร์...';
+    
     try {
       const res = await callAPI('getAppConfig');
-      if(res.success) {
-        localStorage.setItem('de06_config', JSON.stringify(res)); // เซฟของใหม่
-        applyConfigToUI(res); // อัปเดตของใหม่
+      if (res.success) {
+        localStorage.setItem('de06_config', JSON.stringify(res));
+        applyConfigToUI(res);
+        loadingScreen.style.display = 'none';
+        configLoadAttempts = 0;
       }
     } catch (e) {
       console.log("Error loading config:", e);
+      configLoadAttempts++;
+      
+      // ถ้ามี cache อยู่แล้ว → ปิด loading ไปเลย ใช้ข้อมูลเก่า
+      if (cachedData) {
+        loadingScreen.style.display = 'none';
+      } else {
+        // ไม่มี cache + โหลดไม่ได้ → แสดงปุ่ม retry
+        document.querySelector('.loading-spinner').style.display = 'none';
+        statusEl.innerText = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
+        retryEl.style.display = 'block';
+      }
     }
   }
 
-  // ฟังก์ชันย่อยสำหรับจัดการหน้าจอ
+  function retryLoadConfig() {
+    const retryEl = document.getElementById('loading-retry');
+    const spinner = document.querySelector('.loading-spinner');
+    retryEl.style.display = 'none';
+    spinner.style.display = 'block';
+    loadConfigInBackground();
+  }
+
   function applyConfigToUI(res) {
     appConfig = res.config;
     allTasks = res.tasks;
@@ -273,11 +339,60 @@ window.onload = function() {
     
     document.getElementById('show-pp-number').innerText = ppNumberStr;
     document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
+    
+    // 🔥 สร้าง dynamic sections จากกิจกรรมที่มี htmlCode
+    renderDynamicSections();
+  }
+
+  // =============================================
+  // 🔄 Dynamic Activity Sections
+  // =============================================
+  function renderDynamicSections() {
+    // ลบ section เก่าที่สร้าง dynamic ไว้
+    document.querySelectorAll('.dynamic-section').forEach(function(el) { el.remove(); });
+    
+    const container = document.getElementById('main-container');
+    
+    allTasks.forEach(function(task) {
+      if (task.htmlCode && task.htmlCode.trim() !== '') {
+        const section = document.createElement('div');
+        section.id = 'dynamic-' + task.id;
+        section.className = 'section dynamic-section';
+        section.innerHTML = 
+          '<div class="header-badge">' + task.icon + ' ' + task.title + '</div>' +
+          '<h3 style="text-align:center;">' + task.title + '</h3>' +
+          '<p style="text-align:center;">' + task.desc + '</p>' +
+          '<div id="form-' + task.id + '">' + task.htmlCode + '</div>' +
+          '<div class="nav-group" style="margin-top:15px;">' +
+            '<button class="btn-secondary" onclick="switchSection(\'home-section\')">← กลับหน้าโฮม</button>' +
+          '</div>';
+        container.appendChild(section);
+        
+        // อัปเดต action ให้ชี้ไปที่ dynamic section
+        task.action = "goToSection('dynamic-" + task.id + "')";
+      }
+    });
+  }
+
+  // =============================================
+  // 🧭 Navigation
+  // =============================================
+  function goToSection(sectionId) {
+    switchSection(sectionId);
   }
 
   function switchSection(sectionId) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
+    document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+    
+    var targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+      targetSection.classList.add('active');
+    } else {
+      // Fallback: ถ้าไม่พบ section → กลับหน้า home
+      document.getElementById('home-section').classList.add('active');
+      sectionId = 'home-section';
+    }
+    
     window.scrollTo(0, 0);
     
     if (sectionId === 'home-section') {
@@ -291,124 +406,222 @@ window.onload = function() {
 
   function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
   function closeMenuModal(e) { if(!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
-  function logout() { currentStudentId = ''; document.getElementById('studentId').value = ''; closeMenuModal(); switchSection('login-section'); }
+  function logout() { 
+    currentStudentId = ''; 
+    document.getElementById('studentId').value = ''; 
+    // ล้าง session cache
+    sessionStorage.removeItem('de06_student');
+    closeMenuModal(); 
+    switchSection('login-section'); 
+  }
 
+  // =============================================
+  // 📋 Menu & Home Tasks Rendering
+  // =============================================
   function renderMenu() {
     const list = document.getElementById('menu-list-container');
     list.innerHTML = '';
-    allTasks.forEach(t => {
-      list.innerHTML += `<div class="menu-item" onclick="${t.action}; closeMenuModal();"><div class="menu-item-icon">${t.icon}</div><div class="menu-item-text"><div class="menu-item-title">${t.title}</div><div class="menu-item-desc">${t.desc}</div></div></div>`;
+    allTasks.forEach(function(t) {
+      var actionStr = t.htmlCode && t.htmlCode.trim() !== '' 
+        ? "goToSection('dynamic-" + t.id + "')" 
+        : t.action;
+      list.innerHTML += '<div class="menu-item" onclick="' + actionStr + '; closeMenuModal();">' +
+        '<div class="menu-item-icon">' + t.icon + '</div>' +
+        '<div class="menu-item-text">' +
+          '<div class="menu-item-title">' + t.title + '</div>' +
+          '<div class="menu-item-desc">' + t.desc + '</div>' +
+        '</div></div>';
     });
   }
 
   function renderHomeTasks() {
     const container = document.getElementById('active-tasks-container');
     const now = new Date().getTime();
-    let activeTasks = allTasks.filter(t => parseSafeDate(t.endDate).getTime() > now);
-    activeTasks.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
+    let activeTasks = allTasks.filter(function(t) { return parseSafeDate(t.endDate).getTime() > now; });
+    activeTasks.sort(function(a, b) { return parseSafeDate(a.endDate).getTime() - parseSafeDate(b.endDate).getTime(); });
     
-    if (activeTasks.length === 0) { container.innerHTML = `<div style="text-align:center; padding:20px; color:gray;">ไม่มีกิจกรรมที่กำลังดำเนินการ</div>`; return; }
+    if (activeTasks.length === 0) { 
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:gray;">ไม่มีกิจกรรมที่กำลังดำเนินการ</div>'; 
+      return; 
+    }
 
-    container.innerHTML = activeTasks.map(task => `
-      <div class="task-card">
-        <div class="task-title"><span>${task.icon}</span> ${task.title}</div>
-        <div class="task-desc">${task.desc}</div>
-        <div class="task-timer" data-end="${task.endDate}">⏳ กำลังคำนวณเวลา...</div>
-        <button class="task-btn" onclick="${task.action}">เข้าสู่กิจกรรม →</button>
-      </div>
-    `).join('');
+    container.innerHTML = activeTasks.map(function(task) {
+      var actionStr = task.htmlCode && task.htmlCode.trim() !== '' 
+        ? "goToSection('dynamic-" + task.id + "')" 
+        : task.action;
+      return '<div class="task-card">' +
+        '<div class="task-title"><span>' + task.icon + '</span> ' + task.title + '</div>' +
+        '<div class="task-desc">' + task.desc + '</div>' +
+        '<div class="task-timer" data-end="' + task.endDate + '">⏳ กำลังคำนวณเวลา...</div>' +
+        '<button class="task-btn" onclick="' + actionStr + '">เข้าสู่กิจกรรม →</button>' +
+      '</div>';
+    }).join('');
     updateTimers(); 
   }
 
   function updateTimers() {
     const now = new Date().getTime();
-    document.querySelectorAll('.task-timer').forEach(el => {
+    document.querySelectorAll('.task-timer').forEach(function(el) {
       const end = parseSafeDate(el.getAttribute('data-end')).getTime();
       const diff = end - now;
-      if (diff <= 0) { el.innerHTML = "❌ หมดเวลาแล้ว"; el.style.background = "#fee2e2"; el.style.color = "#dc2626"; } 
-      else {
-        const d = Math.floor(diff / (1000*60*60*24)), h = Math.floor((diff % (1000*60*60*24))/(1000*60*60)), m = Math.floor((diff % (1000*60*60))/(1000*60)), s = Math.floor((diff % (1000*60))/1000);
-        el.innerHTML = `⏳ เหลือเวลา: ${d>0?d+' วัน ':''}${h} ชม. ${m} นาที ${s} วิ`;
+      if (diff <= 0) { 
+        el.innerHTML = "❌ หมดเวลาแล้ว"; 
+        el.style.background = "#fee2e2"; 
+        el.style.color = "#dc2626"; 
+      } else {
+        const d = Math.floor(diff / (1000*60*60*24));
+        const h = Math.floor((diff % (1000*60*60*24))/(1000*60*60));
+        const m = Math.floor((diff % (1000*60*60))/(1000*60));
+        const s = Math.floor((diff % (1000*60))/1000);
+        el.innerHTML = '⏳ เหลือเวลา: ' + (d>0?d+' วัน ':'') + h + ' ชม. ' + m + ' นาที ' + s + ' วิ';
       }
     });
   }
 
-async function callAPI(action, dataPayload = {}) {
-    try {
-      const response = await fetch(API_URL, { 
-        method: 'POST', 
-        // เพิ่ม Headers นี้เพื่อป้องกันปัญหา CORS Preflight Block จากเบราว์เซอร์
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        body: JSON.stringify({ action: action, ...dataPayload }) 
-      });
-      
-      // ดึงคำตอบจากหลังบ้านมาเป็นข้อความ (Text) ก่อน เพื่อป้องกัน .json() พัง
-      const responseText = await response.text(); 
-      
+  // =============================================
+  // ⚡ callAPI — Retry + Timeout (ปรับปรุงใหม่)
+  // =============================================
+  async function callAPI(action, dataPayload, retries) {
+    if (dataPayload === undefined) dataPayload = {};
+    if (retries === undefined) retries = 2;
+    
+    for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        // ลองแปลงข้อความเป็น JSON
-        return JSON.parse(responseText); 
-      } catch (jsonError) {
-        // ถ้าแปลงเป็น JSON ไม่ได้ (แต่ส่งข้อมูลไปแล้ว) ให้แจ้งเตือนใน Console 
-        // และบังคับให้ระบบมองว่า "สำเร็จ" เพื่อไม่ให้ขัดจังหวะผู้ใช้
-        console.warn("Backend ตอบกลับมาไม่ใช่ JSON:", responseText);
-        return { success: true, message: "ดำเนินการเรียบร้อย" };
+        // ⏱️ Timeout 15 วินาที
+        const controller = new AbortController();
+        const timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+        
+        const response = await fetch(API_URL, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: action, ...dataPayload }),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const responseText = await response.text(); 
+        
+        try {
+          return JSON.parse(responseText); 
+        } catch (jsonError) {
+          console.warn("Backend ตอบกลับมาไม่ใช่ JSON:", responseText);
+          return { success: true, message: "ดำเนินการเรียบร้อย" };
+        }
+        
+      } catch (error) {
+        console.warn('API attempt ' + (attempt + 1) + ' failed:', error.message);
+        
+        // ถ้ายังมี retry เหลือ → รอแล้วลองใหม่ (exponential backoff)
+        if (attempt < retries) {
+          await new Promise(function(resolve) { 
+            setTimeout(resolve, (attempt + 1) * 1500); // 1.5s, 3s
+          });
+          continue;
+        }
+        
+        // หมด retry แล้ว → throw error
+        throw error;
       }
-      
-    } catch (error) {
-      console.error("Fetch Error:", error);
-      throw error; // ให้กระโดดไป catch ของฟังก์ชันที่เรียกใช้
     }
   }
 
+  // =============================================
+  // 🔐 Student Verification — Session Cache
+  // =============================================
   async function checkStudent() {
     const id = document.getElementById('studentId').value.trim();
     if (!id) return;
-    const btn = document.getElementById('btnLogin'); btn.disabled = true; btn.innerText = 'กำลังตรวจสอบ...';
+    
+    const btn = document.getElementById('btnLogin'); 
+    const errorEl = document.getElementById('loginError');
+    errorEl.innerText = '';
+    
+    // ⚡ ตรวจสอบ session cache ก่อน
+    const cached = sessionStorage.getItem('de06_student');
+    if (cached) {
+      try {
+        const cachedStudent = JSON.parse(cached);
+        if (cachedStudent.studentId === id && cachedStudent.name) {
+          // ใช้ข้อมูลจาก cache ทันที
+          currentStudentId = id;
+          document.getElementById('homeStudentName').innerText = cachedStudent.name;
+          document.getElementById('studentName').innerText = cachedStudent.name;
+          switchSection('home-section');
+          
+          // Background verify เพื่อ validate ความถูกต้อง
+          callAPI('verifyStudent', { studentId: id }).then(function(res) {
+            if (!res.success) {
+              // ข้อมูล cache ไม่ถูกต้อง → logout
+              sessionStorage.removeItem('de06_student');
+              alert('รหัสนักศึกษาไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
+              logout();
+            }
+          }).catch(function() {});
+          
+          return;
+        }
+      } catch(e) {}
+    }
+    
+    // ไม่มี cache → เรียก API ปกติ
+    btn.disabled = true; 
+    btn.innerText = 'กำลังตรวจสอบ...';
+    
     try {
       const res = await callAPI('verifyStudent', { studentId: id });
       if (res.success) {
-        currentStudentId = id; document.getElementById('homeStudentName').innerText = res.name; document.getElementById('studentName').innerText = res.name;
+        currentStudentId = id;
+        document.getElementById('homeStudentName').innerText = res.name;
+        document.getElementById('studentName').innerText = res.name;
+        
+        // ⚡ เซฟลง session cache
+        sessionStorage.setItem('de06_student', JSON.stringify({ studentId: id, name: res.name }));
+        
         switchSection('home-section');
-      } else document.getElementById('loginError').innerText = res.message;
-    } catch (e) { document.getElementById('loginError').innerText = 'ติดต่อเซิร์ฟเวอร์ไม่ได้'; } 
-    finally { btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →'; }
+      } else {
+        errorEl.innerText = res.message;
+      }
+    } catch (e) { 
+      errorEl.innerText = 'ติดต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง'; 
+    } finally { 
+      btn.disabled = false; 
+      btn.innerText = 'เข้าสู่ระบบ →'; 
+    }
   }
 
-function calculateTotal() {
+  // =============================================
+  // 🧮 Calculate Total Price
+  // =============================================
+  function calculateTotal() {
     const xs = parseInt(document.getElementById('qty-xs').value) || 0;
     const s = parseInt(document.getElementById('qty-s').value) || 0;
     const m = parseInt(document.getElementById('qty-m').value) || 0;
     const l = parseInt(document.getElementById('qty-l').value) || 0;
     const xl = parseInt(document.getElementById('qty-xl').value) || 0;
     const xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
-    
-    // ช่องนี้จะถูกใช้เป็นจำนวนเสื้อ 3XL ขึ้นไป
     const otherQty = parseInt(document.getElementById('qty-other-num').value) || 0;
 
-    // รวมจำนวนเสื้อทั้งหมด
     const totalQty = xs + s + m + l + xl + xxl + otherQty;
     
-    // คำนวณราคา: (เสื้อไซส์ปกติ * ราคาปกติ) + (เสื้อไซส์ใหญ่ * (ราคาปกติ + ราคาบวกเพิ่ม))
     const normalQty = xs + s + m + l + xl + xxl;
     const normalPrice = normalQty * PRICE_PER_SHIRT;
     const extraPrice = otherQty * (PRICE_PER_SHIRT + EXTRA_PRICE);
     
     let totalPrice = normalPrice + extraPrice;
 
-    // 🔥 ส่วนที่เพิ่มเข้ามา: โปรโมชั่น ซื้อ 2 ตัวขึ้นไป ลด 10 บาท
     if (totalQty >= 2) {
       totalPrice = totalPrice - 10;
     }
 
-    // อัปเดตตัวเลขแสดงผลบนหน้าเว็บ
     document.getElementById('total-qty').innerText = totalQty;
     document.getElementById('total-price').innerText = totalPrice.toLocaleString();
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
   }
 
+  // =============================================
+  // 📦 Submit Order
+  // =============================================
   async function submitOrder() {
     if ((parseInt(document.getElementById('total-qty').innerText)||0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
     const btn = document.getElementById('btnBook'); btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
@@ -416,19 +629,20 @@ function calculateTotal() {
     const orderData = {
       xs: document.getElementById('qty-xs').value||0, s: document.getElementById('qty-s').value||0, m: document.getElementById('qty-m').value||0,
       l: document.getElementById('qty-l').value||0, xl: document.getElementById('qty-xl').value||0, xxl: document.getElementById('qty-xxl').value||0,
-      other: otherNum > 0 ? `${document.getElementById('qty-other-text').value.trim()||'ไซส์อื่นๆ'} (${otherNum} ตัว)` : '', otherNum: otherNum
+      other: otherNum > 0 ? (document.getElementById('qty-other-text').value.trim()||'ไซส์อื่นๆ') + ' (' + otherNum + ' ตัว)' : '', otherNum: otherNum
     };
     try {
       const res = await callAPI('submitBooking', { studentId: currentStudentId, orderData: orderData });
       if (res.success) { calculateTotal(); switchSection('upload-section'); } else alert(res.message);
-    } catch(e) { alert('ส่งข้อมูลไม่สำเร็จ'); } finally { btn.disabled = false; btn.innerText = 'ถัดไป →'; }
+    } catch(e) { alert('ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่'); } finally { btn.disabled = false; btn.innerText = 'ถัดไป →'; }
   }
 
- // เพิ่มตัวแปรนี้ไว้สำหรับเก็บลิงก์รูปที่อัปโหลดล่วงหน้าเสร็จแล้ว
+  // =============================================
+  // 📤 Slip Upload — Background Pre-upload
+  // =============================================
   let preUploadedImageUrl = ''; 
   let preUploadedFileUrl = '';
 
-  // ฟังก์ชัน 1: ระบบแอบอัปโหลดรูปเบื้องหลังทันทีที่เลือกไฟล์
   function handleBackgroundUpload(input) {
     const file = input.files[0];
     const uploadMsg = document.getElementById('uploadMsg');
@@ -474,7 +688,9 @@ function calculateTotal() {
     reader.readAsDataURL(file);
   }
 
-  // ฟังก์ชัน 2: ระบบยืนยันขั้นสุดท้าย (ไม่ต้องรอโหลดรูปแล้ว เพราะรูปอัปเสร็จแล้ว)
+  // =============================================
+  // ✅ Finalize Order
+  // =============================================
   async function finalizeOrderFast() {
     const phone = document.getElementById('contact-phone').value.trim();
     const email = document.getElementById('contact-email').value.trim();
@@ -487,8 +703,8 @@ function calculateTotal() {
     if (!transferDate || transferHour === "" || transferMinute === "") { alert('กรุณาระบุวันที่และเวลาที่โอนเงินครับ'); return; }
     if (!preUploadedImageUrl) { alert('ระบบกำลังประมวลผลรูปภาพ กรุณารอสักครู่'); return; }
 
-    const [year, month, day] = transferDate.split('-');
-    const formattedDateTime = `${day}/${month}/${year} เวลา ${transferHour}:${transferMinute} น.`;
+    const parts = transferDate.split('-');
+    const formattedDateTime = parts[2] + '/' + parts[1] + '/' + parts[0] + ' เวลา ' + transferHour + ':' + transferMinute + ' น.';
 
     const btn = document.getElementById('btnUpload');
     btn.disabled = true;
@@ -503,7 +719,6 @@ function calculateTotal() {
       });
       
       if (res.success) {
-        // เด้งไปหน้าเสร็จสิ้นทันที
         switchSection('done-section'); 
       } else {
         alert('เกิดข้อผิดพลาด: ' + res.message);
@@ -516,19 +731,19 @@ function calculateTotal() {
       btn.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
     }
   }
-// =======================================================
-  // ฟังก์ชันอเนกประสงค์: ดึงข้อมูลฟอร์ม และส่งไปบันทึกลง Google Sheet
-  // =======================================================
+
+  // =============================================
+  // 📋 Dynamic Form Submission (ใช้กับกิจกรรมที่มี htmlCode)
+  // =============================================
   async function submitCustomForm(event, activityId, containerId) {
     if (!currentStudentId) return alert("กรุณาเข้าสู่ระบบก่อนทำรายการ");
     
     const container = document.getElementById(containerId);
     if (!container) return alert("เกิดข้อผิดพลาด: ไม่พบแบบฟอร์ม");
 
-    // ดึงค่าจาก input, select, textarea ทุกอันที่มีการตั้งชื่อ (name) ไว้
     const inputs = container.querySelectorAll('input[name], select[name], textarea[name]');
     let formData = {};
-    inputs.forEach(el => {
+    inputs.forEach(function(el) {
       if (el.type === 'checkbox' || el.type === 'radio') {
           if (el.checked) formData[el.name] = el.value;
       } else {
@@ -554,7 +769,7 @@ function calculateTotal() {
       
       if (res.success) {
         alert('🎉 ' + res.message);
-        switchSection('home-section'); // ส่งสำเร็จ เด้งกลับหน้าโฮม
+        switchSection('home-section');
       } else {
         alert('❌ ' + res.message);
       }
