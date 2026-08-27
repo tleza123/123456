@@ -335,16 +335,25 @@
         var section = document.createElement('div');
         section.id = 'dynamic-' + task.id;
         section.className = 'section dynamic-section';
-        section.innerHTML =
+  section.innerHTML =
           '<div class="header-badge">' + task.icon + ' ' + task.title + '</div>' +
           '<h3 style="text-align:center;">' + task.title + '</h3>' +
           '<p style="text-align:center;">' + task.desc + '</p>' +
-          '<div id="form-' + task.id + '">' + task.htmlCode + '</div>' +
+          '<div id="form-' + task.id + '" style="width:100%; border-radius:12px; overflow:hidden; background:white;"></div>' +
           '<div class="nav-group" style="margin-top:15px;">' +
           '<button class="btn-secondary" onclick="switchSection(\'home-section\')">← กลับหน้าโฮม</button>' +
           '</div>';
         container.appendChild(section);
+        
+        // 💡 สร้างกล่อง iframe มาขังโค้ดที่ใส่มา เพื่อไม่ให้มันไปตีกับหน้าเว็บหลัก
+        var iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = 'none';
+        iframe.srcdoc = task.htmlCode;
+        document.getElementById('form-' + task.id).appendChild(iframe);
         task.action = "goToSection('dynamic-" + task.id + "')";
+
       }
     });
   }
