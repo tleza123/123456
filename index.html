@@ -117,8 +117,27 @@
     <div class="header-badge">HOME • DE 06</div>
     <h3 style="margin-bottom: 5px; color: var(--text-main); font-size:18px;">ยินดีต้อนรับ,</h3>
     <h2 style="color:var(--main-blue); margin-bottom: 25px; font-size: 20px;"><span id="homeStudentName"></span></h2>
+
+    <!-- ปุ่มตรวจสอบข้อมูลการจอง (เมนูคงที่) -->
+    <div class="task-card" style="border-left-color: #10b981; margin-bottom: 25px; background: #f0fdf4;">
+      <div class="task-title"><span>🔎</span> ตรวจสอบข้อมูลการจองเสื้อ</div>
+      <div class="task-desc" style="color: #166534;">เช็คสถานะ ไซส์เสื้อ และยอดเงินที่คุณชำระไปแล้ว</div>
+      <button class="task-btn btn-success" style="margin-top: 10px; width: 100%; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);" onclick="viewMyBooking()">ตรวจสอบข้อมูลของฉัน →</button>
+    </div>
+
     <div style="text-align: left; margin-bottom: 15px;"><h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">กิจกรรมที่กำลังดำเนินการ</h3></div>
     <div id="active-tasks-container"></div>
+  </div>
+
+  <div id="check-booking-section" class="section">
+    <div class="header-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลการจองของคุณ</div>
+    <h2 style="margin-bottom: 20px;">รายละเอียดการจอง</h2>
+    <div id="booking-details-content" style="text-align:left;">
+      <!-- ข้อมูลจะถูกโหลดมาใส่ตรงนี้ -->
+    </div>
+    <div class="nav-group" style="margin-top:20px;">
+      <button class="btn-secondary" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
+    </div>
   </div>
 
   <div id="booking-section" class="section">
@@ -364,6 +383,13 @@
   function renderMenu() {
     var list = document.getElementById('menu-list-container');
     list.innerHTML = '';
+    
+    // เมนูตรวจสอบการจอง (คงที่)
+    list.innerHTML += '<div class="menu-item" onclick="viewMyBooking(); closeMenuModal();">' +
+      '<div class="menu-item-icon">🔎</div><div class="menu-item-text">' +
+      '<div class="menu-item-title">ตรวจสอบข้อมูลการจอง</div>' +
+      '<div class="menu-item-desc">เช็คสถานะและรายละเอียดการจองเสื้อ</div></div></div>';
+
     allTasks.forEach(function(t) {
       var actionStr = (t.htmlCode && t.htmlCode.trim() !== '') ? "goToSection('dynamic-" + t.id + "')" : t.action;
       list.innerHTML += '<div class="menu-item" onclick="' + actionStr + '; closeMenuModal();">' +
@@ -371,6 +397,50 @@
         '<div class="menu-item-title">' + t.title + '</div>' +
         '<div class="menu-item-desc">' + t.desc + '</div></div></div>';
     });
+  }
+
+  async function viewMyBooking() {
+    switchSection('check-booking-section');
+    var container = document.getElementById('booking-details-content');
+    container.innerHTML = '<div style="text-align:center; padding:30px;"><div class="loading-spinner" style="margin:0 auto 15px auto;"></div><p style="color:var(--text-muted);">กำลังดึงข้อมูลจากฐานข้อมูล...</p></div>';
+    
+    try {
+      var snap = await db.collection('bookings').doc(currentStudentId).get();
+      if (snap.exists && snap.data().summary) {
+        var data = snap.data();
+        var isPaid = data.status === 'paid' || data.slipImageUrl;
+        var statusHtml = isPaid ? 
+          '<span style="color:#16a34a; background:#dcfce7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #bbf7d0;">✅ ชำระเงินแล้ว</span>' : 
+          '<span style="color:#d97706; background:#fef3c7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #fde68a;">⏳ รอชำระเงิน</span>';
+          
+        container.innerHTML = 
+          '<div class="contact-box" style="margin-top:0; border-top: 4px solid var(--main-blue);">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
+              '<h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อมูลผู้จอง</h3>' + statusHtml +
+            '</div>' +
+            '<p style="margin:5px 0; color:var(--text-main);"><b>ชื่อ-สกุล:</b> ' + currentStudentName + '</p>' +
+            '<p style="margin:5px 0; color:var(--text-main);"><b>รหัสนักศึกษา:</b> ' + currentStudentId + '</p>' +
+          '</div>' +
+          
+          '<div class="price-box" style="margin:15px 0; text-align:left; background:white; border:1px solid #e2e8f0; border-top: 4px solid #10b981; padding: 20px;">' +
+            '<h3 style="margin:0 0 12px 0; font-size:16px; color:#15803d; display:flex; align-items:center; gap:8px;"><span>👕</span> รายการเสื้อที่จอง</h3>' +
+            '<p style="margin:5px 0; font-size:16px; font-weight:600; color:var(--text-main); line-height:1.6;">' + data.summary + '</p>' +
+            '<hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">' +
+            '<p style="margin:5px 0; font-size:16px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">' + (data.totalPrice > 0 ? (data.xs+data.s+data.m+data.l+data.xl+data.xxl+data.otherNum) : 0) + ' ตัว</span></p>' +
+            '<p style="margin:5px 0; font-size:20px; color:var(--text-main);"><b>ยอดชำระ:</b> <span style="color:#dc2626; font-weight:700;">' + (data.totalPrice || 0).toLocaleString() + ' บาท</span></p>' +
+          '</div>' +
+          
+          '<div class="contact-box" style="border-top: 4px solid #f59e0b;">' +
+            '<h3 style="margin:0 0 10px 0; font-size:15px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>' +
+            '<p style="margin:5px 0; font-size:14px; color:var(--text-muted);"><b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:500;">' + (data.transferDateTime || '-') + '</span></p>' +
+            (data.slipImageUrl ? '<div style="margin-top:12px;"><a href="' + (data.slipFileUrl || data.slipImageUrl) + '" target="_blank" style="background:#f1f5f9; display:inline-block; padding:10px 15px; border-radius:10px; color:#2563eb; text-decoration:none; font-size:14px; font-weight:600; border:1px solid #e2e8f0;">📄 เปิดดูรูปสลิปที่แนบไว้</a></div>' : '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>') +
+          '</div>';
+      } else {
+        container.innerHTML = '<div style="text-align:center; padding:40px 20px; background:#f8fafc; border-radius:16px; border:2px dashed #cbd5e1;"><div style="font-size:45px; margin-bottom:15px;">👕</div><div style="color:var(--text-muted); font-size:16px; font-weight:500;">คุณยังไม่มีประวัติการจองเสื้อช็อปครับ</div><button class="btn-success" style="margin-top:20px; width:auto; padding:10px 20px;" onclick="switchSection(\'booking-section\')">ไปจองเสื้อกันเลย →</button></div>';
+      }
+    } catch (e) {
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px; margin-top:10px;"><b>เกิดข้อผิดพลาด:</b><br>' + e.message + '</div>';
+    }
   }
 
   function renderHomeTasks() {
