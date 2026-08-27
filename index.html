@@ -9,6 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
+  <!-- Firebase SDK (compat CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  
   <style>
     :root {
       --main-blue: #003566; --main-blue-light: #004e98; --main-gold: #ffc300;
@@ -56,26 +60,17 @@
     .size-row input { margin: 0; text-align: center; width: 80px; }
     .price-box, .payment-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 18px; border-radius: 16px; margin: 20px 0; }
     .contact-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 18px; border-radius: 16px; margin: 15px 0; text-align: left; }
-    .qr-frame { background: white; padding: 15px; border-radius: 16px; border: 2px dashed #f59e0b; display: inline-block; margin: 12px 0; }
     .error { color: #e11d48; font-size: 13px; margin-top: 10px; font-weight: 500; }
     
-    /* หน้าโหลดดิ้ง — ปรับปรุงใหม่ */
     #loading-screen { 
       position: fixed; top:0; left:0; width:100%; height:100%; 
       background: linear-gradient(135deg, #f0f4f8 0%, #dbeafe 100%);
       z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; 
     }
-    .loading-spinner {
-      width: 48px; height: 48px; border: 4px solid #e2e8f0;
-      border-top: 4px solid var(--main-blue); border-radius: 50%;
-      animation: spin 0.8s linear infinite; margin-bottom: 20px;
-    }
+    .loading-spinner { width: 48px; height: 48px; border: 4px solid #e2e8f0; border-top: 4px solid var(--main-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-status { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
-    .loading-retry { display: none; margin-top: 15px; }
-    .loading-retry button { width: auto; padding: 10px 24px; font-size: 14px; }
 
-    /* Dynamic section styling */
     .dynamic-section { text-align: left; }
     .dynamic-section .header-badge { display: inline-block; margin-bottom: 15px; }
     .dynamic-section h3 { text-align: center; }
@@ -84,19 +79,13 @@
 </head>
 <body>
 
-<!-- หน้าจอกำลังโหลด — ปรับปรุงใหม่ -->
 <div id="loading-screen">
   <div class="loading-spinner"></div>
   <h2 style="color:var(--main-blue); margin-bottom: 4px;">กำลังโหลดระบบ...</h2>
   <p style="margin:0;">DE 06</p>
-  <div class="loading-status" id="loading-status">กำลังเชื่อมต่อเซิร์ฟเวอร์...</div>
-  <div class="loading-retry" id="loading-retry">
-    <p style="color:#e11d48; font-size:13px;">ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้</p>
-    <button onclick="retryLoadConfig()">🔄 ลองอีกครั้ง</button>
-  </div>
+  <div class="loading-status" id="loading-status">กำลังเชื่อมต่อ Firebase...</div>
 </div>
 
-<!-- ปุ่มลอยเมนู -->
 <div id="fabMenuBtn" class="fab-menu" onclick="openMenuModal()"><span style="font-size: 18px;">☰</span> Menu</div>
 
 <div id="menuOverlay" class="menu-overlay" onclick="closeMenuModal(event)">
@@ -200,175 +189,142 @@
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
   </div>
 
-  <!-- หน้าทำรายการเสร็จสิ้น -->
   <div id="done-section" class="section">
-    <div class="header-badge" style="background: #dcfce7; color: #16a34a; border-color: #bbf7d0;">สำเร็จ </div>
+    <div class="header-badge" style="background: #dcfce7; color: #16a34a; border-color: #bbf7d0;">สำเร็จ</div>
     <h2 style="color: #16a34a;">ทำรายการเรียบร้อย!</h2>
     <p>ระบบได้รับข้อมูลการสั่งจองและสลิปชำระเงินของคุณแล้ว<br>ระบบได้ส่งใบเสร็จยืนยันไปที่อีเมลของคุณเรียบร้อยครับ</p>
-    
     <div style="font-size: 70px; margin: 30px 0; text-align: center;">✅</div>
-    
     <button class="btn-success" onclick="switchSection('home-section')">กลับสู่หน้าหลัก</button>
   </div>
-
-  <!-- Dynamic sections จะถูกสร้างตรงนี้โดย JavaScript -->
 </div>
   
 <script>
   // =============================================
-  // ⚙️ Configuration
+  // ⚙️ Firebase + App Config
   // =============================================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec'; 
-  const PRICE_PER_SHIRT = 379; 
-  const EXTRA_PRICE = 30; 
-  
-  let currentStudentId = '';
-  let appConfig = {};
-  
-  // ข้อมูลเมนูเริ่มต้น (แสดงทันทีไม่ต้องรอหลังบ้าน)
-  let allTasks = [
-    {
-      id: 'booking-shirt',
-      title: "สั่งจองเสื้อช็อป DE 06",
-      desc: "ระบบเลือกไซส์และส่งสลิปชำระเงิน",
-      icon: "👕",
-      action: "goToSection('booking-section')",
-      endDate: "2026-12-31 23:59:59",
-      htmlCode: ""
-    }
-  ];
+  firebase.initializeApp({
+    apiKey: "AIzaSyBzlyOGkiO0QZ9C37Psv1K4zPfJuUtq6G0",
+    authDomain: "de06-af21e.firebaseapp.com",
+    projectId: "de06-af21e",
+    storageBucket: "de06-af21e.firebasestorage.app",
+    messagingSenderId: "177448084810",
+    appId: "1:177448084810:web:b10aae7fef65dfa504cdb3"
+  });
+
+  var db = firebase.firestore();
+
+  // เปิด offline persistence (โหลดเร็วขึ้น + ทำงานได้แม้ internet ช้า)
+  db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
+    console.warn('Firestore persistence:', err.code);
+  });
+
+  // Apps Script URL (ใช้แค่ upload slip + send email)
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec';
+
+  var PRICE_PER_SHIRT = 379;
+  var EXTRA_PRICE = 30;
+  var currentStudentId = '';
+  var currentStudentName = '';
+  var appConfig = {};
+  var allTasks = [];
 
   // =============================================
-  // 🔧 Utility Functions
+  // 🔧 Utility
   // =============================================
   function parseSafeDate(dateStr) {
     if (!dateStr) return new Date("2099/12/31");
-    let d = new Date(dateStr);
+    var d = new Date(dateStr);
     if (!isNaN(d.getTime())) return d;
-    let iosDate = dateStr.replace(/-/g, '/').replace('T', ' ');
-    iosDate = iosDate.split('.')[0]; 
+    var iosDate = dateStr.replace(/-/g, '/').replace('T', ' ').split('.')[0];
     d = new Date(iosDate);
     if (!isNaN(d.getTime())) return d;
-    return new Date("2099/12/31"); 
+    return new Date("2099/12/31");
   }
 
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
 
   // =============================================
-  // 🚀 Page Load — Pre-warm + Load Config
+  // 🚀 Page Load
   // =============================================
   window.onload = function() {
-    // 1. โหลดตัวเลือกเวลา
-    const hSel = document.getElementById('transfer-hour');
-    const mSel = document.getElementById('transfer-minute');
-    for (let i=0; i<=23; i++) hSel.innerHTML += '<option value="' + i.toString().padStart(2,'0') + '">' + i.toString().padStart(2,'0') + '</option>';
-    for (let i=0; i<=59; i++) mSel.innerHTML += '<option value="' + i.toString().padStart(2,'0') + '">' + i.toString().padStart(2,'0') + '</option>';
-    
-    // 2. ⚡ Pre-warm API ด้วย GET request (ปลุก cold start ล่วงหน้า)
-    try { fetch(API_URL, { method: 'GET', mode: 'no-cors' }).catch(function(){}); } catch(e) {}
-    
-    // 3. โหลด config จาก cache ก่อน แล้ว update ทีหลัง
-    loadConfigInBackground();
-    
-    // 4. เริ่มนับเวลา
+    var hSel = document.getElementById('transfer-hour');
+    var mSel = document.getElementById('transfer-minute');
+    for (var i = 0; i <= 23; i++) hSel.innerHTML += '<option value="' + i.toString().padStart(2, '0') + '">' + i.toString().padStart(2, '0') + '</option>';
+    for (var i = 0; i <= 59; i++) mSel.innerHTML += '<option value="' + i.toString().padStart(2, '0') + '">' + i.toString().padStart(2, '0') + '</option>';
+
+    // Pre-warm Apps Script (สำหรับ upload slip)
+    try { fetch(API_URL, { method: 'GET', mode: 'no-cors' }).catch(function() {}); } catch (e) { }
+
+    loadConfigFromFirestore();
     setInterval(updateTimers, 1000);
   };
 
   // =============================================
-  // 📦 Load Config — Cache + Background Refresh
+  // 📦 Load Config จาก Firestore (เร็วมาก!)
   // =============================================
-  let configLoadAttempts = 0;
+  async function loadConfigFromFirestore() {
+    var statusEl = document.getElementById('loading-status');
+    var loadingScreen = document.getElementById('loading-screen');
 
-  async function loadConfigInBackground() {
-    const statusEl = document.getElementById('loading-status');
-    const retryEl = document.getElementById('loading-retry');
-    const loadingScreen = document.getElementById('loading-screen');
-    
-    // ลองใช้ cache ก่อน
-    const cachedData = localStorage.getItem('de06_config');
-    if (cachedData) {
-      try {
-        applyConfigToUI(JSON.parse(cachedData));
-        loadingScreen.style.display = 'none'; // ปิด loading ทันที
-      } catch(e) {}
-    }
-
-    statusEl.innerText = 'กำลังดึงข้อมูลจากเซิร์ฟเวอร์...';
-    
     try {
-      const res = await callAPI('getAppConfig');
-      if (res.success) {
-        localStorage.setItem('de06_config', JSON.stringify(res));
-        applyConfigToUI(res);
-        loadingScreen.style.display = 'none';
-        configLoadAttempts = 0;
+      statusEl.innerText = 'กำลังโหลดข้อมูล...';
+
+      // โหลด config + activities พร้อมกัน
+      var configPromise = db.collection('config').doc('main').get();
+      var activitiesPromise = db.collection('activities').orderBy('order').get();
+
+      var results = await Promise.all([configPromise, activitiesPromise]);
+
+      // Config
+      if (results[0].exists) {
+        appConfig = results[0].data();
+        var ppNum = (appConfig.PROMPTPAY_NUMBER || '').toString().replace(/[^0-9]/g, '');
+        if (ppNum.length === 9) ppNum = '0' + ppNum;
+        appConfig.PROMPTPAY_NUMBER = ppNum;
+        document.getElementById('show-pp-number').innerText = ppNum;
+        document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
       }
+
+      // Activities
+      allTasks = [];
+      results[1].forEach(function(doc) {
+        var data = doc.data();
+        data.id = doc.id;
+        allTasks.push(data);
+      });
+
+      renderDynamicSections();
+      loadingScreen.style.display = 'none';
+
     } catch (e) {
-      console.log("Error loading config:", e);
-      configLoadAttempts++;
-      
-      // ถ้ามี cache อยู่แล้ว → ปิด loading ไปเลย ใช้ข้อมูลเก่า
-      if (cachedData) {
-        loadingScreen.style.display = 'none';
-      } else {
-        // ไม่มี cache + โหลดไม่ได้ → แสดงปุ่ม retry
-        document.querySelector('.loading-spinner').style.display = 'none';
-        statusEl.innerText = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
-        retryEl.style.display = 'block';
-      }
+      console.error('Load config error:', e);
+      statusEl.innerText = 'โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ';
+      // ถ้า Firestore มี cache offline จะยังโหลดได้
+      setTimeout(function() { loadingScreen.style.display = 'none'; }, 3000);
     }
-  }
-
-  function retryLoadConfig() {
-    const retryEl = document.getElementById('loading-retry');
-    const spinner = document.querySelector('.loading-spinner');
-    retryEl.style.display = 'none';
-    spinner.style.display = 'block';
-    loadConfigInBackground();
-  }
-
-  function applyConfigToUI(res) {
-    appConfig = res.config;
-    allTasks = res.tasks;
-    
-    let ppNumberStr = (appConfig.PROMPTPAY_NUMBER || '').toString().replace(/[^0-9]/g, '');
-    if (ppNumberStr.length === 9) {
-      ppNumberStr = '0' + ppNumberStr;
-    }
-    appConfig.PROMPTPAY_NUMBER = ppNumberStr;
-    
-    document.getElementById('show-pp-number').innerText = ppNumberStr;
-    document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
-    
-    // 🔥 สร้าง dynamic sections จากกิจกรรมที่มี htmlCode
-    renderDynamicSections();
   }
 
   // =============================================
   // 🔄 Dynamic Activity Sections
   // =============================================
   function renderDynamicSections() {
-    // ลบ section เก่าที่สร้าง dynamic ไว้
     document.querySelectorAll('.dynamic-section').forEach(function(el) { el.remove(); });
-    
-    const container = document.getElementById('main-container');
-    
+    var container = document.getElementById('main-container');
+
     allTasks.forEach(function(task) {
       if (task.htmlCode && task.htmlCode.trim() !== '') {
-        const section = document.createElement('div');
+        var section = document.createElement('div');
         section.id = 'dynamic-' + task.id;
         section.className = 'section dynamic-section';
-        section.innerHTML = 
+        section.innerHTML =
           '<div class="header-badge">' + task.icon + ' ' + task.title + '</div>' +
           '<h3 style="text-align:center;">' + task.title + '</h3>' +
           '<p style="text-align:center;">' + task.desc + '</p>' +
           '<div id="form-' + task.id + '">' + task.htmlCode + '</div>' +
           '<div class="nav-group" style="margin-top:15px;">' +
-            '<button class="btn-secondary" onclick="switchSection(\'home-section\')">← กลับหน้าโฮม</button>' +
+          '<button class="btn-secondary" onclick="switchSection(\'home-section\')">← กลับหน้าโฮม</button>' +
           '</div>';
         container.appendChild(section);
-        
-        // อัปเดต action ให้ชี้ไปที่ dynamic section
         task.action = "goToSection('dynamic-" + task.id + "')";
       }
     });
@@ -377,407 +333,344 @@
   // =============================================
   // 🧭 Navigation
   // =============================================
-  function goToSection(sectionId) {
-    switchSection(sectionId);
-  }
+  function goToSection(sectionId) { switchSection(sectionId); }
 
   function switchSection(sectionId) {
     document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-    
-    var targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-      targetSection.classList.add('active');
-    } else {
-      // Fallback: ถ้าไม่พบ section → กลับหน้า home
-      document.getElementById('home-section').classList.add('active');
-      sectionId = 'home-section';
-    }
-    
+    var target = document.getElementById(sectionId);
+    if (target) { target.classList.add('active'); }
+    else { document.getElementById('home-section').classList.add('active'); sectionId = 'home-section'; }
     window.scrollTo(0, 0);
-    
     if (sectionId === 'home-section') {
       document.getElementById('fabMenuBtn').style.display = 'flex';
-      renderHomeTasks(); 
-      renderMenu();
+      renderHomeTasks(); renderMenu();
     } else {
       document.getElementById('fabMenuBtn').style.display = 'none';
     }
   }
 
   function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
-  function closeMenuModal(e) { if(!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
-  function logout() { 
-    currentStudentId = ''; 
-    document.getElementById('studentId').value = ''; 
-    // ล้าง session cache
+  function closeMenuModal(e) { if (!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
+  function logout() {
+    currentStudentId = ''; currentStudentName = '';
+    document.getElementById('studentId').value = '';
     sessionStorage.removeItem('de06_student');
-    closeMenuModal(); 
-    switchSection('login-section'); 
+    closeMenuModal(); switchSection('login-section');
   }
 
   // =============================================
-  // 📋 Menu & Home Tasks Rendering
+  // 📋 Menu & Home Tasks
   // =============================================
   function renderMenu() {
-    const list = document.getElementById('menu-list-container');
+    var list = document.getElementById('menu-list-container');
     list.innerHTML = '';
     allTasks.forEach(function(t) {
-      var actionStr = t.htmlCode && t.htmlCode.trim() !== '' 
-        ? "goToSection('dynamic-" + t.id + "')" 
-        : t.action;
+      var actionStr = (t.htmlCode && t.htmlCode.trim() !== '') ? "goToSection('dynamic-" + t.id + "')" : t.action;
       list.innerHTML += '<div class="menu-item" onclick="' + actionStr + '; closeMenuModal();">' +
-        '<div class="menu-item-icon">' + t.icon + '</div>' +
-        '<div class="menu-item-text">' +
-          '<div class="menu-item-title">' + t.title + '</div>' +
-          '<div class="menu-item-desc">' + t.desc + '</div>' +
-        '</div></div>';
+        '<div class="menu-item-icon">' + t.icon + '</div><div class="menu-item-text">' +
+        '<div class="menu-item-title">' + t.title + '</div>' +
+        '<div class="menu-item-desc">' + t.desc + '</div></div></div>';
     });
   }
 
   function renderHomeTasks() {
-    const container = document.getElementById('active-tasks-container');
-    const now = new Date().getTime();
-    let activeTasks = allTasks.filter(function(t) { return parseSafeDate(t.endDate).getTime() > now; });
+    var container = document.getElementById('active-tasks-container');
+    var now = new Date().getTime();
+    var activeTasks = allTasks.filter(function(t) { return parseSafeDate(t.endDate).getTime() > now; });
     activeTasks.sort(function(a, b) { return parseSafeDate(a.endDate).getTime() - parseSafeDate(b.endDate).getTime(); });
-    
-    if (activeTasks.length === 0) { 
-      container.innerHTML = '<div style="text-align:center; padding:20px; color:gray;">ไม่มีกิจกรรมที่กำลังดำเนินการ</div>'; 
-      return; 
-    }
-
+    if (activeTasks.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:gray;">ไม่มีกิจกรรมที่กำลังดำเนินการ</div>'; return; }
     container.innerHTML = activeTasks.map(function(task) {
-      var actionStr = task.htmlCode && task.htmlCode.trim() !== '' 
-        ? "goToSection('dynamic-" + task.id + "')" 
-        : task.action;
-      return '<div class="task-card">' +
-        '<div class="task-title"><span>' + task.icon + '</span> ' + task.title + '</div>' +
+      var actionStr = (task.htmlCode && task.htmlCode.trim() !== '') ? "goToSection('dynamic-" + task.id + "')" : task.action;
+      return '<div class="task-card"><div class="task-title"><span>' + task.icon + '</span> ' + task.title + '</div>' +
         '<div class="task-desc">' + task.desc + '</div>' +
-        '<div class="task-timer" data-end="' + task.endDate + '">⏳ กำลังคำนวณเวลา...</div>' +
-        '<button class="task-btn" onclick="' + actionStr + '">เข้าสู่กิจกรรม →</button>' +
-      '</div>';
+        '<div class="task-timer" data-end="' + task.endDate + '">⏳ กำลังคำนวณ...</div>' +
+        '<button class="task-btn" onclick="' + actionStr + '">เข้าสู่กิจกรรม →</button></div>';
     }).join('');
-    updateTimers(); 
+    updateTimers();
   }
 
   function updateTimers() {
-    const now = new Date().getTime();
+    var now = new Date().getTime();
     document.querySelectorAll('.task-timer').forEach(function(el) {
-      const end = parseSafeDate(el.getAttribute('data-end')).getTime();
-      const diff = end - now;
-      if (diff <= 0) { 
-        el.innerHTML = "❌ หมดเวลาแล้ว"; 
-        el.style.background = "#fee2e2"; 
-        el.style.color = "#dc2626"; 
-      } else {
-        const d = Math.floor(diff / (1000*60*60*24));
-        const h = Math.floor((diff % (1000*60*60*24))/(1000*60*60));
-        const m = Math.floor((diff % (1000*60*60))/(1000*60));
-        const s = Math.floor((diff % (1000*60))/1000);
-        el.innerHTML = '⏳ เหลือเวลา: ' + (d>0?d+' วัน ':'') + h + ' ชม. ' + m + ' นาที ' + s + ' วิ';
+      var end = parseSafeDate(el.getAttribute('data-end')).getTime();
+      var diff = end - now;
+      if (diff <= 0) { el.innerHTML = "❌ หมดเวลาแล้ว"; el.style.background = "#fee2e2"; el.style.color = "#dc2626"; }
+      else {
+        var d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+        el.innerHTML = '⏳ เหลือเวลา: ' + (d > 0 ? d + ' วัน ' : '') + h + ' ชม. ' + m + ' นาที ' + s + ' วิ';
       }
     });
   }
 
   // =============================================
-  // ⚡ callAPI — Retry + Timeout (ปรับปรุงใหม่)
+  // ⚡ callAPI — เฉพาะ Apps Script (upload + email)
   // =============================================
   async function callAPI(action, dataPayload, retries) {
-    if (dataPayload === undefined) dataPayload = {};
+    if (!dataPayload) dataPayload = {};
     if (retries === undefined) retries = 2;
-    
-    for (let attempt = 0; attempt <= retries; attempt++) {
+    for (var attempt = 0; attempt <= retries; attempt++) {
       try {
-        // ⏱️ Timeout 15 วินาที
-        const controller = new AbortController();
-        const timeoutId = setTimeout(function() { controller.abort(); }, 15000);
-        
-        const response = await fetch(API_URL, { 
-          method: 'POST', 
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: action, ...dataPayload }),
-          signal: controller.signal
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
+        var response = await fetch(API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: action, ...dataPayload }), signal: controller.signal
         });
-        
         clearTimeout(timeoutId);
-        
-        const responseText = await response.text(); 
-        
-        try {
-          return JSON.parse(responseText); 
-        } catch (jsonError) {
-          console.warn("Backend ตอบกลับมาไม่ใช่ JSON:", responseText);
-          return { success: true, message: "ดำเนินการเรียบร้อย" };
-        }
-        
+        var text = await response.text();
+        try { return JSON.parse(text); } catch (e) { return { success: true }; }
       } catch (error) {
-        console.warn('API attempt ' + (attempt + 1) + ' failed:', error.message);
-        
-        // ถ้ายังมี retry เหลือ → รอแล้วลองใหม่ (exponential backoff)
-        if (attempt < retries) {
-          await new Promise(function(resolve) { 
-            setTimeout(resolve, (attempt + 1) * 1500); // 1.5s, 3s
-          });
-          continue;
-        }
-        
-        // หมด retry แล้ว → throw error
+        if (attempt < retries) { await new Promise(function(r) { setTimeout(r, (attempt + 1) * 1500); }); continue; }
         throw error;
       }
     }
   }
 
   // =============================================
-  // 🔐 Student Verification — Session Cache
+  // 🔐 Student Verification — Firestore (เร็วมาก!)
   // =============================================
   async function checkStudent() {
-    const id = document.getElementById('studentId').value.trim();
+    var id = document.getElementById('studentId').value.trim();
     if (!id) return;
-    
-    const btn = document.getElementById('btnLogin'); 
-    const errorEl = document.getElementById('loginError');
+    var btn = document.getElementById('btnLogin');
+    var errorEl = document.getElementById('loginError');
     errorEl.innerText = '';
-    
-    // ⚡ ตรวจสอบ session cache ก่อน
-    const cached = sessionStorage.getItem('de06_student');
+
+    // Session cache
+    var cached = sessionStorage.getItem('de06_student');
     if (cached) {
       try {
-        const cachedStudent = JSON.parse(cached);
-        if (cachedStudent.studentId === id && cachedStudent.name) {
-          // ใช้ข้อมูลจาก cache ทันที
-          currentStudentId = id;
-          document.getElementById('homeStudentName').innerText = cachedStudent.name;
-          document.getElementById('studentName').innerText = cachedStudent.name;
+        var c = JSON.parse(cached);
+        if (c.studentId === id && c.name) {
+          currentStudentId = id; currentStudentName = c.name;
+          document.getElementById('homeStudentName').innerText = c.name;
+          document.getElementById('studentName').innerText = c.name;
           switchSection('home-section');
-          
-          // Background verify เพื่อ validate ความถูกต้อง
-          callAPI('verifyStudent', { studentId: id }).then(function(res) {
-            if (!res.success) {
-              // ข้อมูล cache ไม่ถูกต้อง → logout
-              sessionStorage.removeItem('de06_student');
-              alert('รหัสนักศึกษาไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่');
-              logout();
-            }
-          }).catch(function() {});
-          
           return;
         }
-      } catch(e) {}
+      } catch (e) { }
     }
-    
-    // ไม่มี cache → เรียก API ปกติ
-    btn.disabled = true; 
-    btn.innerText = 'กำลังตรวจสอบ...';
-    
+
+    btn.disabled = true; btn.innerText = 'กำลังตรวจสอบ...';
     try {
-      const res = await callAPI('verifyStudent', { studentId: id });
-      if (res.success) {
-        currentStudentId = id;
-        document.getElementById('homeStudentName').innerText = res.name;
-        document.getElementById('studentName').innerText = res.name;
-        
-        // ⚡ เซฟลง session cache
-        sessionStorage.setItem('de06_student', JSON.stringify({ studentId: id, name: res.name }));
-        
+      var snap = await db.collection('students').doc(id).get();
+      if (snap.exists) {
+        var name = snap.data().name;
+        currentStudentId = id; currentStudentName = name;
+        document.getElementById('homeStudentName').innerText = name;
+        document.getElementById('studentName').innerText = name;
+        sessionStorage.setItem('de06_student', JSON.stringify({ studentId: id, name: name }));
         switchSection('home-section');
       } else {
-        errorEl.innerText = res.message;
+        errorEl.innerText = 'ไม่พบรหัสนักศึกษานี้ในระบบ';
       }
-    } catch (e) { 
-      errorEl.innerText = 'ติดต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง'; 
-    } finally { 
-      btn.disabled = false; 
-      btn.innerText = 'เข้าสู่ระบบ →'; 
+    } catch (e) {
+      errorEl.innerText = 'ติดต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่';
+    } finally {
+      btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →';
     }
   }
 
   // =============================================
-  // 🧮 Calculate Total Price
+  // 🧮 Calculate Total
   // =============================================
   function calculateTotal() {
-    const xs = parseInt(document.getElementById('qty-xs').value) || 0;
-    const s = parseInt(document.getElementById('qty-s').value) || 0;
-    const m = parseInt(document.getElementById('qty-m').value) || 0;
-    const l = parseInt(document.getElementById('qty-l').value) || 0;
-    const xl = parseInt(document.getElementById('qty-xl').value) || 0;
-    const xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
-    const otherQty = parseInt(document.getElementById('qty-other-num').value) || 0;
-
-    const totalQty = xs + s + m + l + xl + xxl + otherQty;
-    
-    const normalQty = xs + s + m + l + xl + xxl;
-    const normalPrice = normalQty * PRICE_PER_SHIRT;
-    const extraPrice = otherQty * (PRICE_PER_SHIRT + EXTRA_PRICE);
-    
-    let totalPrice = normalPrice + extraPrice;
-
-    if (totalQty >= 2) {
-      totalPrice = totalPrice - 10;
-    }
-
+    var xs = parseInt(document.getElementById('qty-xs').value) || 0;
+    var s = parseInt(document.getElementById('qty-s').value) || 0;
+    var m = parseInt(document.getElementById('qty-m').value) || 0;
+    var l = parseInt(document.getElementById('qty-l').value) || 0;
+    var xl = parseInt(document.getElementById('qty-xl').value) || 0;
+    var xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
+    var otherQty = parseInt(document.getElementById('qty-other-num').value) || 0;
+    var totalQty = xs + s + m + l + xl + xxl + otherQty;
+    var normalQty = xs + s + m + l + xl + xxl;
+    var totalPrice = (normalQty * PRICE_PER_SHIRT) + (otherQty * (PRICE_PER_SHIRT + EXTRA_PRICE));
+    if (totalQty >= 2) totalPrice -= 10;
     document.getElementById('total-qty').innerText = totalQty;
     document.getElementById('total-price').innerText = totalPrice.toLocaleString();
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
   }
 
   // =============================================
-  // 📦 Submit Order
+  // 📦 Submit Booking — Firestore (เร็วมาก!)
   // =============================================
   async function submitOrder() {
-    if ((parseInt(document.getElementById('total-qty').innerText)||0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
-    const btn = document.getElementById('btnBook'); btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
-    const otherNum = document.getElementById('qty-other-num').value || 0;
-    const orderData = {
-      xs: document.getElementById('qty-xs').value||0, s: document.getElementById('qty-s').value||0, m: document.getElementById('qty-m').value||0,
-      l: document.getElementById('qty-l').value||0, xl: document.getElementById('qty-xl').value||0, xxl: document.getElementById('qty-xxl').value||0,
-      other: otherNum > 0 ? (document.getElementById('qty-other-text').value.trim()||'ไซส์อื่นๆ') + ' (' + otherNum + ' ตัว)' : '', otherNum: otherNum
-    };
+    if ((parseInt(document.getElementById('total-qty').innerText) || 0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
+
+    var btn = document.getElementById('btnBook');
+    btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
+
+    var otherNum = parseInt(document.getElementById('qty-other-num').value) || 0;
+    var xs = parseInt(document.getElementById('qty-xs').value) || 0;
+    var s = parseInt(document.getElementById('qty-s').value) || 0;
+    var m = parseInt(document.getElementById('qty-m').value) || 0;
+    var l = parseInt(document.getElementById('qty-l').value) || 0;
+    var xl = parseInt(document.getElementById('qty-xl').value) || 0;
+    var xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
+    var otherText = otherNum > 0 ? (document.getElementById('qty-other-text').value.trim() || 'ไซส์อื่นๆ') + ' (' + otherNum + ' ตัว)' : '';
+
+    var summary = [];
+    if (xs > 0) summary.push('XS (' + xs + ')');
+    if (s > 0) summary.push('S (' + s + ')');
+    if (m > 0) summary.push('M (' + m + ')');
+    if (l > 0) summary.push('L (' + l + ')');
+    if (xl > 0) summary.push('XL (' + xl + ')');
+    if (xxl > 0) summary.push('2XL (' + xxl + ')');
+    if (otherText) summary.push(otherText);
+
+    var totalQty = xs + s + m + l + xl + xxl + otherNum;
+    var normalQty = xs + s + m + l + xl + xxl;
+    var totalPrice = (normalQty * PRICE_PER_SHIRT) + (otherNum * (PRICE_PER_SHIRT + EXTRA_PRICE));
+    if (totalQty >= 2) totalPrice -= 10;
+
     try {
-      const res = await callAPI('submitBooking', { studentId: currentStudentId, orderData: orderData });
-      if (res.success) { calculateTotal(); switchSection('upload-section'); } else alert(res.message);
-    } catch(e) { alert('ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่'); } finally { btn.disabled = false; btn.innerText = 'ถัดไป →'; }
+      await db.collection('bookings').doc(currentStudentId).set({
+        xs: xs, s: s, m: m, l: l, xl: xl, xxl: xxl,
+        other: otherText, otherNum: otherNum,
+        summary: summary.join(', '),
+        totalPrice: totalPrice,
+        status: 'pending',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      calculateTotal();
+      switchSection('upload-section');
+    } catch (e) {
+      alert('ส่งข้อมูลไม่สำเร็จ: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.innerText = 'ถัดไป →';
+    }
   }
 
   // =============================================
-  // 📤 Slip Upload — Background Pre-upload
+  // 📤 Slip Upload — ยังใช้ Apps Script (Google Drive)
   // =============================================
-  let preUploadedImageUrl = ''; 
-  let preUploadedFileUrl = '';
+  var preUploadedImageUrl = '';
+  var preUploadedFileUrl = '';
 
   function handleBackgroundUpload(input) {
-    const file = input.files[0];
-    const uploadMsg = document.getElementById('uploadMsg');
-    const btnUpload = document.getElementById('btnUpload');
-    
+    var file = input.files[0];
+    var uploadMsg = document.getElementById('uploadMsg');
+    var btnUpload = document.getElementById('btnUpload');
     if (!file) return;
-
-    preUploadedImageUrl = '';
-    preUploadedFileUrl = '';
-    
+    preUploadedImageUrl = ''; preUploadedFileUrl = '';
     uploadMsg.innerHTML = '⏳ กำลังเตรียมไฟล์สลิป...';
     uploadMsg.style.color = '#d97706';
-    btnUpload.disabled = true;
-    btnUpload.innerText = 'กำลังเตรียมข้อมูล... ⏳';
+    btnUpload.disabled = true; btnUpload.innerText = 'กำลังเตรียมข้อมูล... ⏳';
 
-    const reader = new FileReader();
+    var reader = new FileReader();
     reader.onload = async function(e) {
-      const base64 = e.target.result.split(',')[1];
+      var base64 = e.target.result.split(',')[1];
       try {
-        const res = await callAPI('preUploadImage', {
-          studentId: currentStudentId,
-          base64Data: base64,
-          fileName: file.name,
-          mimeType: file.type
+        var res = await callAPI('preUploadImage', {
+          studentId: currentStudentId, base64Data: base64, fileName: file.name, mimeType: file.type
         });
-        
         if (res.success) {
-          preUploadedImageUrl = res.imageUrl;
-          preUploadedFileUrl = res.fileUrl;
+          preUploadedImageUrl = res.imageUrl; preUploadedFileUrl = res.fileUrl;
           uploadMsg.innerHTML = '✅ เตรียมรูปภาพสลิปพร้อมใช้งานแล้ว!';
           uploadMsg.style.color = '#15803d';
-          btnUpload.disabled = false;
-          btnUpload.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
+          btnUpload.disabled = false; btnUpload.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
         } else {
-          uploadMsg.innerHTML = '❌ อัปโหลดรูปล้มเหลว โปรดเลือกรูปใหม่อีกครั้ง';
-          uploadMsg.style.color = '#e11d48';
+          uploadMsg.innerHTML = '❌ อัปโหลดรูปล้มเหลว โปรดเลือกรูปใหม่'; uploadMsg.style.color = '#e11d48';
         }
-      } catch(err) {
-        uploadMsg.innerHTML = '❌ การเชื่อมต่อขัดข้อง โปรดเลือกรูปใหม่อีกครั้ง';
-        uploadMsg.style.color = '#e11d48';
+      } catch (err) {
+        uploadMsg.innerHTML = '❌ การเชื่อมต่อขัดข้อง โปรดเลือกรูปใหม่'; uploadMsg.style.color = '#e11d48';
       }
     };
     reader.readAsDataURL(file);
   }
 
   // =============================================
-  // ✅ Finalize Order
+  // ✅ Finalize Order — Firestore + Email (fire-and-forget)
   // =============================================
   async function finalizeOrderFast() {
-    const phone = document.getElementById('contact-phone').value.trim();
-    const email = document.getElementById('contact-email').value.trim();
-    const transferDate = document.getElementById('transfer-date').value;
-    const transferHour = document.getElementById('transfer-hour').value;
-    const transferMinute = document.getElementById('transfer-minute').value;
+    var phone = document.getElementById('contact-phone').value.trim();
+    var email = document.getElementById('contact-email').value.trim();
+    var transferDate = document.getElementById('transfer-date').value;
+    var transferHour = document.getElementById('transfer-hour').value;
+    var transferMinute = document.getElementById('transfer-minute').value;
 
-    if (!phone) { alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ'); return; }
-    if (!email || !email.includes('@')) { alert('กรุณากรอกอีเมลให้ถูกต้องครับ'); return; }
-    if (!transferDate || transferHour === "" || transferMinute === "") { alert('กรุณาระบุวันที่และเวลาที่โอนเงินครับ'); return; }
-    if (!preUploadedImageUrl) { alert('ระบบกำลังประมวลผลรูปภาพ กรุณารอสักครู่'); return; }
+    if (!phone) return alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ');
+    if (!email || !email.includes('@')) return alert('กรุณากรอกอีเมลให้ถูกต้องครับ');
+    if (!transferDate || transferHour === "" || transferMinute === "") return alert('กรุณาระบุวันที่และเวลาที่โอนเงินครับ');
+    if (!preUploadedImageUrl) return alert('ระบบกำลังประมวลผลรูปภาพ กรุณารอสักครู่');
 
-    const parts = transferDate.split('-');
-    const formattedDateTime = parts[2] + '/' + parts[1] + '/' + parts[0] + ' เวลา ' + transferHour + ':' + transferMinute + ' น.';
+    var parts = transferDate.split('-');
+    var formattedDateTime = parts[2] + '/' + parts[1] + '/' + parts[0] + ' เวลา ' + transferHour + ':' + transferMinute + ' น.';
 
-    const btn = document.getElementById('btnUpload');
-    btn.disabled = true;
-    btn.innerText = 'กำลังบันทึกข้อมูล... ⚡';
+    var btn = document.getElementById('btnUpload');
+    btn.disabled = true; btn.innerText = 'กำลังบันทึกข้อมูล... ⚡';
 
     try {
-      const res = await callAPI('finalizeOrder', {
-        studentId: currentStudentId,
-        imageUrl: preUploadedImageUrl,
-        fileUrl: preUploadedFileUrl,
-        contactData: { phone: phone, email: email, transferDateTime: formattedDateTime }
+      // 1. เขียน Firestore (เร็วมาก ~0.2 วินาที)
+      await db.collection('bookings').doc(currentStudentId).update({
+        slipImageUrl: preUploadedImageUrl,
+        slipFileUrl: preUploadedFileUrl,
+        phone: phone,
+        email: email,
+        transferDateTime: formattedDateTime,
+        status: 'paid',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      
-      if (res.success) {
-        switchSection('done-section'); 
-      } else {
-        alert('เกิดข้อผิดพลาด: ' + res.message);
-        btn.disabled = false;
-        btn.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
-      }
-    } catch(e) {
-      alert('ไม่สามารถส่งข้อมูลได้ โปรดลองอีกครั้ง');
-      btn.disabled = false;
-      btn.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
+
+      // 2. ส่ง Email ผ่าน Apps Script (fire-and-forget — ไม่ต้องรอ)
+      // อ่าน summary + price จาก Firestore
+      var bookingDoc = await db.collection('bookings').doc(currentStudentId).get();
+      var bookingData = bookingDoc.data() || {};
+
+      callAPI('sendEmail', {
+        studentId: currentStudentId,
+        studentName: currentStudentName,
+        orderSummary: bookingData.summary || '',
+        totalPrice: bookingData.totalPrice || 0,
+        email: email,
+        transferDateTime: formattedDateTime,
+        fileUrl: preUploadedFileUrl
+      }).catch(function(e) { console.warn('Email send failed:', e); });
+
+      // 3. เด้งไปหน้าเสร็จสิ้นทันที (ไม่ต้องรอ email)
+      switchSection('done-section');
+
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด: ' + e.message);
+      btn.disabled = false; btn.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
     }
   }
 
   // =============================================
-  // 📋 Dynamic Form Submission (ใช้กับกิจกรรมที่มี htmlCode)
+  // 📋 Dynamic Form Submission — Firestore
   // =============================================
   async function submitCustomForm(event, activityId, containerId) {
     if (!currentStudentId) return alert("กรุณาเข้าสู่ระบบก่อนทำรายการ");
-    
-    const container = document.getElementById(containerId);
+    var container = document.getElementById(containerId);
     if (!container) return alert("เกิดข้อผิดพลาด: ไม่พบแบบฟอร์ม");
 
-    const inputs = container.querySelectorAll('input[name], select[name], textarea[name]');
-    let formData = {};
+    var inputs = container.querySelectorAll('input[name], select[name], textarea[name]');
+    var formData = {};
     inputs.forEach(function(el) {
-      if (el.type === 'checkbox' || el.type === 'radio') {
-          if (el.checked) formData[el.name] = el.value;
-      } else {
-          formData[el.name] = el.value;
-      }
+      if (el.type === 'checkbox' || el.type === 'radio') { if (el.checked) formData[el.name] = el.value; }
+      else { formData[el.name] = el.value; }
     });
+    if (Object.keys(formData).length === 0) return alert("ไม่พบข้อมูลที่จะส่ง");
 
-    if (Object.keys(formData).length === 0) {
-       return alert("ไม่พบข้อมูลที่จะส่ง (โปรดตรวจสอบว่าได้ตั้งค่า name ให้กับช่องกรอกข้อมูลแล้ว)");
-    }
-
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.disabled = true;
-    btn.innerText = 'กำลังบันทึกข้อมูล...';
+    var btn = event.target;
+    var originalText = btn.innerText;
+    btn.disabled = true; btn.innerText = 'กำลังบันทึกข้อมูล...';
 
     try {
-      const res = await callAPI('submitDynamicForm', { 
-        studentId: currentStudentId, 
-        activityId: activityId, 
-        formData: formData 
+      await db.collection('dynamic_submissions').add({
+        activityId: activityId,
+        studentId: currentStudentId,
+        studentName: currentStudentName,
+        formData: formData,
+        submittedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })
       });
-      
-      if (res.success) {
-        alert('🎉 ' + res.message);
-        switchSection('home-section');
-      } else {
-        alert('❌ ' + res.message);
-      }
-    } catch(e) {
-      alert('เกิดข้อผิดพลาด ไม่สามารถเชื่อมต่อระบบได้');
+      alert('🎉 บันทึกข้อมูลเรียบร้อยแล้ว!');
+      switchSection('home-section');
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด: ' + e.message);
     } finally {
-      btn.disabled = false;
-      btn.innerText = originalText;
+      btn.disabled = false; btn.innerText = originalText;
     }
   }
 </script>
