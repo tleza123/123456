@@ -2,89 +2,483 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin Dashboard • DE 06</title>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="description" content="ระบบจัดการหลังบ้าน DIGITAL ENTREPRENEUR 06">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Prompt', sans-serif; background: #f1f5f9; padding: 20px; }
-    .box { background: white; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    input, textarea { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Prompt'; }
-    button { background: #003566; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; }
-    .task-row { background: #f8fafc; padding: 10px; border: 1px dashed #ccc; margin-bottom: 10px; border-radius: 8px; }
+    :root {
+      --main-blue: #003566; --main-blue-light: #004e98;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --card-bg: #ffffff; --card-border: #e2e8f0;
+      --success: #059669; --danger: #dc2626; --warning: #d97706;
+    }
+    * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
+    body { background: var(--bg-gradient); min-height: 100vh; margin: 0; padding: 20px; color: #1e293b; }
+    
+    .page-header { text-align: center; color: white; margin-bottom: 25px; }
+    .page-header h1 { font-size: 24px; margin: 0 0 4px 0; }
+    .page-header p { font-size: 13px; color: #94a3b8; margin: 0; }
+    
+    .box { 
+      background: var(--card-bg); max-width: 700px; margin: 0 auto 20px; 
+      padding: 25px; border-radius: 16px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+      border: 1px solid var(--card-border);
+    }
+    .box h2 { color: var(--main-blue); font-size: 18px; margin: 0 0 15px 0; }
+    .box h3 { color: var(--main-blue); font-size: 16px; margin: 20px 0 10px 0; }
+    
+    label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+    input, textarea, select { 
+      width: 100%; padding: 10px 14px; margin: 0 0 12px; 
+      border: 1.5px solid #cbd5e1; border-radius: 10px; 
+      font-family: 'Prompt'; font-size: 14px; background: #f8fafc;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--main-blue); background: white; }
+    textarea { resize: vertical; min-height: 80px; }
+    
+    button { 
+      background: linear-gradient(135deg, var(--main-blue) 0%, var(--main-blue-light) 100%); 
+      color: white; padding: 12px 20px; border: none; border-radius: 10px; 
+      cursor: pointer; width: 100%; font-size: 15px; font-weight: 600;
+      font-family: 'Prompt'; transition: transform 0.1s, box-shadow 0.2s;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,53,102,0.3); }
+    button:active { transform: translateY(0); }
+    .btn-success { background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important; }
+    .btn-danger { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important; }
+    .btn-secondary { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; }
+    .btn-sm { width: auto; padding: 6px 14px; font-size: 13px; }
+    
+    /* Task Card in Admin */
+    .task-row { 
+      background: #f8fafc; padding: 18px; 
+      border: 1px solid #e2e8f0; margin-bottom: 14px; 
+      border-radius: 14px; border-left: 4px solid var(--main-blue);
+      transition: box-shadow 0.2s;
+    }
+    .task-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .task-header { 
+      display: flex; justify-content: space-between; align-items: center; 
+      cursor: pointer; user-select: none;
+    }
+    .task-header-title { font-weight: 700; font-size: 15px; color: var(--main-blue); display: flex; align-items: center; gap: 8px; }
+    .task-header-toggle { font-size: 18px; color: #94a3b8; transition: transform 0.2s; }
+    .task-header-toggle.open { transform: rotate(180deg); }
+    .task-body { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #e2e8f0; }
+    .task-body.open { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .field-row { display: flex; gap: 10px; }
+    .field-row > div { flex: 1; }
+    
+    /* HTML Editor */
+    .html-editor-box { 
+      background: white; border: 1.5px solid #cbd5e1; border-radius: 10px; 
+      overflow: hidden; margin-bottom: 12px; 
+    }
+    .html-editor-header { 
+      background: #f1f5f9; padding: 8px 14px; font-size: 12px; 
+      font-weight: 600; color: #64748b; display: flex; 
+      justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .html-editor-header button { width: auto; padding: 4px 10px; font-size: 11px; margin: 0; }
+    .html-editor textarea { 
+      border: none; border-radius: 0; margin: 0; padding: 12px 14px; 
+      font-family: 'Courier New', monospace; font-size: 13px; 
+      min-height: 120px; background: #fefefe; line-height: 1.5;
+    }
+    .html-preview { 
+      background: white; border: 1.5px dashed #cbd5e1; border-radius: 10px; 
+      padding: 15px; margin-bottom: 12px; min-height: 60px;
+      display: none;
+    }
+    .html-preview.show { display: block; }
+    
+    /* Action mode selector */
+    .action-mode { 
+      display: flex; gap: 0; margin-bottom: 12px; border-radius: 10px; 
+      overflow: hidden; border: 1.5px solid #cbd5e1;
+    }
+    .action-mode label { 
+      flex: 1; text-align: center; padding: 10px; cursor: pointer; 
+      font-size: 13px; font-weight: 600; background: #f8fafc;
+      margin: 0; border: none; transition: all 0.2s;
+    }
+    .action-mode input[type="radio"] { display: none; }
+    .action-mode input[type="radio"]:checked + label { 
+      background: var(--main-blue); color: white; 
+    }
+    
+    /* Template box */
+    .template-box { 
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; 
+      padding: 14px; margin-bottom: 14px;
+    }
+    .template-box h4 { margin: 0 0 8px 0; font-size: 14px; color: #92400e; }
+    .template-box pre { 
+      background: #fef3c7; padding: 10px; border-radius: 8px; 
+      font-size: 11px; overflow-x: auto; white-space: pre-wrap;
+      margin: 0; font-family: 'Courier New', monospace;
+    }
+    .template-box button { margin-top: 8px; }
+    
+    /* Status message */
+    #msg { 
+      margin-top: 12px; text-align: center; padding: 10px; 
+      border-radius: 8px; font-weight: 500; font-size: 14px;
+    }
+    .msg-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .msg-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .msg-loading { background: #fefce8; color: #a16207; border: 1px solid #fde68a; }
   </style>
 </head>
 <body>
-  <div class="box" id="loginBox">
-    <h2>เข้าสู่ระบบหลังบ้าน</h2>
-    <input type="password" id="adminPass" placeholder="รหัสผ่าน">
-    <button onclick="loadData()">เข้าสู่ระบบ</button>
+
+<div class="page-header">
+  <h1>⚙️ Admin Dashboard</h1>
+  <p>DIGITAL ENTREPRENEUR รุ่น 06 — ระบบจัดการหลังบ้าน</p>
+</div>
+
+<!-- Login Box -->
+<div class="box" id="loginBox">
+  <h2>🔐 เข้าสู่ระบบหลังบ้าน</h2>
+  <label>รหัสผ่านแอดมิน</label>
+  <input type="password" id="adminPass" placeholder="กรอกรหัสผ่าน">
+  <button onclick="loadData()">เข้าสู่ระบบ →</button>
+  <div id="loginMsg"></div>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel" style="display:none;">
+
+  <!-- Config Section -->
+  <div class="box">
+    <h2>💳 ตั้งค่าการชำระเงิน</h2>
+    <label>เบอร์พร้อมเพย์ / เลขบัญชี (รับเงิน)</label>
+    <input type="text" id="cfg_promptpay" placeholder="เช่น 0643040487">
+    <label>ชื่อบัญชี</label>
+    <input type="text" id="cfg_accountName" placeholder="เช่น นายพิชยะ ประจิตต์">
+    <label>ID โฟลเดอร์ Google Drive (เก็บสลิป)</label>
+    <input type="text" id="cfg_folder" placeholder="Google Drive Folder ID">
   </div>
 
-  <div class="box" id="adminBox" style="display:none; margin-top: 20px;">
-    <h2 style="color: #003566;">⚙️ ตั้งค่าระบบ (อัปเดตไปที่หน้าเว็บทันที)</h2>
+  <!-- Activities Section -->
+  <div class="box">
+    <h2>📅 จัดการกิจกรรม</h2>
+    <p style="font-size: 13px; color: #64748b; margin: 0 0 15px;">กิจกรรมที่เพิ่มจะปรากฏบนหน้า Home ของนักศึกษาอัตโนมัติ</p>
     
-    <label>เบอร์พร้อมเพย์ (รับเงิน):</label>
-    <input type="text" id="cfg_promptpay">
-    <label>ชื่อบัญชี:</label>
-    <input type="text" id="cfg_accountName">
-    <label>ID โฟลเดอร์ Google Drive (เก็บสลิป):</label>
-    <input type="text" id="cfg_folder">
-    
-    <hr style="margin:20px 0;">
-    <h3>📅 จัดการกิจกรรม (เมนูหน้าโฮม)</h3>
     <div id="tasksContainer"></div>
-    <button onclick="addTask()" style="background: #10b981; margin-bottom: 20px;">+ เพิ่มกิจกรรมใหม่</button>
-
-    <button onclick="saveData()">💾 บันทึกการตั้งค่าทั้งหมด</button>
-    <div id="msg" style="margin-top:10px; color:green; text-align:center;"></div>
+    
+    <button class="btn-success" onclick="addTask()" style="margin-bottom: 10px;">+ เพิ่มกิจกรรมใหม่</button>
+    
+    <!-- Template -->
+    <div class="template-box" id="templateBox" style="display:none;">
+      <h4>📋 ตัวอย่าง HTML Template สำหรับแบบฟอร์ม</h4>
+      <p style="font-size: 12px; color: #92400e; margin: 0 0 8px;">คัดลอกโค้ดนี้ไปวางในช่อง HTML Code ของกิจกรรม แล้วแก้ไขตามต้องการ</p>
+      <pre id="templateCode"></pre>
+      <button class="btn-sm btn-secondary" onclick="copyTemplate()">📋 คัดลอก Template</button>
+      <button class="btn-sm btn-secondary" onclick="document.getElementById('templateBox').style.display='none'">✕ ปิด</button>
+    </div>
   </div>
+
+  <!-- Save Button -->
+  <div class="box" style="text-align: center;">
+    <button onclick="saveData()" style="font-size: 17px; padding: 14px;">💾 บันทึกการตั้งค่าทั้งหมด</button>
+    <div id="msg"></div>
+  </div>
+</div>
 
 <script>
-  // ⚙️ วางลิงก์ API เดิมตรงนี้ครับ!
+  // ⚙️ API URL (เดิม)
   const API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec';
   let appTasks = [];
 
+  // =============================================
+  // Template HTML ตัวอย่าง
+  // =============================================
+  const TEMPLATE_HTML = '<div style="text-align:left;">\n' +
+    '  <label style="font-weight:600;">หัวข้อที่ 1:</label>\n' +
+    '  <input type="text" name="หัวข้อ1" placeholder="กรอกข้อมูล" \n' +
+    '    style="width:100%;padding:10px;margin:5px 0 12px;border:1.5px solid #cbd5e1;border-radius:10px;">\n' +
+    '\n' +
+    '  <label style="font-weight:600;">เลือกตัวเลือก:</label>\n' +
+    '  <select name="ตัวเลือก" \n' +
+    '    style="width:100%;padding:10px;margin:5px 0 12px;border:1.5px solid #cbd5e1;border-radius:10px;">\n' +
+    '    <option value="">-- เลือก --</option>\n' +
+    '    <option value="ตัวเลือก A">ตัวเลือก A</option>\n' +
+    '    <option value="ตัวเลือก B">ตัวเลือก B</option>\n' +
+    '  </select>\n' +
+    '\n' +
+    '  <label style="font-weight:600;">หมายเหตุ:</label>\n' +
+    '  <textarea name="หมายเหตุ" placeholder="กรอกหมายเหตุ" rows="3" \n' +
+    '    style="width:100%;padding:10px;margin:5px 0 12px;border:1.5px solid #cbd5e1;border-radius:10px;font-family:Prompt;"></textarea>\n' +
+    '\n' +
+    '  <button onclick="submitCustomForm(event, \'ACTIVITY_ID\', \'form-ACTIVITY_ID\')" \n' +
+    '    style="width:100%;padding:12px;background:linear-gradient(135deg,#003566,#004e98);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:Prompt;">\n' +
+    '    ส่งข้อมูล ✓\n' +
+    '  </button>\n' +
+    '</div>';
+
+  // =============================================
+  // 🔐 Login & Load Data
+  // =============================================
   async function loadData() {
-    document.getElementById('msg').innerText = "กำลังดึงข้อมูล...";
-    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getAppConfig' }) });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('adminBox').style.display = 'block';
+    const msgEl = document.getElementById('loginMsg');
+    msgEl.innerHTML = '<div class="msg-loading" style="margin-top:10px;">⏳ กำลังดึงข้อมูล...</div>';
+    
+    try {
+      const res = await fetch(API_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'getAppConfig' }) 
+      });
+      const data = await res.json();
       
-      document.getElementById('cfg_promptpay').value = data.config.PROMPTPAY_NUMBER || '';
-      document.getElementById('cfg_accountName').value = data.config.ACCOUNT_NAME || '';
-      document.getElementById('cfg_folder').value = data.config.FOLDER_ID || '';
-      
-      appTasks = data.tasks || [];
-      renderTasks();
-      document.getElementById('msg').innerText = "";
+      if (data.success) {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        
+        document.getElementById('cfg_promptpay').value = data.config.PROMPTPAY_NUMBER || '';
+        document.getElementById('cfg_accountName').value = data.config.ACCOUNT_NAME || '';
+        document.getElementById('cfg_folder').value = data.config.FOLDER_ID || '';
+        
+        appTasks = data.tasks || [];
+        renderTasks();
+      } else {
+        msgEl.innerHTML = '<div class="msg-error" style="margin-top:10px;">❌ ' + (data.message || 'เกิดข้อผิดพลาด') + '</div>';
+      }
+    } catch(e) {
+      msgEl.innerHTML = '<div class="msg-error" style="margin-top:10px;">❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้</div>';
     }
   }
 
+  // =============================================
+  // 📋 Render Tasks
+  // =============================================
   function renderTasks() {
     const box = document.getElementById('tasksContainer');
     box.innerHTML = '';
-    appTasks.forEach((t, i) => {
-      box.innerHTML += `
-        <div class="task-row">
-          <input type="text" placeholder="ไอคอน (เช่น 👕)" value="${t.icon}" onchange="appTasks[${i}].icon=this.value" style="width:20%">
-          <input type="text" placeholder="ชื่อกิจกรรม" value="${t.title}" onchange="appTasks[${i}].title=this.value" style="width:75%">
-          <input type="text" placeholder="รายละเอียด" value="${t.desc}" onchange="appTasks[${i}].desc=this.value">
-          <input type="datetime-local" placeholder="วันหมดเวลา (YYYY-MM-DDTHH:MM)" value="${t.endDate}" onchange="appTasks[${i}].endDate=this.value">
-          <input type="text" placeholder="คำสั่ง Action (เช่น goToSection('booking-section'))" value="${t.action}" onchange="appTasks[${i}].action=this.value">
-          <button style="background:red; width:auto; padding:5px 10px;" onclick="appTasks.splice(${i}, 1); renderTasks();">ลบกิจกรรมนี้</button>
-        </div>
-      `;
+    
+    appTasks.forEach(function(t, i) {
+      const hasHtml = t.htmlCode && t.htmlCode.trim() !== '';
+      const modeBuiltin = !hasHtml ? 'checked' : '';
+      const modeCustom = hasHtml ? 'checked' : '';
+      
+      const taskEl = document.createElement('div');
+      taskEl.className = 'task-row';
+      taskEl.innerHTML = 
+        '<div class="task-header" onclick="toggleTask(' + i + ')">' +
+          '<div class="task-header-title"><span>' + (t.icon || '📌') + '</span> ' + (t.title || 'กิจกรรมใหม่') + '</div>' +
+          '<span class="task-header-toggle" id="toggle-' + i + '">▼</span>' +
+        '</div>' +
+        '<div class="task-body" id="taskBody-' + i + '">' +
+          '<div class="field-row">' +
+            '<div style="flex:0 0 70px;">' +
+              '<label>ไอคอน</label>' +
+              '<input type="text" value="' + escHtml(t.icon) + '" onchange="appTasks[' + i + '].icon=this.value; updateTaskTitle(' + i + ')" placeholder="👕" style="text-align:center; font-size:20px;">' +
+            '</div>' +
+            '<div>' +
+              '<label>ชื่อกิจกรรม</label>' +
+              '<input type="text" value="' + escHtml(t.title) + '" onchange="appTasks[' + i + '].title=this.value; updateTaskTitle(' + i + ')">' +
+            '</div>' +
+          '</div>' +
+          '<label>รายละเอียด</label>' +
+          '<input type="text" value="' + escHtml(t.desc) + '" onchange="appTasks[' + i + '].desc=this.value">' +
+          '<div class="field-row">' +
+            '<div>' +
+              '<label>ID กิจกรรม (ห้ามซ้ำ)</label>' +
+              '<input type="text" value="' + escHtml(t.id) + '" onchange="appTasks[' + i + '].id=this.value" placeholder="เช่น booking-shirt">' +
+            '</div>' +
+            '<div>' +
+              '<label>วันหมดเวลา</label>' +
+              '<input type="datetime-local" value="' + escHtml(t.endDate) + '" onchange="appTasks[' + i + '].endDate=this.value">' +
+            '</div>' +
+          '</div>' +
+          
+          '<label style="margin-top:8px; font-size:14px; color:var(--main-blue);">⚡ ประเภทกิจกรรม</label>' +
+          '<div class="action-mode">' +
+            '<input type="radio" name="mode-' + i + '" id="mode-builtin-' + i + '" value="builtin" ' + modeBuiltin + ' onchange="switchMode(' + i + ', \'builtin\')">' +
+            '<label for="mode-builtin-' + i + '">🔗 ใช้ Section ในระบบ</label>' +
+            '<input type="radio" name="mode-' + i + '" id="mode-custom-' + i + '" value="custom" ' + modeCustom + ' onchange="switchMode(' + i + ', \'custom\')">' +
+            '<label for="mode-custom-' + i + '">📝 สร้างฟอร์ม HTML</label>' +
+          '</div>' +
+          
+          '<div id="builtin-' + i + '" style="' + (hasHtml ? 'display:none;' : '') + '">' +
+            '<label>คำสั่ง Action (JavaScript)</label>' +
+            '<input type="text" value="' + escHtml(t.action) + '" onchange="appTasks[' + i + '].action=this.value" placeholder="เช่น goToSection(\'booking-section\')">' +
+            '<p style="font-size:11px; color:#94a3b8; margin:0;">ใช้สำหรับเรียกหน้า section ที่มีอยู่แล้วในระบบ เช่น booking-section</p>' +
+          '</div>' +
+          
+          '<div id="custom-' + i + '" style="' + (!hasHtml ? 'display:none;' : '') + '">' +
+            '<div class="html-editor-box">' +
+              '<div class="html-editor-header">' +
+                '<span>HTML Code</span>' +
+                '<div>' +
+                  '<button class="btn-sm btn-secondary" onclick="previewHtml(' + i + ')" style="margin-right:4px;">👁 Preview</button>' +
+                  '<button class="btn-sm btn-secondary" onclick="showTemplate(' + i + ')">📋 Template</button>' +
+                '</div>' +
+              '</div>' +
+              '<textarea class="html-editor" id="htmlCode-' + i + '" onchange="appTasks[' + i + '].htmlCode=this.value" placeholder="วาง HTML code ของแบบฟอร์มตรงนี้...">' + escHtml(t.htmlCode || '') + '</textarea>' +
+            '</div>' +
+            '<div class="html-preview" id="preview-' + i + '"></div>' +
+            '<p style="font-size:11px; color:#94a3b8; margin:0 0 10px;">💡 ระบบจะสร้างหน้ากิจกรรมใหม่อัตโนมัติจาก HTML ที่คุณกรอก</p>' +
+          '</div>' +
+          
+          '<div style="text-align:right; margin-top:12px;">' +
+            '<button class="btn-sm btn-danger" onclick="removeTask(' + i + ')">🗑 ลบกิจกรรมนี้</button>' +
+          '</div>' +
+        '</div>';
+      
+      box.appendChild(taskEl);
     });
   }
 
-  function addTask() {
-    appTasks.push({ id: 'task-'+Date.now(), icon: '📌', title: 'กิจกรรมใหม่', desc: '', endDate: '2026-12-31T23:59', action: "alert('เปิดเร็วๆนี้')" });
-    renderTasks();
+  // =============================================
+  // 🔧 Task Management Functions
+  // =============================================
+  function toggleTask(index) {
+    const body = document.getElementById('taskBody-' + index);
+    const toggle = document.getElementById('toggle-' + index);
+    body.classList.toggle('open');
+    toggle.classList.toggle('open');
   }
 
+  function updateTaskTitle(index) {
+    renderTasks();
+    // Re-open the task that was being edited
+    toggleTask(index);
+  }
+
+  function switchMode(index, mode) {
+    const builtinEl = document.getElementById('builtin-' + index);
+    const customEl = document.getElementById('custom-' + index);
+    
+    if (mode === 'builtin') {
+      builtinEl.style.display = 'block';
+      customEl.style.display = 'none';
+      appTasks[index].htmlCode = '';
+    } else {
+      builtinEl.style.display = 'none';
+      customEl.style.display = 'block';
+      // ตั้งค่า action อัตโนมัติ
+      appTasks[index].action = "goToSection('dynamic-" + appTasks[index].id + "')";
+    }
+  }
+
+  function addTask() {
+    const newId = 'activity-' + Date.now();
+    appTasks.push({ 
+      id: newId, 
+      icon: '📌', 
+      title: 'กิจกรรมใหม่', 
+      desc: 'รายละเอียดกิจกรรม', 
+      endDate: '2026-12-31T23:59', 
+      action: "alert('เปิดเร็วๆนี้')",
+      htmlCode: ''
+    });
+    renderTasks();
+    // เปิด task ใหม่ที่เพิ่งสร้าง
+    toggleTask(appTasks.length - 1);
+    // Scroll ลงมา
+    document.getElementById('taskBody-' + (appTasks.length - 1)).scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function removeTask(index) {
+    if (confirm('ยืนยันการลบกิจกรรม "' + appTasks[index].title + '" ?')) {
+      appTasks.splice(index, 1);
+      renderTasks();
+    }
+  }
+
+  // =============================================
+  // 📝 HTML Editor Functions
+  // =============================================
+  function previewHtml(index) {
+    const code = document.getElementById('htmlCode-' + index).value;
+    const previewEl = document.getElementById('preview-' + index);
+    
+    if (previewEl.classList.contains('show')) {
+      previewEl.classList.remove('show');
+      previewEl.innerHTML = '';
+    } else {
+      previewEl.innerHTML = code || '<p style="color:#94a3b8; text-align:center;">ไม่มี HTML code</p>';
+      previewEl.classList.add('show');
+    }
+  }
+
+  function showTemplate(index) {
+    const templateBox = document.getElementById('templateBox');
+    const templateCode = document.getElementById('templateCode');
+    const actId = appTasks[index].id || 'activity-id';
+    
+    // แทนที่ ACTIVITY_ID ด้วย ID จริง
+    const customizedTemplate = TEMPLATE_HTML.replace(/ACTIVITY_ID/g, actId);
+    templateCode.textContent = customizedTemplate;
+    templateBox.style.display = 'block';
+    templateBox.scrollIntoView({ behavior: 'smooth' });
+    
+    // เก็บ index ไว้สำหรับ copy
+    templateBox.dataset.targetIndex = index;
+  }
+
+  function copyTemplate() {
+    const templateBox = document.getElementById('templateBox');
+    const index = parseInt(templateBox.dataset.targetIndex);
+    const actId = appTasks[index].id || 'activity-id';
+    const customizedTemplate = TEMPLATE_HTML.replace(/ACTIVITY_ID/g, actId);
+    
+    // วางลงในช่อง HTML editor
+    const editor = document.getElementById('htmlCode-' + index);
+    if (editor && !editor.value.trim()) {
+      editor.value = customizedTemplate;
+      appTasks[index].htmlCode = customizedTemplate;
+    }
+    
+    // Copy to clipboard
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(customizedTemplate).then(function() {
+        alert('✅ คัดลอก Template แล้ว!' + (editor && !editor.value.trim() ? '' : '\nวางลงในช่อง HTML Code ของกิจกรรมแล้ว'));
+      });
+    } else {
+      alert('✅ วาง Template ลงในช่อง HTML Code แล้ว');
+    }
+    
+    templateBox.style.display = 'none';
+  }
+
+  // =============================================
+  // 💾 Save Data
+  // =============================================
   async function saveData() {
-    document.getElementById('msg').innerText = "กำลังบันทึก...";
+    const msgEl = document.getElementById('msg');
+    msgEl.className = 'msg-loading';
+    msgEl.innerText = '⏳ กำลังบันทึก...';
+    
+    // Validation
+    const ids = appTasks.map(function(t) { return t.id; });
+    const duplicates = ids.filter(function(id, idx) { return ids.indexOf(id) !== idx; });
+    if (duplicates.length > 0) {
+      msgEl.className = 'msg-error';
+      msgEl.innerText = '❌ พบ ID กิจกรรมซ้ำ: ' + duplicates.join(', ');
+      return;
+    }
+    
+    // อ่านค่าจาก HTML editors (กรณี onchange ไม่ทำงาน)
+    appTasks.forEach(function(t, i) {
+      const editor = document.getElementById('htmlCode-' + i);
+      if (editor) {
+        t.htmlCode = editor.value;
+      }
+      // ถ้าเป็น custom mode → ตั้ง action อัตโนมัติ
+      if (t.htmlCode && t.htmlCode.trim() !== '') {
+        t.action = "goToSection('dynamic-" + t.id + "')";
+      }
+    });
+    
     const payload = {
       action: 'saveAppConfig',
       password: document.getElementById('adminPass').value,
@@ -95,10 +489,39 @@
       },
       tasksData: appTasks
     };
-    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-    const result = await res.json();
-    document.getElementById('msg').innerText = result.message;
-    if(!result.success) alert(result.message);
+    
+    try {
+      const res = await fetch(API_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload) 
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+        msgEl.className = 'msg-success';
+        msgEl.innerText = '✅ ' + result.message;
+      } else {
+        msgEl.className = 'msg-error';
+        msgEl.innerText = '❌ ' + result.message;
+      }
+    } catch(e) {
+      msgEl.className = 'msg-error';
+      msgEl.innerText = '❌ ไม่สามารถบันทึกได้ กรุณาลองใหม่';
+    }
+  }
+
+  // =============================================
+  // 🔧 Utility
+  // =============================================
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 </script>
 </body>
