@@ -15,39 +15,403 @@
   
   <style>
     :root {
-      --main-blue: #003566; --main-blue-light: #004e98; --main-gold: #ffc300;
+      --main-blue: #003566;
+      --main-blue-light: #004e98;
+      --main-blue-dark: #001d3d;
+      --main-gold: #ffc300;
       --bg-gradient: linear-gradient(135deg, #f0f4f8 0%, #dbeafe 100%);
-      --text-main: #1e293b; --text-muted: #64748b;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
     }
     * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
-    body { background: var(--bg-gradient); min-height: 100vh; margin: 0; padding: 20px 10px; color: var(--text-main); display: flex; justify-content: center; align-items: flex-start; }
-    .container { width: 100%; max-width: 480px; background: rgba(255, 255, 255, 0.95); padding: 30px 25px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 53, 102, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8); margin-top: 10px; margin-bottom: 80px; text-align: center; position: relative; }
-    .header-badge { display: inline-block; background: #e0f2fe; color: var(--main-blue); font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 50px; margin-bottom: 15px; border: 1px solid #bae6fd; }
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px 10px 60px;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 30px 22px;
+      border-radius: 24px;
+      box-shadow: 0 20px 45px rgba(0, 53, 102, 0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      margin-top: 10px;
+      margin-bottom: 80px;
+      text-align: center;
+      position: relative;
+    }
+    .header-badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: var(--main-blue);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 15px;
+      border: 1px solid #bae6fd;
+    }
     h2 { color: var(--main-blue); font-weight: 700; margin: 0 0 8px 0; font-size: 24px; }
     h3 { color: var(--main-blue); font-weight: 600; margin: 0 0 15px 0; font-size: 20px; }
     p { color: var(--text-muted); font-size: 14px; margin: 0 0 20px 0; }
+    
     .section { display: none; animation: fadeIn 0.3s ease-in-out; }
     .active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .task-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; margin-bottom: 12px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid var(--main-blue); transition: 0.2s; }
-    .task-card:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
-    .task-title { font-weight: 700; font-size: 16px; color: var(--main-blue); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    /* Top navigation in activity page */
+    .activity-top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .btn-back-home {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn-back-home:hover {
+      background: #e2e8f0;
+      color: var(--main-blue);
+    }
+
+    /* Announcement Banner */
+    .home-banner {
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      text-align: left;
+      border-left: 5px solid;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      animation: fadeIn 0.4s ease-out;
+    }
+    .banner-urgent { background: #fef2f2; border-color: #ef4444; }
+    .banner-urgent .banner-title { color: #dc2626; }
+    .banner-important { background: #fefce8; border-color: #f59e0b; }
+    .banner-important .banner-title { color: #d97706; }
+    .banner-info { background: #eff6ff; border-color: #3b82f6; }
+    .banner-info .banner-title { color: #2563eb; }
+    .banner-success { background: #f0fdf4; border-color: #10b981; }
+    .banner-success .banner-title { color: #16a34a; }
+    
+    .banner-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .banner-desc { font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 10px; }
+    .banner-btn {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: var(--main-blue);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .banner-btn:hover { background: #f8fafc; border-color: var(--main-blue); }
+
+    /* Task Cards */
+    .task-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      text-align: left;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      border-left: 5px solid var(--main-blue);
+      transition: 0.2s;
+    }
+    .task-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.08); }
+    .task-title { font-weight: 700; font-size: 16px; color: var(--main-blue); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
+    .task-type-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #e0f2fe; color: #0284c7; }
     .task-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
     .task-timer { font-size: 12px; font-weight: 600; color: #d97706; background: #fef3c7; padding: 6px 10px; border-radius: 8px; display: inline-block; }
-    .task-btn { margin-top: 12px; padding: 8px 12px; font-size: 14px; border-radius: 8px; }
+    .task-btn { margin-top: 12px; padding: 9px 14px; font-size: 14px; border-radius: 10px; width: 100%; }
 
-    .fab-menu { position: fixed; bottom: 25px; left: 25px; background: var(--main-blue); color: white; border-radius: 50px; padding: 12px 20px; font-weight: 700; font-size: 15px; box-shadow: 0 8px 20px rgba(0, 35, 102, 0.4); cursor: pointer; z-index: 1000; display: none; align-items: center; gap: 8px; border: 2px solid white; }
-    .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1001; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(3px); }
-    .menu-content { background: white; width: 100%; max-width: 500px; border-radius: 24px 24px 0 0; padding: 30px 25px; animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; }
+    /* Activity Cover Image */
+    .activity-cover-img {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 2px solid white;
+    }
+
+    /* Poll / Voting Styles */
+    .poll-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 18px;
+      margin: 15px 0;
+      text-align: left;
+    }
+    .poll-option-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .poll-option-card:hover {
+      border-color: var(--main-blue-light);
+      background: #f0f9ff;
+    }
+    .poll-option-card.selected {
+      border-color: var(--main-blue);
+      background: #f0f9ff;
+      box-shadow: 0 0 0 2px rgba(0, 53, 102, 0.15);
+    }
+    .poll-bar-bg {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: rgba(0, 53, 102, 0.08);
+      z-index: 1;
+      transition: width 0.5s ease;
+      border-radius: 12px;
+    }
+    .poll-option-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      gap: 8px;
+    }
+    .poll-status-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--main-blue);
+      background: #e0f2fe;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .poll-opt-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #cbd5e1;
+      flex-shrink: 0;
+    }
+
+    /* Comment Board Styles */
+    .comment-container {
+      margin-top: 15px;
+      text-align: left;
+    }
+    .comment-form-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .comment-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      animation: fadeIn 0.3s ease;
+    }
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .comment-user {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--main-blue);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .comment-time {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .comment-body {
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .comment-img-attachment {
+      margin-top: 8px;
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .comment-img-attachment:hover {
+      transform: scale(1.02);
+    }
+    .comment-del-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 11px;
+      padding: 2px 6px;
+      cursor: pointer;
+      margin: 0;
+      width: auto;
+      font-weight: 600;
+    }
+
+    /* Image Attachment preview in comment box */
+    .img-attach-preview-box {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px dashed #cbd5e1;
+      margin-bottom: 10px;
+    }
+    .img-attach-preview-thumb {
+      width: 46px;
+      height: 46px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    /* Form Builder Inputs */
+    .form-group-dynamic {
+      text-align: left;
+      margin-bottom: 14px;
+    }
+    .form-group-dynamic label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* Menu & Navigation */
+    .fab-menu {
+      position: fixed;
+      bottom: 25px;
+      left: 25px;
+      background: var(--main-blue);
+      color: white;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 15px;
+      box-shadow: 0 8px 20px rgba(0, 35, 102, 0.4);
+      cursor: pointer;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border: 2px solid white;
+    }
+    .menu-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      z-index: 1001;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+    }
+    .menu-content {
+      background: white;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 24px 24px 0 0;
+      padding: 30px 25px;
+      animation: slideUp 0.3s ease-out;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .menu-item { display: flex; align-items: center; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 10px; cursor: pointer; }
-    .menu-item-icon { font-size: 28px; margin-right: 15px; }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .menu-item-icon { font-size: 26px; margin-right: 14px; }
     .menu-item-title { font-weight: 700; font-size: 15px; color: var(--main-blue); }
     .menu-item-desc { font-size: 12px; color: var(--text-muted); }
 
-    input, select { width: 100%; padding: 12px 16px; margin: 6px 0 14px 0; border: 1.5px solid #cbd5e1; border-radius: 12px; font-size: 14px; background: #f8fafc; }
-    button { background: linear-gradient(135deg, var(--main-blue) 0%, var(--main-blue-light) 100%); color: white; border: none; padding: 14px 20px; border-radius: 14px; cursor: pointer; width: 100%; font-size: 16px; font-weight: 600; margin-top: 15px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      margin: 6px 0 14px 0;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 14px;
+      background: #f8fafc;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--main-blue-light);
+      background: white;
+    }
+    button {
+      background: linear-gradient(135deg, var(--main-blue) 0%, var(--main-blue-light) 100%);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 14px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 15px;
+      transition: 0.2s;
+    }
+    button:hover { opacity: 0.95; transform: translateY(-1px); }
     .nav-group { display: flex; gap: 12px; margin-top: 15px; }
     .nav-group button { margin-top: 0; width: 50%; }
     .btn-secondary { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; }
@@ -72,9 +436,26 @@
     .loading-status { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
 
     .dynamic-section { text-align: left; }
-    .dynamic-section .header-badge { display: inline-block; margin-bottom: 15px; }
-    .dynamic-section h3 { text-align: center; }
-    .dynamic-section p { text-align: center; }
+
+    /* Lightbox Modal */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(5px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .lightbox-content {
+      max-width: 90%;
+      max-height: 85vh;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 3px solid white;
+    }
   </style>
 </head>
 <body>
@@ -82,11 +463,11 @@
 <div id="loading-screen">
   <div class="loading-spinner"></div>
   <h2 style="color:var(--main-blue); margin-bottom: 4px;">กำลังโหลดระบบ...</h2>
-  <p style="margin:0;">DE 06</p>
+  <p style="margin:0;">DIGITAL ENTREPRENEUR 06</p>
   <div class="loading-status" id="loading-status">กำลังเชื่อมต่อ Firebase...</div>
 </div>
 
-<div id="fabMenuBtn" class="fab-menu" onclick="openMenuModal()"><span style="font-size: 18px;">☰</span> Menu</div>
+<div id="fabMenuBtn" class="fab-menu" onclick="openMenuModal()"><span style="font-size: 18px;">☰</span> เมนูหลัก</div>
 
 <div id="menuOverlay" class="menu-overlay" onclick="closeMenuModal(event)">
   <div class="menu-content" onclick="event.stopPropagation()">
@@ -99,8 +480,14 @@
   </div>
 </div>
 
+<!-- Image Lightbox Modal -->
+<div id="lightboxOverlay" class="lightbox-overlay" onclick="closeLightbox()">
+  <img id="lightboxImage" class="lightbox-content" src="" alt="Full view" onclick="event.stopPropagation()">
+</div>
+
 <div class="container" id="main-container">
   
+  <!-- 1. LOGIN SECTION -->
   <div id="login-section" class="section active">
     <div class="header-badge">DIGITAL ENTREPRENEUR รุ่น 06</div>
     <h2>เข้าสู่ระบบนักศึกษา</h2>
@@ -113,39 +500,59 @@
     <div id="loginError" class="error"></div>
   </div>
 
+  <!-- 2. HOME SECTION -->
   <div id="home-section" class="section">
     <div class="header-badge">HOME • DE 06</div>
     <h3 style="margin-bottom: 5px; color: var(--text-main); font-size:18px;">ยินดีต้อนรับ,</h3>
-    <h2 style="color:var(--main-blue); margin-bottom: 25px; font-size: 20px;"><span id="homeStudentName"></span></h2>
+    <h2 style="color:var(--main-blue); margin-bottom: 20px; font-size: 20px;"><span id="homeStudentName"></span></h2>
 
-    <!-- ปุ่มตรวจสอบข้อมูลการจอง (เมนูคงที่) -->
-    <div class="task-card" style="border-left-color: #10b981; margin-bottom: 25px; background: #f0fdf4;">
-      <div class="task-title"><span>🔎</span> ตรวจสอบข้อมูลการจองเสื้อ</div>
+    <!-- Dynamic Home Announcement Banner -->
+    <div id="home-announcement-container"></div>
+
+    <!-- ปุ่มตรวจสอบข้อมูลการจองเสื้อ (เมนูคงที่) -->
+    <div class="task-card" style="border-left-color: #10b981; margin-bottom: 20px; background: #f0fdf4;">
+      <div class="task-title">
+        <span style="display:flex; align-items:center; gap:6px;"><span>🔎</span> ตรวจสอบข้อมูลการจองเสื้อ</span>
+        <span class="task-type-tag" style="background:#dcfce7; color:#15803d;">ข้อมูลส่วนตัว</span>
+      </div>
       <div class="task-desc" style="color: #166534;">เช็คสถานะ ไซส์เสื้อ และยอดเงินที่คุณชำระไปแล้ว</div>
       <button class="task-btn btn-success" style="margin-top: 10px; width: 100%; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);" onclick="viewMyBooking()">ตรวจสอบข้อมูลของฉัน →</button>
     </div>
 
-    <div style="text-align: left; margin-bottom: 15px;"><h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">กิจกรรมที่กำลังดำเนินการ</h3></div>
+    <div style="text-align: left; margin-bottom: 15px;">
+      <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; display:flex; align-items:center; justify-content:space-between;">
+        <span>กิจกรรมและงานทั้งหมด</span>
+        <span id="active-tasks-count" style="font-size:12px; color:var(--text-muted); font-weight:normal;"></span>
+      </h3>
+    </div>
     <div id="active-tasks-container"></div>
   </div>
 
+  <!-- 3. CHECK BOOKING SECTION -->
   <div id="check-booking-section" class="section">
-    <div class="header-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลการจองของคุณ</div>
+    <div class="activity-top-nav">
+      <button class="btn-back-home" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
+      <div class="header-badge" style="margin:0; background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลการจองของคุณ</div>
+    </div>
     <h2 style="margin-bottom: 20px;">รายละเอียดการจอง</h2>
     <div id="booking-details-content" style="text-align:left;">
-      <!-- ข้อมูลจะถูกโหลดมาใส่ตรงนี้ -->
+      <!-- ข้อมูลการจองจะโหลดมาที่นี่ -->
     </div>
     <div class="nav-group" style="margin-top:20px;">
-      <button class="btn-secondary" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
+      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าหลัก</button>
     </div>
   </div>
 
+  <!-- 4. SHIRT BOOKING SECTION -->
   <div id="booking-section" class="section">
-    <div class="header-badge">STEP 1: เลือกไซส์เสื้อช็อป</div>
+    <div class="activity-top-nav">
+      <button class="btn-back-home" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
+      <div class="header-badge" style="margin:0;">STEP 1: เลือกไซส์เสื้อช็อป</div>
+    </div>
     <h3>ผู้จอง: <span id="studentName" style="color:var(--main-blue-light);"></span></h3>
     <div class="shirt-gallery">
       <img src="755732903_3416811905158788_5651129749747833900_n.jpg" class="shirt-preview">
-      <img src="IMG_3102.jpeg" class="shirt-preview">
+      <img src="IMG_3102.jpeg" onerror="this.src='IMG_3102.jpeg'" class="shirt-preview">
       <img src="07E47613-B049-450F-9185-E6C68EF5604E.jpeg" class="shirt-preview">
     </div>
     <p style="margin: 0 0 15px; font-weight: 600; color: var(--main-blue);">ราคาตัวละ <span id="show-price" style="color:#d97706; font-size: 18px;">0</span> บาท</p>
@@ -173,15 +580,19 @@
     </div>
   </div>
 
+  <!-- 5. UPLOAD PAYMENT SLIP SECTION -->
   <div id="upload-section" class="section">
-    <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
+    <div class="activity-top-nav">
+      <button class="btn-back-home" onclick="switchSection('booking-section')">← แก้ไขไซส์เสื้อ</button>
+      <div class="header-badge" style="margin:0;">STEP 2: ชำระเงิน & ยืนยัน</div>
+    </div>
     <h2>ชำระเงินผ่านบัญชีธนาคาร</h2>
     <div class="payment-box">
       <div style="font-size: 13px; color: #b45309; font-weight: 600;">ยอดที่ต้องโอนชำระ</div>
       <div style="font-size: 32px; font-weight: 700; color: #d97706; margin: 2px 0;"><span id="pay-amount">0</span> บาท</div>
       <img src="IMG_3131.jpeg" class="shirt-preview">
       <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">ชื่อบัญชี: <span id="show-acc-name" style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">เลขบัญชี: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
+      <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">เลขบัญชี / พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
       <div style="font-size: 14px; font-weight: 600; margin-top: 4px;"> ธนาคารกสิกรไทย </div>
     </div>
     
@@ -208,13 +619,15 @@
     <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
   </div>
 
+  <!-- 6. DONE SECTION -->
   <div id="done-section" class="section">
     <div class="header-badge" style="background: #dcfce7; color: #16a34a; border-color: #bbf7d0;">สำเร็จ</div>
     <h2 style="color: #16a34a;">ทำรายการเรียบร้อย!</h2>
     <p>ระบบได้รับข้อมูลการสั่งจองและสลิปชำระเงินของคุณแล้ว<br>ระบบได้ส่งใบเสร็จยืนยันไปที่อีเมลของคุณเรียบร้อยครับ</p>
     <div style="font-size: 70px; margin: 30px 0; text-align: center;">✅</div>
-    <button class="btn-success" onclick="switchSection('home-section')">กลับสู่หน้าหลัก</button>
+    <button class="btn-success" onclick="switchSection('home-section')">กลับสู่หน้าหลัก (Home)</button>
   </div>
+
 </div>
   
 <script>
@@ -232,12 +645,12 @@
 
   var db = firebase.firestore();
 
-  // เปิด offline persistence (โหลดเร็วขึ้น + ทำงานได้แม้ internet ช้า)
+  // Firestore offline persistence
   db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
     console.warn('Firestore persistence:', err.code);
   });
 
-  // Apps Script URL (ใช้แค่ upload slip + send email)
+  // Apps Script URL (slip upload + email confirmation)
   var API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec';
 
   var PRICE_PER_SHIRT = 379;
@@ -246,6 +659,8 @@
   var currentStudentName = '';
   var appConfig = {};
   var allTasks = [];
+  var activeListeners = {};
+  var commentImageBlobMap = {};
 
   // =============================================
   // 🔧 Utility
@@ -271,7 +686,6 @@
     for (var i = 0; i <= 23; i++) hSel.innerHTML += '<option value="' + i.toString().padStart(2, '0') + '">' + i.toString().padStart(2, '0') + '</option>';
     for (var i = 0; i <= 59; i++) mSel.innerHTML += '<option value="' + i.toString().padStart(2, '0') + '">' + i.toString().padStart(2, '0') + '</option>';
 
-    // Pre-warm Apps Script (สำหรับ upload slip)
     try { fetch(API_URL, { method: 'GET', mode: 'no-cors' }).catch(function() {}); } catch (e) { }
 
     loadConfigFromFirestore();
@@ -279,7 +693,7 @@
   };
 
   // =============================================
-  // 📦 Load Config จาก Firestore (เร็วมาก!)
+  // 📦 Load Config & Activities จาก Firestore
   // =============================================
   async function loadConfigFromFirestore() {
     var statusEl = document.getElementById('loading-status');
@@ -288,72 +702,291 @@
     try {
       statusEl.innerText = 'กำลังโหลดข้อมูล...';
 
-      // โหลด config + activities พร้อมกัน
       var configPromise = db.collection('config').doc('main').get();
       var activitiesPromise = db.collection('activities').orderBy('order').get();
 
       var results = await Promise.all([configPromise, activitiesPromise]);
 
-      // Config
+      // 1. Config
       if (results[0].exists) {
         appConfig = results[0].data();
         var ppNum = (appConfig.PROMPTPAY_NUMBER || '').toString().replace(/[^0-9]/g, '');
         if (ppNum.length === 9) ppNum = '0' + ppNum;
         appConfig.PROMPTPAY_NUMBER = ppNum;
-        document.getElementById('show-pp-number').innerText = ppNum;
-        document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || '';
+        document.getElementById('show-pp-number').innerText = ppNum || '0643040487';
+        document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || 'นายพิชยะ ประจิตต์';
       }
 
-      // Activities
+      // 2. Activities
       allTasks = [];
       results[1].forEach(function(doc) {
         var data = doc.data();
         data.id = doc.id;
+        if (!data.type) {
+          if (data.action && data.action.includes('booking-section')) data.type = 'booking';
+          else if (data.htmlCode) data.type = 'html';
+          else data.type = 'announcement';
+        }
         allTasks.push(data);
       });
 
+      renderAnnouncementBanner();
       renderDynamicSections();
       loadingScreen.style.display = 'none';
 
     } catch (e) {
       console.error('Load config error:', e);
       statusEl.innerText = 'โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ';
-      // ถ้า Firestore มี cache offline จะยังโหลดได้
-      setTimeout(function() { loadingScreen.style.display = 'none'; }, 3000);
+      setTimeout(function() { loadingScreen.style.display = 'none'; }, 2000);
     }
   }
 
   // =============================================
-  // 🔄 Dynamic Activity Sections
+  // 📢 Home Announcement Banner
+  // =============================================
+  function renderAnnouncementBanner() {
+    var bannerContainer = document.getElementById('home-announcement-container');
+    var ann = appConfig.HOME_ANNOUNCEMENT;
+    if (!ann || !ann.enabled || !ann.title) {
+      bannerContainer.innerHTML = '';
+      return;
+    }
+
+    var bannerClass = 'banner-' + (ann.type || 'info');
+    var btnHtml = '';
+    if (ann.target) {
+      btnHtml = '<div style="margin-top:8px;"><button class="banner-btn" onclick="goToSection(\'' + ann.target + '\')">เข้าดูรายละเอียด →</button></div>';
+    }
+
+    bannerContainer.innerHTML = `
+      <div class="home-banner ${bannerClass}">
+        <div class="banner-title">
+          <span>${ann.icon || '📢'}</span>
+          <span>${escapeHtml(ann.title)}</span>
+        </div>
+        ${ann.desc ? '<div class="banner-desc">' + escapeHtml(ann.desc) + '</div>' : ''}
+        ${btnHtml}
+      </div>
+    `;
+  }
+
+  // =============================================
+  // 🔄 Dynamic Activity Sections Renderer
   // =============================================
   function renderDynamicSections() {
     document.querySelectorAll('.dynamic-section').forEach(function(el) { el.remove(); });
     var container = document.getElementById('main-container');
 
     allTasks.forEach(function(task) {
-      if (task.htmlCode && task.htmlCode.trim() !== '') {
-        var section = document.createElement('div');
-        section.id = 'dynamic-' + task.id;
-        section.className = 'section dynamic-section';
-  section.innerHTML =
-          '<div class="header-badge">' + task.icon + ' ' + task.title + '</div>' +
-          '<h3 style="text-align:center;">' + task.title + '</h3>' +
-          '<p style="text-align:center;">' + task.desc + '</p>' +
-          '<div id="form-' + task.id + '" style="width:100%; border-radius:12px; overflow:hidden; background:white;"></div>' +
-          '<div class="nav-group" style="margin-top:15px;">' +
-          '<button class="btn-secondary" onclick="switchSection(\'home-section\')">← กลับหน้าโฮม</button>' +
-          '</div>';
-        container.appendChild(section);
-        
-        // 💡 สร้างกล่อง iframe มาขังโค้ดที่ใส่มา เพื่อไม่ให้มันไปตีกับหน้าเว็บหลัก
-        var iframe = document.createElement('iframe');
-        iframe.style.width = '100%';
-        iframe.style.height = '600px';
-        iframe.style.border = 'none';
-        iframe.srcdoc = task.htmlCode;
-        document.getElementById('form-' + task.id).appendChild(iframe);
-        task.action = "goToSection('dynamic-" + task.id + "')";
+      if (task.type === 'booking') return;
 
+      var section = document.createElement('div');
+      section.id = 'dynamic-' + task.id;
+      section.className = 'section dynamic-section';
+
+      var topNavHtml = `
+        <div class="activity-top-nav">
+          <button class="btn-back-home" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
+          <div class="header-badge" style="margin:0;">${task.icon || '📌'} ${escapeHtml(task.title)}</div>
+        </div>
+      `;
+
+      var coverImgHtml = task.imageUrl ? `<img src="${task.imageUrl}" class="activity-cover-img" onclick="openLightbox('${task.imageUrl}')">` : '';
+
+      var bodyHtml = '';
+
+      // 1. POLL / VOTING SECTION
+      if (task.type === 'poll') {
+        bodyHtml = `
+          ${coverImgHtml}
+          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
+          <p style="text-align:center; margin-bottom:15px;">${escapeHtml(task.desc || '')}</p>
+          
+          <div class="poll-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <span style="font-size:13px; font-weight:700; color:var(--main-blue);">📊 ตัวเลือกโหวต</span>
+              <span id="poll-total-${task.id}" style="font-size:12px; color:var(--text-muted); font-weight:600;">กำลังนับคะแนน...</span>
+            </div>
+
+            <div id="poll-options-container-${task.id}">
+              <!-- Rendered via JS -->
+            </div>
+
+            <div id="poll-action-box-${task.id}" style="margin-top:16px;">
+              <button id="btn-vote-${task.id}" class="btn-success" onclick="submitSelectedVote('${task.id}')" style="margin-top:0;">
+                🗳️ ยืนยันการลงคะแนนโหวต
+              </button>
+            </div>
+            <div id="poll-msg-${task.id}" style="font-size:13px; font-weight:600; text-align:center; margin-top:10px;"></div>
+          </div>
+        `;
+      }
+      // 2. COMMENT / DISCUSSION BOARD
+      else if (task.type === 'comment') {
+        bodyHtml = `
+          ${coverImgHtml}
+          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
+          <p style="text-align:center; margin-bottom:15px;">${escapeHtml(task.desc || '')}</p>
+
+          ${task.commentGuidelines ? `
+            <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:12px 16px; margin-bottom:15px; font-size:13px; color:#1e40af; text-align:left;">
+              <b>💡 ข้อตกลง:</b> ${escapeHtml(task.commentGuidelines)}
+            </div>
+          ` : ''}
+
+          <div class="comment-container">
+            <div class="comment-form-card">
+              <label style="font-size:13px; font-weight:700; color:var(--main-blue); margin-bottom:6px; display:block;">
+                💬 แสดงความคิดเห็นของคุณ:
+              </label>
+              <textarea id="comment-input-${task.id}" placeholder="พิมพ์ความคิดเห็นหรือข้อเสนอแนะที่นี่..." style="min-height:80px; margin-bottom:8px;"></textarea>
+              
+              <!-- Image attachment toolbar -->
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--main-blue); font-weight:600; margin:0; background:#f1f5f9; padding:6px 12px; border-radius:8px; border:1px solid #cbd5e1;">
+                  <span>📷 แนบรูปภาพ</span>
+                  <input type="file" id="comment-file-${task.id}" accept="image/*" style="display:none;" onchange="handleCommentImageSelect('${task.id}', this)">
+                </label>
+                <span id="comment-img-label-${task.id}" style="font-size:12px; color:var(--text-muted);"></span>
+              </div>
+
+              <!-- Image preview box -->
+              <div id="comment-img-preview-box-${task.id}" class="img-attach-preview-box">
+                <img id="comment-img-preview-${task.id}" class="img-attach-preview-thumb" src="">
+                <span style="font-size:12px; color:#334155; flex:1;">แนบรูปภาพพร้อมส่ง</span>
+                <button type="button" class="comment-del-btn" onclick="clearCommentImage('${task.id}')">✕ ยกเลิกรูป</button>
+              </div>
+
+              <button class="btn-success" style="padding:10px 16px; margin-top:0; font-size:14px;" onclick="postComment('${task.id}')">
+                ส่งความคิดเห็น ✈️
+              </button>
+              <div id="comment-msg-${task.id}" style="font-size:12px; margin-top:6px;"></div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <h3 style="margin:0; font-size:15px; color:var(--main-blue);">ข้อความทั้งหมด</h3>
+              <span id="comment-count-${task.id}" style="font-size:12px; color:var(--text-muted);">0 ความคิดเห็น</span>
+            </div>
+
+            <div id="comment-list-${task.id}">
+              <!-- Live Comments rendered here -->
+            </div>
+          </div>
+        `;
+      }
+      // 3. ANNOUNCEMENT / TASK DETAILS
+      else if (task.type === 'announcement') {
+        var priorityTag = task.priority === 'urgent' ? 
+          '<span style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">🔴 งานด่วน</span>' :
+          task.priority === 'important' ? 
+          '<span style="background:#fefce8; color:#d97706; border:1px solid #fde68a; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">🟡 สำคัญ</span>' :
+          '<span style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">🔵 ประกาศ</span>';
+
+        bodyHtml = `
+          ${coverImgHtml}
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:26px;">${task.icon || '📢'}</span>
+            ${priorityTag}
+          </div>
+          <h2 style="text-align:left; font-size:22px; margin-bottom:8px;">${escapeHtml(task.title)}</h2>
+          <p style="text-align:left; margin-bottom:18px;">${escapeHtml(task.desc || '')}</p>
+
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; text-align:left; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
+            <div style="font-weight:700; color:var(--main-blue); margin-bottom:10px; font-size:15px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+              📝 รายละเอียด & กำหนดการ:
+            </div>
+            <div style="font-size:14px; color:#334155; line-height:1.7; white-space:pre-line;">
+              ${escapeHtml(task.taskDetails || task.desc || 'ไม่มีรายละเอียดเพิ่มเติม')}
+            </div>
+          </div>
+
+          ${task.actionUrl ? `
+            <button class="btn-success" onclick="window.open('${task.actionUrl}', '_blank')" style="margin-top:0;">
+              🔗 เข้าสู่ระบบส่งงาน / ลิงก์ที่เกี่ยวข้อง ↗
+            </button>
+          ` : ''}
+        `;
+      }
+      // 4. FORM BUILDER
+      else if (task.type === 'form') {
+        var questionsHtml = (task.formQuestions || []).map(function(q, qIdx) {
+          var inputField = '';
+          if (q.type === 'textarea') {
+            inputField = '<textarea name="q_' + qIdx + '" placeholder="พิมพ์คำตอบ..." ' + (q.required ? 'required' : '') + ' style="min-height:80px;"></textarea>';
+          } else if (q.type === 'number') {
+            inputField = '<input type="number" name="q_' + qIdx + '" placeholder="ระบุตัวเลข..." ' + (q.required ? 'required' : '') + '>';
+          } else {
+            inputField = '<input type="text" name="q_' + qIdx + '" placeholder="พิมพ์คำตอบ..." ' + (q.required ? 'required' : '') + '>';
+          }
+
+          return `
+            <div class="form-group-dynamic">
+              <label>
+                ${qIdx + 1}. ${escapeHtml(q.label || '')}
+                ${q.required ? '<span style="color:#ef4444;">*</span>' : ''}
+              </label>
+              ${inputField}
+            </div>
+          `;
+        }).join('');
+
+        bodyHtml = `
+          ${coverImgHtml}
+          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
+          <p style="text-align:center; margin-bottom:15px;">${escapeHtml(task.desc || '')}</p>
+
+          <form id="custom-form-${task.id}" onsubmit="handleDynamicFormSubmit(event, '${task.id}')" style="background:white; border:1px solid #e2e8f0; border-radius:16px; padding:20px; text-align:left;">
+            ${questionsHtml}
+            <button type="submit" class="btn-success" style="margin-top:10px;">
+              📤 ส่งข้อมูลแบบฟอร์ม
+            </button>
+            <div id="form-msg-${task.id}" style="margin-top:10px; font-size:13px; text-align:center;"></div>
+          </form>
+        `;
+      }
+      // 5. EXTERNAL LINK
+      else if (task.type === 'link') {
+        bodyHtml = `
+          ${coverImgHtml}
+          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
+          <p style="text-align:center; margin-bottom:20px;">${escapeHtml(task.desc || '')}</p>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:30px 20px; text-align:center;">
+            <div style="font-size:48px; margin-bottom:15px;">🌐</div>
+            <p style="color:#475569; font-size:14px; margin-bottom:20px;">กดปุ่มด้านล่างเพื่อเปิดหน้าเว็บหรือแบบฟอร์มที่เชื่อมโยง</p>
+            <button class="btn-success" onclick="window.open('${task.targetUrl}', '${task.openNewTab !== false ? '_blank' : '_self'}')" style="margin-top:0; width:auto; padding:12px 28px;">
+              เปิดลิงก์ภายนอก ↗
+            </button>
+          </div>
+        `;
+      }
+      // 6. LEGACY CUSTOM HTML
+      else if (task.htmlCode && task.htmlCode.trim() !== '') {
+        bodyHtml = `
+          <h3 style="text-align:center;">${escapeHtml(task.title)}</h3>
+          <p style="text-align:center;">${escapeHtml(task.desc || '')}</p>
+          <div id="form-${task.id}" style="width:100%; border-radius:12px; overflow:hidden; background:white;"></div>
+        `;
+      }
+
+      var bottomNavHtml = `
+        <div class="nav-group" style="margin-top:20px;">
+          <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
+        </div>
+      `;
+
+      section.innerHTML = topNavHtml + bodyHtml + bottomNavHtml;
+      container.appendChild(section);
+
+      if (task.htmlCode && task.htmlCode.trim() !== '') {
+        var formBox = document.getElementById('form-' + task.id);
+        if (formBox) {
+          var iframe = document.createElement('iframe');
+          iframe.style.width = '100%';
+          iframe.style.height = '600px';
+          iframe.style.border = 'none';
+          iframe.srcdoc = task.htmlCode;
+          formBox.appendChild(iframe);
+        }
       }
     });
   }
@@ -369,21 +1002,34 @@
     if (target) { target.classList.add('active'); }
     else { document.getElementById('home-section').classList.add('active'); sectionId = 'home-section'; }
     window.scrollTo(0, 0);
+
     if (sectionId === 'home-section') {
       document.getElementById('fabMenuBtn').style.display = 'flex';
-      renderHomeTasks(); renderMenu();
+      renderHomeTasks();
+      renderMenu();
     } else {
       document.getElementById('fabMenuBtn').style.display = 'none';
+
+      if (sectionId.startsWith('dynamic-')) {
+        var actId = sectionId.replace('dynamic-', '');
+        var task = allTasks.find(function(t) { return t.id === actId; });
+        if (task) {
+          if (task.type === 'poll') initPollSection(task);
+          if (task.type === 'comment') initCommentSection(task);
+        }
+      }
     }
   }
 
   function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
   function closeMenuModal(e) { if (!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
+  
   function logout() {
     currentStudentId = ''; currentStudentName = '';
     document.getElementById('studentId').value = '';
     sessionStorage.removeItem('de06_student');
-    closeMenuModal(); switchSection('login-section');
+    closeMenuModal();
+    switchSection('login-section');
   }
 
   // =============================================
@@ -393,66 +1039,21 @@
     var list = document.getElementById('menu-list-container');
     list.innerHTML = '';
     
-    // เมนูตรวจสอบการจอง (คงที่)
     list.innerHTML += '<div class="menu-item" onclick="viewMyBooking(); closeMenuModal();">' +
-      '<div class="menu-item-icon">🔎</div><div class="menu-item-text">' +
-      '<div class="menu-item-title">ตรวจสอบข้อมูลการจอง</div>' +
-      '<div class="menu-item-desc">เช็คสถานะและรายละเอียดการจองเสื้อ</div></div></div>';
+      '<div class="menu-item-icon">🔎</div><div>' +
+      '<div class="menu-item-title">ตรวจสอบข้อมูลการจองเสื้อ</div>' +
+      '<div class="menu-item-desc">เช็คสถานะและรายละเอียดการจอง</div></div></div>';
 
     allTasks.forEach(function(t) {
-      var actionStr = (t.htmlCode && t.htmlCode.trim() !== '') ? "goToSection('dynamic-" + t.id + "')" : t.action;
-      list.innerHTML += '<div class="menu-item" onclick="' + actionStr + '; closeMenuModal();">' +
-        '<div class="menu-item-icon">' + t.icon + '</div><div class="menu-item-text">' +
-        '<div class="menu-item-title">' + t.title + '</div>' +
-        '<div class="menu-item-desc">' + t.desc + '</div></div></div>';
-    });
-  }
+      var actionStr = (t.type === 'booking') ? "goToSection('booking-section')" :
+                      (t.type === 'link' && t.targetUrl) ? "window.open('" + t.targetUrl + "', '" + (t.openNewTab !== false ? "_blank" : "_self") + "')" :
+                      "goToSection('dynamic-" + t.id + "')";
 
-  async function viewMyBooking() {
-    switchSection('check-booking-section');
-    var container = document.getElementById('booking-details-content');
-    container.innerHTML = '<div style="text-align:center; padding:30px;"><div class="loading-spinner" style="margin:0 auto 15px auto;"></div><p style="color:var(--text-muted);">กำลังดึงข้อมูลจากฐานข้อมูล...</p></div>';
-    
-    try {
-      var snap = await db.collection('bookings').doc(currentStudentId).get();
-      if (snap.exists && snap.data().summary) {
-        var data = snap.data();
-        var isPaid = data.status === 'paid' || data.slipImageUrl;
-        var statusHtml = isPaid ? 
-          '<span style="color:#16a34a; background:#dcfce7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #bbf7d0;">✅ ชำระเงินแล้ว</span>' : 
-          '<span style="color:#d97706; background:#fef3c7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #fde68a;">⏳ รอชำระเงิน</span>';
-          
-        container.innerHTML = 
-          '<div class="contact-box" style="margin-top:0; border-top: 4px solid var(--main-blue);">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
-              '<h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อมูลผู้จอง</h3>' + statusHtml +
-            '</div>' +
-            '<p style="margin:5px 0; color:var(--text-main);"><b>ชื่อ-สกุล:</b> ' + currentStudentName + '</p>' +
-            '<p style="margin:5px 0; color:var(--text-main);"><b>รหัสนักศึกษา:</b> ' + currentStudentId + '</p>' +
-          '</div>' +
-          
-          '<div class="price-box" style="margin:15px 0; text-align:left; background:white; border:1px solid #e2e8f0; border-top: 4px solid #10b981; padding: 20px;">' +
-            '<h3 style="margin:0 0 12px 0; font-size:16px; color:#15803d; display:flex; align-items:center; gap:8px;"><span>👕</span> รายการเสื้อที่จอง</h3>' +
-            '<p style="margin:5px 0; font-size:16px; font-weight:600; color:var(--text-main); line-height:1.6;">' + data.summary + '</p>' +
-            '<hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">' +
-            (function(){ 
-              var q = (parseInt(data.xs)||0) + (parseInt(data.s)||0) + (parseInt(data.m)||0) + (parseInt(data.l)||0) + (parseInt(data.xl)||0) + (parseInt(data.xxl)||0) + (parseInt(data.otherNum)||0);
-              return q > 0 ? '<p style="margin:5px 0; font-size:16px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">' + q + ' ตัว</span></p>' : '';
-            })() +
-            '<p style="margin:5px 0; font-size:20px; color:var(--text-main);"><b>ยอดชำระ:</b> <span style="color:#dc2626; font-weight:700;">' + (data.totalPrice || 0).toLocaleString() + ' บาท</span></p>' +
-          '</div>' +
-          
-          '<div class="contact-box" style="border-top: 4px solid #f59e0b;">' +
-            '<h3 style="margin:0 0 10px 0; font-size:15px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>' +
-            '<p style="margin:5px 0; font-size:14px; color:var(--text-muted);"><b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:500;">' + (data.transferDateTime || '-') + '</span></p>' +
-            (data.slipImageUrl ? '<div style="margin-top:12px;"><a href="' + (data.slipFileUrl || data.slipImageUrl) + '" target="_blank" style="background:#f1f5f9; display:inline-block; padding:10px 15px; border-radius:10px; color:#2563eb; text-decoration:none; font-size:14px; font-weight:600; border:1px solid #e2e8f0;">📄 เปิดดูรูปสลิปที่แนบไว้</a></div>' : '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>') +
-          '</div>';
-      } else {
-        container.innerHTML = '<div style="text-align:center; padding:40px 20px; background:#f8fafc; border-radius:16px; border:2px dashed #cbd5e1;"><div style="font-size:45px; margin-bottom:15px;">👕</div><div style="color:var(--text-muted); font-size:16px; font-weight:500;">คุณยังไม่มีประวัติการจองเสื้อช็อปครับ</div><button class="btn-success" style="margin-top:20px; width:auto; padding:10px 20px;" onclick="switchSection(\'booking-section\')">ไปจองเสื้อกันเลย →</button></div>';
-      }
-    } catch (e) {
-      container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px; margin-top:10px;"><b>เกิดข้อผิดพลาด:</b><br>' + e.message + '</div>';
-    }
+      list.innerHTML += '<div class="menu-item" onclick="' + actionStr + '; closeMenuModal();">' +
+        '<div class="menu-item-icon">' + (t.icon || '📌') + '</div><div>' +
+        '<div class="menu-item-title">' + escapeHtml(t.title) + '</div>' +
+        '<div class="menu-item-desc">' + escapeHtml(t.desc || '') + '</div></div></div>';
+    });
   }
 
   function renderHomeTasks() {
@@ -460,14 +1061,46 @@
     var now = new Date().getTime();
     var activeTasks = allTasks.filter(function(t) { return parseSafeDate(t.endDate).getTime() > now; });
     activeTasks.sort(function(a, b) { return parseSafeDate(a.endDate).getTime() - parseSafeDate(b.endDate).getTime(); });
-    if (activeTasks.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:gray;">ไม่มีกิจกรรมที่กำลังดำเนินการ</div>'; return; }
+
+    document.getElementById('active-tasks-count').innerText = activeTasks.length + ' รายการ';
+
+    if (activeTasks.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:30px 20px; color:#94a3b8; background:white; border-radius:16px; border:1px dashed #cbd5e1;">ไม่มีกิจกรรมที่กำลังดำเนินการในขณะนี้</div>';
+      return;
+    }
+
+    var typeTagNames = {
+      poll: '📊 โหวต',
+      comment: '💬 พูดคุย',
+      announcement: '📢 ประกาศ',
+      form: '📝 แบบฟอร์ม',
+      booking: '👕 จองเสื้อ',
+      link: '🌐 ลิงก์',
+      html: '💻 พิเศษ'
+    };
+
     container.innerHTML = activeTasks.map(function(task) {
-      var actionStr = (task.htmlCode && task.htmlCode.trim() !== '') ? "goToSection('dynamic-" + task.id + "')" : task.action;
-      return '<div class="task-card"><div class="task-title"><span>' + task.icon + '</span> ' + task.title + '</div>' +
-        '<div class="task-desc">' + task.desc + '</div>' +
-        '<div class="task-timer" data-end="' + task.endDate + '">⏳ กำลังคำนวณ...</div>' +
-        '<button class="task-btn" onclick="' + actionStr + '">เข้าสู่กิจกรรม →</button></div>';
+      var actionStr = (task.type === 'booking') ? "goToSection('booking-section')" :
+                      (task.type === 'link' && task.targetUrl) ? "window.open('" + task.targetUrl + "', '" + (task.openNewTab !== false ? "_blank" : "_self") + "')" :
+                      "goToSection('dynamic-" + task.id + "')";
+
+      var tag = typeTagNames[task.type] || 'กิจกรรม';
+
+      return `
+        <div class="task-card">
+          <div class="task-title">
+            <span style="display:flex; align-items:center; gap:6px;">
+              <span>${task.icon || '📌'}</span> ${escapeHtml(task.title)}
+            </span>
+            <span class="task-type-tag">${tag}</span>
+          </div>
+          <div class="task-desc">${escapeHtml(task.desc || '')}</div>
+          <div class="task-timer" data-end="${task.endDate}">⏳ กำลังคำนวณ...</div>
+          <button class="task-btn" onclick="${actionStr}">เข้าสู่กิจกรรม →</button>
+        </div>
+      `;
     }).join('');
+
     updateTimers();
   }
 
@@ -476,40 +1109,357 @@
     document.querySelectorAll('.task-timer').forEach(function(el) {
       var end = parseSafeDate(el.getAttribute('data-end')).getTime();
       var diff = end - now;
-      if (diff <= 0) { el.innerHTML = "❌ หมดเวลาแล้ว"; el.style.background = "#fee2e2"; el.style.color = "#dc2626"; }
-      else {
-        var d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+      if (diff <= 0) {
+        el.innerHTML = "❌ สิ้นสุดกิจกรรมแล้ว";
+        el.style.background = "#fee2e2";
+        el.style.color = "#dc2626";
+      } else {
+        var d = Math.floor(diff / 86400000);
+        var h = Math.floor((diff % 86400000) / 3600000);
+        var m = Math.floor((diff % 3600000) / 60000);
+        var s = Math.floor((diff % 60000) / 1000);
         el.innerHTML = '⏳ เหลือเวลา: ' + (d > 0 ? d + ' วัน ' : '') + h + ' ชม. ' + m + ' นาที ' + s + ' วิ';
       }
     });
   }
 
   // =============================================
-  // ⚡ callAPI — เฉพาะ Apps Script (upload + email)
+  // 📊 POLL / VOTING ENGINE (Real-time Firestore)
   // =============================================
-  async function callAPI(action, dataPayload, retries) {
-    if (!dataPayload) dataPayload = {};
-    if (retries === undefined) retries = 2;
-    for (var attempt = 0; attempt <= retries; attempt++) {
-      try {
-        var controller = new AbortController();
-        var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
-        var response = await fetch(API_URL, {
-          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: action, ...dataPayload }), signal: controller.signal
+  var studentCurrentVoteMap = {};
+  var selectedVoteOption = {};
+
+  function initPollSection(task) {
+    var optContainer = document.getElementById('poll-options-container-' + task.id);
+    if (!optContainer) return;
+
+    if (activeListeners['poll_' + task.id]) {
+      activeListeners['poll_' + task.id]();
+    }
+
+    var options = task.pollOptions || ['เห็นด้วย', 'ไม่เห็นด้วย'];
+    var optionImages = task.pollOptionImages || [];
+
+    optContainer.innerHTML = options.map(function(opt, idx) {
+      var optImg = optionImages[idx] || '';
+      return `
+        <div id="poll-opt-${task.id}-${idx}" class="poll-option-card" onclick="selectPollOption('${task.id}', ${idx})">
+          <div id="poll-bar-${task.id}-${idx}" class="poll-bar-bg" style="width: 0%;"></div>
+          <div class="poll-option-content">
+            <span style="display:flex; align-items:center; gap:8px;">
+              ${optImg ? `<img src="${optImg}" class="poll-opt-thumb" onclick="event.stopPropagation(); openLightbox('${optImg}')">` : ''}
+              <span style="color:#64748b;">${idx + 1}.</span>
+              <span>${escapeHtml(opt)}</span>
+            </span>
+            <span id="poll-stat-${task.id}-${idx}" class="poll-status-tag">0 โหวต (0%)</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    activeListeners['poll_' + task.id] = db.collection('votes')
+      .where('activityId', '==', task.id)
+      .onSnapshot(function(snapshot) {
+        var votes = [];
+        var myVote = null;
+        var counts = {};
+        options.forEach(function(_, i) { counts[i] = 0; });
+
+        snapshot.forEach(function(doc) {
+          var data = doc.data();
+          votes.push(data);
+          if (data.studentId === currentStudentId) {
+            myVote = data;
+          }
+          if (counts[data.optionIndex] !== undefined) {
+            counts[data.optionIndex]++;
+          }
         });
-        clearTimeout(timeoutId);
-        var text = await response.text();
-        try { return JSON.parse(text); } catch (e) { return { success: true }; }
-      } catch (error) {
-        if (attempt < retries) { await new Promise(function(r) { setTimeout(r, (attempt + 1) * 1500); }); continue; }
-        throw error;
+
+        var total = votes.length;
+        var totalEl = document.getElementById('poll-total-' + task.id);
+        if (totalEl) totalEl.innerText = 'โหวตแล้วทั้งหมด ' + total + ' คน';
+
+        options.forEach(function(_, i) {
+          var count = counts[i] || 0;
+          var pct = total > 0 ? Math.round((count / total) * 100) : 0;
+          var barEl = document.getElementById('poll-bar-' + task.id + '-' + i);
+          var statEl = document.getElementById('poll-stat-' + task.id + '-' + i);
+          if (barEl) barEl.style.width = pct + '%';
+          if (statEl) statEl.innerText = count + ' โหวต (' + pct + '%)';
+        });
+
+        var msgEl = document.getElementById('poll-msg-' + task.id);
+        var btnVote = document.getElementById('btn-vote-' + task.id);
+
+        if (myVote) {
+          studentCurrentVoteMap[task.id] = myVote.optionIndex;
+          highlightSelectedPollCard(task.id, myVote.optionIndex);
+          if (msgEl) {
+            msgEl.innerHTML = '<span style="color:#16a34a;">✅ คุณได้ลงคะแนนแล้ว (เลือกข้อ ' + (myVote.optionIndex + 1) + ': ' + escapeHtml(myVote.optionText) + ')</span>';
+          }
+          if (btnVote) {
+            btnVote.innerText = task.allowChangeVote !== false ? '🔄 เปลี่ยนแปลงการลงคะแนน' : '✅ คุณลงคะแนนเรียบร้อยแล้ว';
+            btnVote.disabled = task.allowChangeVote === false;
+          }
+        }
+      });
+  }
+
+  function selectPollOption(actId, optIdx) {
+    selectedVoteOption[actId] = optIdx;
+    highlightSelectedPollCard(actId, optIdx);
+  }
+
+  function highlightSelectedPollCard(actId, optIdx) {
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    if (!task) return;
+    (task.pollOptions || []).forEach(function(_, i) {
+      var card = document.getElementById('poll-opt-' + actId + '-' + i);
+      if (card) {
+        if (i === optIdx) card.classList.add('selected');
+        else card.classList.remove('selected');
       }
+    });
+  }
+
+  async function submitSelectedVote(actId) {
+    if (!currentStudentId) return alert('กรุณาเข้าสู่ระบบก่อนโหวตครับ');
+    var optIdx = selectedVoteOption[actId];
+    if (optIdx === undefined) {
+      if (studentCurrentVoteMap[actId] !== undefined) optIdx = studentCurrentVoteMap[actId];
+      else return alert('กรุณาคลิกเลือกตัวเลือกที่ต้องการโหวตก่อนครับ');
+    }
+
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    if (!task) return;
+    var optText = task.pollOptions[optIdx] || '';
+
+    var btn = document.getElementById('btn-vote-' + actId);
+    if (btn) { btn.disabled = true; btn.innerText = 'กำลังบันทึกผลโหวต...'; }
+
+    try {
+      var voteDocId = actId + '_' + currentStudentId;
+      await db.collection('votes').doc(voteDocId).set({
+        activityId: actId,
+        studentId: currentStudentId,
+        studentName: currentStudentName,
+        optionIndex: optIdx,
+        optionText: optText,
+        votedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      alert('🎉 บันทึกการลงคะแนนโหวตของคุณเรียบร้อยแล้ว!');
+    } catch(err) {
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 
   // =============================================
-  // 🔐 Student Verification — Firestore (เร็วมาก!)
+  // 💬 COMMENT BOARD ENGINE (Real-time Firestore)
+  // =============================================
+  function initCommentSection(task) {
+    var listEl = document.getElementById('comment-list-' + task.id);
+    if (!listEl) return;
+
+    if (activeListeners['comment_' + task.id]) {
+      activeListeners['comment_' + task.id]();
+    }
+
+    activeListeners['comment_' + task.id] = db.collection('comments')
+      .where('activityId', '==', task.id)
+      .orderBy('createdAt', 'desc')
+      .onSnapshot(function(snapshot) {
+        var comments = [];
+        snapshot.forEach(function(doc) {
+          comments.push({ id: doc.id, ...doc.data() });
+        });
+
+        var countEl = document.getElementById('comment-count-' + task.id);
+        if (countEl) countEl.innerText = comments.length + ' ความคิดเห็น';
+
+        if (comments.length === 0) {
+          listEl.innerHTML = '<div style="text-align:center; padding:25px; color:#94a3b8;">ยังไม่มีความคิดเห็น มาร่วมเป็นคนแรกที่แสดงความคิดเห็นกันเถอะ!</div>';
+          return;
+        }
+
+        listEl.innerHTML = comments.map(function(c) {
+          var isMyComment = c.studentId === currentStudentId;
+          var delBtn = (isMyComment && task.allowDeleteOwn !== false) ? 
+            `<button class="comment-del-btn" onclick="deleteMyComment('${c.id}')">ลบ</button>` : '';
+
+          var imgHtml = c.imageUrl ? `<img src="${c.imageUrl}" class="comment-img-attachment" onclick="openLightbox('${c.imageUrl}')">` : '';
+
+          return `
+            <div class="comment-card">
+              <div class="comment-header">
+                <div class="comment-user">
+                  <span>👤</span>
+                  <span>${escapeHtml(c.studentName || 'นักศึกษา')}</span>
+                  ${isMyComment ? '<span style="font-size:10px; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px;">คุณ</span>' : ''}
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="comment-time">${c.formattedTime || ''}</span>
+                  ${delBtn}
+                </div>
+              </div>
+              <div class="comment-body">${escapeHtml(c.message || '')}</div>
+              ${imgHtml}
+            </div>
+          `;
+        }).join('');
+      });
+  }
+
+  function handleCommentImageSelect(actId, input) {
+    var file = input.files[0];
+    if (!file) return;
+    var previewBox = document.getElementById('comment-img-preview-box-' + actId);
+    var previewImg = document.getElementById('comment-img-preview-' + actId);
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      // Compress image via Canvas if larger than 800px
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var maxDim = 800;
+        var width = img.width;
+        var height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        var compressedData = canvas.toDataURL('image/jpeg', 0.7);
+        commentImageBlobMap[actId] = compressedData;
+        previewImg.src = compressedData;
+        previewBox.style.display = 'flex';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearCommentImage(actId) {
+    commentImageBlobMap[actId] = null;
+    var fileInput = document.getElementById('comment-file-' + actId);
+    if (fileInput) fileInput.value = '';
+    var previewBox = document.getElementById('comment-img-preview-box-' + actId);
+    if (previewBox) previewBox.style.display = 'none';
+  }
+
+  async function postComment(actId) {
+    if (!currentStudentId) return alert('กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็นครับ');
+    var input = document.getElementById('comment-input-' + actId);
+    var text = input.value.trim();
+    var attachedImg = commentImageBlobMap[actId] || '';
+
+    if (!text && !attachedImg) return alert('กรุณาพิมพ์ข้อความหรือแนบรูปภาพก่อนกดส่งครับ');
+
+    var msgEl = document.getElementById('comment-msg-' + actId);
+    msgEl.innerText = 'กำลังส่งความคิดเห็น...';
+    msgEl.style.color = '#d97706';
+
+    try {
+      await db.collection('comments').add({
+        activityId: actId,
+        studentId: currentStudentId,
+        studentName: currentStudentName,
+        message: text,
+        imageUrl: attachedImg,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        formattedTime: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })
+      });
+
+      input.value = '';
+      clearCommentImage(actId);
+      msgEl.innerText = '✅ ส่งความคิดเห็นเรียบร้อย!';
+      msgEl.style.color = '#15803d';
+      setTimeout(function() { msgEl.innerText = ''; }, 3000);
+    } catch(err) {
+      msgEl.innerText = '❌ เกิดข้อผิดพลาด: ' + err.message;
+      msgEl.style.color = '#dc2626';
+    }
+  }
+
+  async function deleteMyComment(docId) {
+    if (!confirm('ต้องการลบความคิดเห็นของคุณใช่หรือไม่?')) return;
+    try {
+      await db.collection('comments').doc(docId).delete();
+    } catch(err) {
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+    }
+  }
+
+  // =============================================
+  // 🖼️ Lightbox Modal
+  // =============================================
+  function openLightbox(src) {
+    var overlay = document.getElementById('lightboxOverlay');
+    var img = document.getElementById('lightboxImage');
+    img.src = src;
+    overlay.style.display = 'flex';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightboxOverlay').style.display = 'none';
+  }
+
+  // =============================================
+  // 📝 DYNAMIC FORM SUBMIT ENGINE
+  // =============================================
+  async function handleDynamicFormSubmit(e, actId) {
+    e.preventDefault();
+    if (!currentStudentId) return alert('กรุณาเข้าสู่ระบบก่อนส่งแบบฟอร์ม');
+
+    var form = document.getElementById('custom-form-' + actId);
+    var formData = new FormData(form);
+    var answers = {};
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    var questions = (task && task.formQuestions) || [];
+
+    questions.forEach(function(q, idx) {
+      var val = formData.get('q_' + idx);
+      answers[q.label || ('คำถามที่ ' + (idx + 1))] = val || '-';
+    });
+
+    var msgEl = document.getElementById('form-msg-' + actId);
+    msgEl.innerHTML = '<span style="color:#d97706;">⏳ กำลังบันทึกคำตอบของคุณ...</span>';
+
+    try {
+      await db.collection('dynamic_submissions').add({
+        activityId: actId,
+        studentId: currentStudentId,
+        studentName: currentStudentName,
+        formData: answers,
+        submittedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      msgEl.innerHTML = '<span style="color:#15803d; font-weight:700;">✅ บันทึกคำตอบของคุณเรียบร้อยแล้ว ขอบคุณครับ!</span>';
+      form.reset();
+      setTimeout(function() {
+        switchSection('home-section');
+      }, 1800);
+    } catch(err) {
+      msgEl.innerHTML = '<span style="color:#dc2626;">❌ เกิดข้อผิดพลาด: ' + err.message + '</span>';
+    }
+  }
+
+  // =============================================
+  // 🔐 Student Verification — Firestore
   // =============================================
   async function checkStudent() {
     var id = document.getElementById('studentId').value.trim();
@@ -518,7 +1468,6 @@
     var errorEl = document.getElementById('loginError');
     errorEl.innerText = '';
 
-    // Session cache
     var cached = sessionStorage.getItem('de06_student');
     if (cached) {
       try {
@@ -554,7 +1503,7 @@
   }
 
   // =============================================
-  // 🧮 Calculate Total
+  // 🧮 Shirt Booking Logic (Preserved)
   // =============================================
   function calculateTotal() {
     var xs = parseInt(document.getElementById('qty-xs').value) || 0;
@@ -573,9 +1522,6 @@
     document.getElementById('pay-amount').innerText = totalPrice.toLocaleString();
   }
 
-  // =============================================
-  // 📦 Submit Booking — Firestore (เร็วมาก!)
-  // =============================================
   async function submitOrder() {
     if ((parseInt(document.getElementById('total-qty').innerText) || 0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
 
@@ -625,10 +1571,31 @@
   }
 
   // =============================================
-  // 📤 Slip Upload — ยังใช้ Apps Script (Google Drive)
+  // 📤 Slip Upload & Finalize
   // =============================================
   var preUploadedImageUrl = '';
   var preUploadedFileUrl = '';
+
+  async function callAPI(action, dataPayload, retries) {
+    if (!dataPayload) dataPayload = {};
+    if (retries === undefined) retries = 2;
+    for (var attempt = 0; attempt <= retries; attempt++) {
+      try {
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
+        var response = await fetch(API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: action, ...dataPayload }), signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        var text = await response.text();
+        try { return JSON.parse(text); } catch (e) { return { success: true }; }
+      } catch (error) {
+        if (attempt < retries) { await new Promise(function(r) { setTimeout(r, (attempt + 1) * 1500); }); continue; }
+        throw error;
+      }
+    }
+  }
 
   function handleBackgroundUpload(input) {
     var file = input.files[0];
@@ -662,9 +1629,6 @@
     reader.readAsDataURL(file);
   }
 
-  // =============================================
-  // ✅ Finalize Order — Firestore + Email (fire-and-forget)
-  // =============================================
   async function finalizeOrderFast() {
     var phone = document.getElementById('contact-phone').value.trim();
     var email = document.getElementById('contact-email').value.trim();
@@ -684,7 +1648,6 @@
     btn.disabled = true; btn.innerText = 'กำลังบันทึกข้อมูล... ⚡';
 
     try {
-      // 1. เขียน Firestore (เร็วมาก ~0.2 วินาที)
       await db.collection('bookings').doc(currentStudentId).update({
         slipImageUrl: preUploadedImageUrl,
         slipFileUrl: preUploadedFileUrl,
@@ -695,8 +1658,6 @@
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      // 2. ส่ง Email ผ่าน Apps Script (fire-and-forget — ไม่ต้องรอ)
-      // อ่าน summary + price จาก Firestore
       var bookingDoc = await db.collection('bookings').doc(currentStudentId).get();
       var bookingData = bookingDoc.data() || {};
 
@@ -710,9 +1671,7 @@
         fileUrl: preUploadedFileUrl
       }).catch(function(e) { console.warn('Email send failed:', e); });
 
-      // 3. เด้งไปหน้าเสร็จสิ้นทันที (ไม่ต้องรอ email)
       switchSection('done-section');
-
     } catch (e) {
       alert('เกิดข้อผิดพลาด: ' + e.message);
       btn.disabled = false; btn.innerText = 'ยืนยันการชำระเงิน & เสร็จสิ้น ✓';
@@ -720,42 +1679,64 @@
   }
 
   // =============================================
-  // 📋 Dynamic Form Submission — Firestore
+  // 🔎 View Booking Details (Preserved)
   // =============================================
-  async function submitCustomForm(event, activityId, containerId) {
-    if (!currentStudentId) return alert("กรุณาเข้าสู่ระบบก่อนทำรายการ");
-    var container = document.getElementById(containerId);
-    if (!container) return alert("เกิดข้อผิดพลาด: ไม่พบแบบฟอร์ม");
-
-    var inputs = container.querySelectorAll('input[name], select[name], textarea[name]');
-    var formData = {};
-    inputs.forEach(function(el) {
-      if (el.type === 'checkbox' || el.type === 'radio') { if (el.checked) formData[el.name] = el.value; }
-      else { formData[el.name] = el.value; }
-    });
-    if (Object.keys(formData).length === 0) return alert("ไม่พบข้อมูลที่จะส่ง");
-
-    var btn = event.target;
-    var originalText = btn.innerText;
-    btn.disabled = true; btn.innerText = 'กำลังบันทึกข้อมูล...';
-
+  async function viewMyBooking() {
+    switchSection('check-booking-section');
+    var container = document.getElementById('booking-details-content');
+    container.innerHTML = '<div style="text-align:center; padding:30px;"><div class="loading-spinner" style="margin:0 auto 15px auto;"></div><p style="color:var(--text-muted);">กำลังดึงข้อมูลจากฐานข้อมูล...</p></div>';
+    
     try {
-      await db.collection('dynamic_submissions').add({
-        activityId: activityId,
-        studentId: currentStudentId,
-        studentName: currentStudentName,
-        formData: formData,
-        submittedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })
-      });
-      alert('🎉 บันทึกข้อมูลเรียบร้อยแล้ว!');
-      switchSection('home-section');
+      var snap = await db.collection('bookings').doc(currentStudentId).get();
+      if (snap.exists && snap.data().summary) {
+        var data = snap.data();
+        var isPaid = data.status === 'paid' || data.slipImageUrl;
+        var statusHtml = isPaid ? 
+          '<span style="color:#16a34a; background:#dcfce7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #bbf7d0;">✅ ชำระเงินแล้ว</span>' : 
+          '<span style="color:#d97706; background:#fef3c7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #fde68a;">⏳ รอชำระเงิน</span>';
+          
+        container.innerHTML = 
+          '<div class="contact-box" style="margin-top:0; border-top: 4px solid var(--main-blue);">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
+              '<h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อมูลผู้จอง</h3>' + statusHtml +
+            '</div>' +
+            '<p style="margin:5px 0; color:var(--text-main);"><b>ชื่อ-สกุล:</b> ' + currentStudentName + '</p>' +
+            '<p style="margin:5px 0; color:var(--text-main);"><b>รหัสนักศึกษา:</b> ' + currentStudentId + '</p>' +
+          '</div>' +
+          
+          '<div class="price-box" style="margin:15px 0; text-align:left; background:white; border:1px solid #e2e8f0; border-top: 4px solid #10b981; padding: 20px;">' +
+            '<h3 style="margin:0 0 12px 0; font-size:16px; color:#15803d; display:flex; align-items:center; gap:8px;"><span>👕</span> รายการเสื้อที่จอง</h3>' +
+            '<p style="margin:5px 0; font-size:16px; font-weight:600; color:var(--text-main); line-height:1.6;">' + data.summary + '</p>' +
+            '<hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">' +
+            (function(){ 
+              var q = (parseInt(data.xs)||0) + (parseInt(data.s)||0) + (parseInt(data.m)||0) + (parseInt(data.l)||0) + (parseInt(data.xl)||0) + (parseInt(data.xxl)||0) + (parseInt(data.otherNum)||0);
+              return q > 0 ? '<p style="margin:5px 0; font-size:16px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">' + q + ' ตัว</span></p>' : '';
+            })() +
+            '<p style="margin:5px 0; font-size:20px; color:var(--text-main);"><b>ยอดชำระ:</b> <span style="color:#dc2626; font-weight:700;">' + (data.totalPrice || 0).toLocaleString() + ' บาท</span></p>' +
+          '</div>' +
+          
+          '<div class="contact-box" style="border-top: 4px solid #f59e0b;">' +
+            '<h3 style="margin:0 0 10px 0; font-size:15px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>' +
+            '<p style="margin:5px 0; font-size:14px; color:var(--text-muted);"><b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:500;">' + (data.transferDateTime || '-') + '</span></p>' +
+            (data.slipImageUrl ? '<div style="margin-top:12px;"><a href="' + (data.slipFileUrl || data.slipImageUrl) + '" target="_blank" style="background:#f1f5f9; display:inline-block; padding:10px 15px; border-radius:10px; color:#2563eb; text-decoration:none; font-size:14px; font-weight:600; border:1px solid #e2e8f0;">📄 เปิดดูรูปสลิปที่แนบไว้</a></div>' : '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>') +
+          '</div>';
+      } else {
+        container.innerHTML = '<div style="text-align:center; padding:40px 20px; background:#f8fafc; border-radius:16px; border:2px dashed #cbd5e1;"><div style="font-size:45px; margin-bottom:15px;">👕</div><div style="color:var(--text-muted); font-size:16px; font-weight:500;">คุณยังไม่มีประวัติการจองเสื้อช็อปครับ</div><button class="btn-success" style="margin-top:20px; width:auto; padding:10px 20px;" onclick="switchSection(\'booking-section\')">ไปจองเสื้อกันเลย →</button></div>';
+      }
     } catch (e) {
-      alert('เกิดข้อผิดพลาด: ' + e.message);
-    } finally {
-      btn.disabled = false; btn.innerText = originalText;
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px; margin-top:10px;"><b>เกิดข้อผิดพลาด:</b><br>' + e.message + '</div>';
     }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.toString()
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 </script>
 </body>
 </html>
-
