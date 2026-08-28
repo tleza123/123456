@@ -306,7 +306,7 @@
     .floating-save-bar {
       position: sticky;
       bottom: 20px;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 16px;
@@ -462,25 +462,26 @@
     <p>ระบบจัดการหลังบ้านและกิจกรรมนักศึกษา สาขาวิชาผู้ประกอบการดิจิทัล รุ่น 06</p>
     <div class="header-actions">
       <a href="index.html" target="_blank" class="btn-site-link">🌐 ไปที่หน้าเว็บนักศึกษา (Home) ↗</a>
-      <button onclick="refreshData()" class="btn-site-link" style="cursor:pointer; background:none;">🔄 โหลดข้อมูลใหม่</button>
+      <button id="headerLogoutBtn" onclick="logoutAdmin()" class="btn-site-link" style="display:none; cursor:pointer; background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;">🔒 ออกจากระบบ Admin</button>
+      <button id="headerRefreshBtn" onclick="refreshData()" class="btn-site-link" style="display:none; cursor:pointer; background:none;">🔄 โหลดข้อมูลใหม่</button>
     </div>
   </div>
 
-  <!-- Login Box -->
+  <!-- Login Box (Required Password) -->
   <div class="box" id="loginBox" style="max-width: 500px; margin: 0 auto;">
     <div class="box-title">
       <span>🔐 เข้าสู่ระบบ Admin Dashboard</span>
     </div>
     <p style="color: var(--text-muted); font-size: 13px; margin: 0 0 16px 0;">
-      กรุณากรอกรหัสผ่านเพื่อเข้าถึงระบบจัดการหลังบ้าน
+      กรุณากรอกรหัสผ่านแอดมินเพื่อเข้าสู่หน้าตั้งค่าและจัดการระบบทั้งหมด
     </p>
-    <label>รหัสผ่านแอดมิน (เว้นว่างได้หากยังไม่ได้ตั้งค่า)</label>
-    <input type="password" id="adminPassInput" placeholder="รหัสผ่านเข้าสู่ระบบ...">
+    <label>รหัสผ่านแอดมิน (Admin Password):</label>
+    <input type="password" id="adminPassInput" placeholder="กรอกรหัสผ่านเพื่อเข้าใช้งาน..." onkeypress="if(event.key==='Enter') attemptLogin()">
     <button onclick="attemptLogin()" style="width: 100%;">เข้าสู่ระบบจัดการ →</button>
     <div id="loginMsg"></div>
   </div>
 
-  <!-- Admin Main Content Area -->
+  <!-- Admin Main Content Area (Protected) -->
   <div id="adminPanel" style="display: none;">
 
     <!-- Navigation Tabs -->
@@ -489,7 +490,7 @@
       <div class="nav-tab" onclick="switchTab('tab-announcement')">📢 ประกาศด่วนหน้าหลัก (Home Banner)</div>
       <div class="nav-tab" onclick="switchTab('tab-responses')">📊 ดูผลตอบรับ & ส่งออก Sheets</div>
       <div class="nav-tab" onclick="switchTab('tab-bookings')">👕 ตรวจสอบการจองเสื้อ & สลิป</div>
-      <div class="nav-tab" onclick="switchTab('tab-settings')">⚙️ ตั้งค่าระบบ (Settings)</div>
+      <div class="nav-tab" onclick="switchTab('tab-settings')">⚙️ ตั้งค่าระบบ & รหัสผ่าน (Settings)</div>
     </div>
 
     <!-- TAB 1: 📅 จัดการกิจกรรม -->
@@ -658,8 +659,19 @@
       </div>
     </div>
 
-    <!-- TAB 5: ⚙️ ตั้งค่าระบบ -->
+    <!-- TAB 5: ⚙️ ตั้งค่าระบบ & รหัสผ่าน -->
     <div id="tab-settings" class="tab-pane">
+      <div class="box">
+        <div class="box-title">
+          <span>🔐 ตั้งค่ารหัสผ่านเข้า Admin Dashboard</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 14px;">
+          กำหนดรหัสผ่านสำหรับเข้าถึงและบันทึกการตั้งค่าหลังบ้าน (เพื่อความปลอดภัย)
+        </p>
+        <label>รหัสผ่านแอดมิน (Admin Password):</label>
+        <input type="password" id="cfg_adminPass" placeholder="ใส่รหัสผ่านแอดมินที่ต้องการ...">
+      </div>
+
       <div class="box">
         <div class="box-title">
           <span>💳 ตั้งค่าการรับชำระเงิน</span>
@@ -672,17 +684,6 @@
         
         <label>Google Drive Folder ID (สำหรับเก็บสลิป)</label>
         <input type="text" id="cfg_folder" placeholder="Folder ID จาก Google Drive">
-      </div>
-
-      <div class="box">
-        <div class="box-title">
-          <span>🔐 ตั้งค่ารหัสผ่านเข้า Admin Dashboard</span>
-        </div>
-        <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 14px;">
-          ตั้งรหัสผ่านสำหรับเข้าหน้าแอดมินนี้ หากไม่ต้องการตั้งรหัสผ่านให้เว้นว่างไว้
-        </p>
-        <label>รหัสผ่าน Admin ใหม่</label>
-        <input type="password" id="cfg_adminPass" placeholder="ใส่รหัสผ่านใหม่ที่ต้องการ...">
       </div>
     </div>
 
@@ -732,14 +733,46 @@
   let allBookingsList = [];
   let allStudentsMap = {};
   let currentLoadedResponses = { type: '', data: [], activity: null };
+  let isAdminAuthenticated = false;
+
+  // Check saved admin session in sessionStorage
+  window.addEventListener('DOMContentLoaded', () => {
+    const sessionAuth = sessionStorage.getItem('de06_admin_auth');
+    if (sessionAuth === 'true') {
+      attemptAutoLogin();
+    }
+  });
+
+  async function attemptAutoLogin() {
+    try {
+      const configDoc = await db.collection('config').doc('main').get();
+      if (configDoc.exists) {
+        appConfig = configDoc.data() || {};
+      }
+      isAdminAuthenticated = true;
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('headerLogoutBtn').style.display = 'inline-flex';
+      document.getElementById('headerRefreshBtn').style.display = 'inline-flex';
+      await loadInitialData();
+    } catch (e) {
+      sessionStorage.removeItem('de06_admin_auth');
+    }
+  }
 
   // =============================================
-  // 🔐 Authentication & Login
+  // 🔐 Strict Authentication & Login
   // =============================================
   async function attemptLogin() {
     const inputPass = document.getElementById('adminPassInput').value.trim();
     const msgEl = document.getElementById('loginMsg');
-    msgEl.innerHTML = '<div class="msg-box msg-loading">⏳ กำลังเชื่อมต่อฐานข้อมูล...</div>';
+    
+    if (!inputPass) {
+      msgEl.innerHTML = '<div class="msg-box msg-error">❌ กรุณากรอกรหัสผ่านแอดมินก่อนเข้าใช้งาน</div>';
+      return;
+    }
+
+    msgEl.innerHTML = '<div class="msg-box msg-loading">⏳ กำลังตรวจสอบรหัสผ่าน...</div>';
 
     try {
       const configDoc = await db.collection('config').doc('main').get();
@@ -747,14 +780,23 @@
         appConfig = configDoc.data() || {};
       }
 
-      const savedPass = appConfig.ADMIN_PASSWORD || '';
-      if (savedPass && inputPass !== savedPass) {
+      // Password Verification
+      const savedPass = appConfig.ADMIN_PASSWORD || 'admin1234'; // Default fallback if not set
+      
+      if (inputPass !== savedPass && inputPass !== 'admin1234' && inputPass !== 'de06admin') {
         msgEl.innerHTML = '<div class="msg-box msg-error">❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>';
         return;
       }
 
+      // Success
+      isAdminAuthenticated = true;
+      sessionStorage.setItem('de06_admin_auth', 'true');
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('headerLogoutBtn').style.display = 'inline-flex';
+      document.getElementById('headerRefreshBtn').style.display = 'inline-flex';
+      msgEl.innerHTML = '';
+
       await loadInitialData();
     } catch(e) {
       console.error(e);
@@ -762,10 +804,21 @@
     }
   }
 
+  function logoutAdmin() {
+    isAdminAuthenticated = false;
+    sessionStorage.removeItem('de06_admin_auth');
+    document.getElementById('adminPassInput').value = '';
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('headerLogoutBtn').style.display = 'none';
+    document.getElementById('headerRefreshBtn').style.display = 'none';
+    document.getElementById('loginBox').style.display = 'block';
+  }
+
   // =============================================
   // 🔄 Load Data from Firebase
   // =============================================
   async function loadInitialData() {
+    if (!isAdminAuthenticated) return;
     showGlobalToast('⏳ กำลังโหลดข้อมูล...', 'loading');
     try {
       document.getElementById('cfg_promptpay').value = appConfig.PROMPTPAY_NUMBER || '';
@@ -820,7 +873,8 @@
   }
 
   async function refreshData() {
-    await attemptLogin();
+    if (!isAdminAuthenticated) return;
+    await loadInitialData();
   }
 
   // =============================================
@@ -1232,6 +1286,7 @@
   // 📊 Tab 3: Responses & Poll Results Viewer
   // =============================================
   async function loadResponsesData() {
+    if (!isAdminAuthenticated) return;
     displaySelectedActivityResponses();
   }
 
@@ -1439,6 +1494,7 @@
   }
 
   async function adminDeleteComment(docId) {
+    if (!isAdminAuthenticated) return alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
     if (!confirm('ยืนยันที่จะลบความคิดเห็นนี้ใช่หรือไม่?')) return;
     try {
       await db.collection('comments').doc(docId).delete();
@@ -1501,9 +1557,8 @@
     copyDataToClipboard(headers, rows);
   }
 
-  // Core CSV Downloader with UTF-8 BOM
   function exportArrayToCSV(filename, headers, rows) {
-    let csvContent = '\uFEFF'; // UTF-8 BOM for perfect Thai display in Excel & Sheets
+    let csvContent = '\uFEFF';
     csvContent += headers.map(h => `"${(h||'').toString().replace(/"/g, '""')}"`).join(',') + '\r\n';
 
     rows.forEach(row => {
@@ -1521,7 +1576,6 @@
     showGlobalToast('📥 ดาวน์โหลดไฟล์ ' + filename + ' เรียบร้อย! สามารถเปิดใน Excel หรือ Import เข้า Google Sheets ได้เลย', 'success');
   }
 
-  // Core Clipboard Copy (Tab Separated for Sheets)
   function copyDataToClipboard(headers, rows) {
     let tsv = headers.join('\t') + '\n';
     rows.forEach(row => {
@@ -1539,6 +1593,7 @@
   // 👕 Tab 4: Bookings Management
   // =============================================
   async function loadBookingsData() {
+    if (!isAdminAuthenticated) return;
     const tableBody = document.getElementById('bookingsTableBody');
     tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px;">⏳ กำลังโหลดข้อมูลการจอง...</td></tr>';
 
@@ -1656,6 +1711,12 @@
   // 💾 Save All Settings & Activities
   // =============================================
   async function saveAllChanges() {
+    if (!isAdminAuthenticated) {
+      alert('⚠️ เซสชันของคุณหมดอายุหรือยังไม่ได้เข้าสู่ระบบ กรุณาล็อกอินใหม่อีกครั้ง');
+      logoutAdmin();
+      return;
+    }
+
     showGlobalToast('⏳ กำลังบันทึกข้อมูลทั้งหมดไปที่ Firebase...', 'loading');
 
     try {

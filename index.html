@@ -70,34 +70,6 @@
     .active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Top navigation in activity page */
-    .activity-top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .btn-back-home {
-      background: #f1f5f9;
-      color: #334155;
-      border: 1px solid #cbd5e1;
-      padding: 7px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: 0.2s;
-    }
-    .btn-back-home:hover {
-      background: #e2e8f0;
-      color: var(--main-blue);
-    }
-
     /* Announcement Banner */
     .home-banner {
       border-radius: 16px;
@@ -530,25 +502,19 @@
 
   <!-- 3. CHECK BOOKING SECTION -->
   <div id="check-booking-section" class="section">
-    <div class="activity-top-nav">
-      <button class="btn-back-home" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
-      <div class="header-badge" style="margin:0; background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลการจองของคุณ</div>
-    </div>
+    <div class="header-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลการจองของคุณ</div>
     <h2 style="margin-bottom: 20px;">รายละเอียดการจอง</h2>
     <div id="booking-details-content" style="text-align:left;">
       <!-- ข้อมูลการจองจะโหลดมาที่นี่ -->
     </div>
     <div class="nav-group" style="margin-top:20px;">
-      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าหลัก</button>
+      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
     </div>
   </div>
 
   <!-- 4. SHIRT BOOKING SECTION -->
   <div id="booking-section" class="section">
-    <div class="activity-top-nav">
-      <button class="btn-back-home" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
-      <div class="header-badge" style="margin:0;">STEP 1: เลือกไซส์เสื้อช็อป</div>
-    </div>
+    <div class="header-badge">STEP 1: เลือกไซส์เสื้อช็อป</div>
     <h3>ผู้จอง: <span id="studentName" style="color:var(--main-blue-light);"></span></h3>
     <div class="shirt-gallery">
       <img src="755732903_3416811905158788_5651129749747833900_n.jpg" class="shirt-preview">
@@ -582,10 +548,7 @@
 
   <!-- 5. UPLOAD PAYMENT SLIP SECTION -->
   <div id="upload-section" class="section">
-    <div class="activity-top-nav">
-      <button class="btn-back-home" onclick="switchSection('booking-section')">← แก้ไขไซส์เสื้อ</button>
-      <div class="header-badge" style="margin:0;">STEP 2: ชำระเงิน & ยืนยัน</div>
-    </div>
+    <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>ชำระเงินผ่านบัญชีธนาคาร</h2>
     <div class="payment-box">
       <div style="font-size: 13px; color: #b45309; font-weight: 600;">ยอดที่ต้องโอนชำระ</div>
@@ -771,7 +734,7 @@
   }
 
   // =============================================
-  // 🔄 Dynamic Activity Sections Renderer
+  // 🔄 Dynamic Activity Sections Renderer (No duplicate top back button)
   // =============================================
   function renderDynamicSections() {
     document.querySelectorAll('.dynamic-section').forEach(function(el) { el.remove(); });
@@ -784,10 +747,9 @@
       section.id = 'dynamic-' + task.id;
       section.className = 'section dynamic-section';
 
-      var topNavHtml = `
-        <div class="activity-top-nav">
-          <button class="btn-back-home" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
-          <div class="header-badge" style="margin:0;">${task.icon || '📌'} ${escapeHtml(task.title)}</div>
+      var topBadgeHtml = `
+        <div style="text-align:center; margin-bottom:15px;">
+          <div class="header-badge" style="margin-bottom:0;">${task.icon || '📌'} ${escapeHtml(task.title)}</div>
         </div>
       `;
 
@@ -974,7 +936,7 @@
         </div>
       `;
 
-      section.innerHTML = topNavHtml + bodyHtml + bottomNavHtml;
+      section.innerHTML = topBadgeHtml + bodyHtml + bottomNavHtml;
       container.appendChild(section);
 
       if (task.htmlCode && task.htmlCode.trim() !== '') {
@@ -1322,7 +1284,6 @@
 
     var reader = new FileReader();
     reader.onload = function(e) {
-      // Compress image via Canvas if larger than 800px
       var img = new Image();
       img.onload = function() {
         var canvas = document.createElement('canvas');
