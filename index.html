@@ -31,17 +31,19 @@
       background: var(--bg-gradient);
       min-height: 100vh;
       margin: 0;
-      padding: 20px 10px 60px;
+      padding: 20px 12px 70px;
       color: var(--text-main);
       display: flex;
       justify-content: center;
       align-items: flex-start;
     }
+
+    /* Responsive Main Container */
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 520px; /* Mobile Default */
       background: rgba(255, 255, 255, 0.96);
-      padding: 30px 22px;
+      padding: 26px 20px;
       border-radius: 24px;
       box-shadow: 0 20px 45px rgba(0, 53, 102, 0.12);
       backdrop-filter: blur(12px);
@@ -50,16 +52,87 @@
       margin-bottom: 80px;
       text-align: center;
       position: relative;
+      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
     }
+
+    /* Tablet Responsive Styles */
+    @media (min-width: 768px) {
+      body { padding: 30px 20px 80px; }
+      .container {
+        max-width: 840px;
+        padding: 34px 30px;
+        border-radius: 28px;
+      }
+      #active-tasks-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      .task-card {
+        margin-bottom: 0 !important;
+      }
+      .shirt-gallery {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 14px;
+      }
+      .shirt-preview {
+        max-width: 220px !important;
+      }
+      .responsive-two-col {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 24px;
+        align-items: start;
+        text-align: left;
+      }
+      .size-grid-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+    }
+
+    /* Desktop Responsive Styles (Wide & Immersive) */
+    @media (min-width: 1024px) {
+      body { padding: 40px 25px 90px; }
+      .container {
+        max-width: 1120px;
+        padding: 42px 40px;
+        border-radius: 32px;
+        box-shadow: 0 25px 55px rgba(0, 53, 102, 0.15);
+      }
+      #active-tasks-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+        gap: 20px;
+      }
+      .shirt-preview {
+        max-width: 240px !important;
+      }
+      .responsive-two-col {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 32px;
+        align-items: start;
+      }
+      .size-grid-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+    }
+
     .header-badge {
       display: inline-block;
       background: #e0f2fe;
       color: var(--main-blue);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      padding: 6px 16px;
+      padding: 6px 18px;
       border-radius: 50px;
-      margin-bottom: 15px;
+      margin-bottom: 16px;
       border: 1px solid #bae6fd;
     }
     h2 { color: var(--main-blue); font-weight: 700; margin: 0 0 8px 0; font-size: 24px; }
@@ -72,12 +145,12 @@
 
     /* Announcement Banner */
     .home-banner {
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 20px;
+      border-radius: 18px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
       text-align: left;
-      border-left: 5px solid;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-left: 6px solid;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
       animation: fadeIn 0.4s ease-out;
     }
     .banner-urgent { background: #fef2f2; border-color: #ef4444; }
@@ -89,19 +162,20 @@
     .banner-success { background: #f0fdf4; border-color: #10b981; }
     .banner-success .banner-title { color: #16a34a; }
     
-    .banner-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    .banner-desc { font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 10px; }
+    .banner-title { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .banner-desc { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 12px; }
     .banner-btn {
       display: inline-block;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 12px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
       font-weight: 600;
       background: white;
       border: 1px solid #cbd5e1;
       color: var(--main-blue);
       cursor: pointer;
       transition: 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .banner-btn:hover { background: #f8fafc; border-color: var(--main-blue); }
 
@@ -109,46 +183,51 @@
     .task-card {
       background: white;
       border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 18px;
+      padding: 18px;
       margin-bottom: 14px;
       text-align: left;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
       border-left: 5px solid var(--main-blue);
-      transition: 0.2s;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
-    .task-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.08); }
-    .task-title { font-weight: 700; font-size: 16px; color: var(--main-blue); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
-    .task-type-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #e0f2fe; color: #0284c7; }
-    .task-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
-    .task-timer { font-size: 12px; font-weight: 600; color: #d97706; background: #fef3c7; padding: 6px 10px; border-radius: 8px; display: inline-block; }
-    .task-btn { margin-top: 12px; padding: 9px 14px; font-size: 14px; border-radius: 10px; width: 100%; }
+    .task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,0.09); }
+    .task-title { font-weight: 700; font-size: 16px; color: var(--main-blue); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .task-type-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #e0f2fe; color: #0284c7; white-space: nowrap; }
+    .task-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; flex-grow: 1; }
+    .task-timer { font-size: 12px; font-weight: 600; color: #d97706; background: #fef3c7; padding: 6px 10px; border-radius: 8px; display: inline-block; margin-bottom: 10px; }
+    .task-btn { margin-top: auto; padding: 10px 16px; font-size: 14px; border-radius: 12px; width: 100%; }
 
     /* Activity Cover Image */
     .activity-cover-img {
       width: 100%;
-      max-height: 220px;
+      max-height: 320px;
       object-fit: cover;
-      border-radius: 16px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-radius: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
       border: 2px solid white;
+      cursor: pointer;
     }
 
     /* Poll / Voting Styles */
     .poll-box {
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 18px;
+      border-radius: 18px;
+      padding: 20px;
       margin: 15px 0;
       text-align: left;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     }
     .poll-option-card {
       background: #f8fafc;
       border: 1.5px solid #e2e8f0;
       border-radius: 14px;
-      padding: 12px 14px;
+      padding: 14px 16px;
       margin-bottom: 12px;
       cursor: pointer;
       transition: all 0.2s;
@@ -181,24 +260,25 @@
       font-size: 14px;
       font-weight: 600;
       color: var(--text-main);
-      gap: 8px;
+      gap: 10px;
     }
     .poll-status-tag {
       font-size: 12px;
       font-weight: 700;
       color: var(--main-blue);
       background: #e0f2fe;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 6px;
       white-space: nowrap;
     }
     .poll-opt-thumb {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 8px;
       object-fit: cover;
       border: 1px solid #cbd5e1;
       flex-shrink: 0;
+      cursor: pointer;
     }
 
     /* Comment Board Styles */
@@ -209,28 +289,28 @@
     .comment-form-card {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 18px;
+      padding: 18px;
       margin-bottom: 20px;
     }
     .comment-card {
       background: white;
       border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
       animation: fadeIn 0.3s ease;
     }
     .comment-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .comment-user {
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       color: var(--main-blue);
       display: flex;
       align-items: center;
@@ -241,16 +321,16 @@
       color: #94a3b8;
     }
     .comment-body {
-      font-size: 13px;
+      font-size: 14px;
       color: #334155;
-      line-height: 1.5;
+      line-height: 1.6;
       word-break: break-word;
     }
     .comment-img-attachment {
-      margin-top: 8px;
+      margin-top: 10px;
       max-width: 100%;
-      max-height: 200px;
-      border-radius: 10px;
+      max-height: 240px;
+      border-radius: 12px;
       border: 1px solid #e2e8f0;
       cursor: pointer;
       transition: transform 0.2s;
@@ -291,14 +371,14 @@
     /* Form Builder Inputs */
     .form-group-dynamic {
       text-align: left;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .form-group-dynamic label {
       font-size: 13px;
       font-weight: 600;
       color: #334155;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
     /* Menu & Navigation */
@@ -309,17 +389,20 @@
       background: var(--main-blue);
       color: white;
       border-radius: 50px;
-      padding: 12px 20px;
+      padding: 12px 22px;
       font-weight: 700;
       font-size: 15px;
-      box-shadow: 0 8px 20px rgba(0, 35, 102, 0.4);
+      box-shadow: 0 8px 22px rgba(0, 35, 102, 0.4);
       cursor: pointer;
       z-index: 1000;
       display: none;
       align-items: center;
       gap: 8px;
       border: 2px solid white;
+      transition: transform 0.2s;
     }
+    .fab-menu:hover { transform: scale(1.05); }
+
     .menu-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -333,7 +416,7 @@
     .menu-content {
       background: white;
       width: 100%;
-      max-width: 500px;
+      max-width: 540px;
       border-radius: 24px 24px 0 0;
       padding: 30px 25px;
       animation: slideUp 0.3s ease-out;
@@ -351,7 +434,9 @@
       margin-bottom: 10px;
       cursor: pointer;
       text-align: left;
+      transition: background 0.2s;
     }
+    .menu-item:hover { background: #f1f5f9; }
     .menu-item-icon { font-size: 26px; margin-right: 14px; }
     .menu-item-title { font-weight: 700; font-size: 15px; color: var(--main-blue); }
     .menu-item-desc { font-size: 12px; color: var(--text-muted); }
@@ -364,11 +449,13 @@
       border-radius: 12px;
       font-size: 14px;
       background: #f8fafc;
+      transition: border-color 0.2s;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--main-blue-light);
       background: white;
+      box-shadow: 0 0 0 3px rgba(0, 78, 152, 0.1);
     }
     button {
       background: linear-gradient(135deg, var(--main-blue) 0%, var(--main-blue-light) 100%);
@@ -384,18 +471,19 @@
       transition: 0.2s;
     }
     button:hover { opacity: 0.95; transform: translateY(-1px); }
-    .nav-group { display: flex; gap: 12px; margin-top: 15px; }
+    .nav-group { display: flex; gap: 12px; margin-top: 20px; }
     .nav-group button { margin-top: 0; width: 50%; }
     .btn-secondary { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; }
     .btn-success { background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important; }
     
-    .shirt-gallery { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 15px; }
-    .shirt-preview { width: 100%; max-width: 260px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 3px solid white; }
-    .size-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: #f8fafc; padding: 6px 16px; border-radius: 12px; border: 1px solid #f1f5f9; }
+    .shirt-gallery { display: flex; flex-direction: column; gap: 12px; align-items: center; margin-bottom: 20px; }
+    .shirt-preview { width: 100%; max-width: 260px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 3px solid white; transition: transform 0.2s; }
+    .shirt-preview:hover { transform: scale(1.03); }
+    .size-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: #f8fafc; padding: 8px 16px; border-radius: 12px; border: 1px solid #f1f5f9; }
     .size-row label { font-weight: 600; width: 60px; font-size: 16px; color: var(--main-blue); }
     .size-row input { margin: 0; text-align: center; width: 80px; }
-    .price-box, .payment-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 18px; border-radius: 16px; margin: 20px 0; }
-    .contact-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 18px; border-radius: 16px; margin: 15px 0; text-align: left; }
+    .price-box, .payment-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 18px; margin: 20px 0; }
+    .contact-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 18px; margin: 15px 0; text-align: left; }
     .error { color: #e11d48; font-size: 13px; margin-top: 10px; font-weight: 500; }
     
     #loading-screen { 
@@ -460,13 +548,13 @@
 <div class="container" id="main-container">
   
   <!-- 1. LOGIN SECTION -->
-  <div id="login-section" class="section active">
+  <div id="login-section" class="section active" style="max-width: 480px; margin: 0 auto;">
     <div class="header-badge">DIGITAL ENTREPRENEUR รุ่น 06</div>
     <h2>เข้าสู่ระบบนักศึกษา</h2>
     <p>สาขาวิชาผู้ประกอบการดิจิทัล</p>
     <div style="text-align: left; margin-top: 20px;">
       <label style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-left: 4px;">รหัสนักศึกษา</label>
-      <input type="text" id="studentId" placeholder="เช่น 693210000-6">
+      <input type="text" id="studentId" placeholder="เช่น 693210000-6" onkeypress="if(event.key==='Enter') checkStudent()">
     </div>
     <button id="btnLogin" onclick="checkStudent()">เข้าสู่ระบบ →</button>
     <div id="loginError" class="error"></div>
@@ -475,26 +563,26 @@
   <!-- 2. HOME SECTION -->
   <div id="home-section" class="section">
     <div class="header-badge">HOME • DE 06</div>
-    <h3 style="margin-bottom: 5px; color: var(--text-main); font-size:18px;">ยินดีต้อนรับ,</h3>
-    <h2 style="color:var(--main-blue); margin-bottom: 20px; font-size: 20px;"><span id="homeStudentName"></span></h2>
+    <h3 style="margin-bottom: 4px; color: var(--text-main); font-size:18px;">ยินดีต้อนรับ,</h3>
+    <h2 style="color:var(--main-blue); margin-bottom: 22px; font-size: 22px;"><span id="homeStudentName"></span></h2>
 
     <!-- Dynamic Home Announcement Banner -->
     <div id="home-announcement-container"></div>
 
     <!-- ปุ่มตรวจสอบข้อมูลการจองเสื้อ (เมนูคงที่) -->
-    <div class="task-card" style="border-left-color: #10b981; margin-bottom: 20px; background: #f0fdf4;">
+    <div class="task-card" style="border-left-color: #10b981; margin-bottom: 24px; background: #f0fdf4; text-align: left;">
       <div class="task-title">
-        <span style="display:flex; align-items:center; gap:6px;"><span>🔎</span> ตรวจสอบข้อมูลการจองเสื้อ</span>
+        <span style="display:flex; align-items:center; gap:8px;"><span>🔎</span> ตรวจสอบข้อมูลการจองเสื้อช็อป</span>
         <span class="task-type-tag" style="background:#dcfce7; color:#15803d;">ข้อมูลส่วนตัว</span>
       </div>
-      <div class="task-desc" style="color: #166534;">เช็คสถานะ ไซส์เสื้อ และยอดเงินที่คุณชำระไปแล้ว</div>
-      <button class="task-btn btn-success" style="margin-top: 10px; width: 100%; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);" onclick="viewMyBooking()">ตรวจสอบข้อมูลของฉัน →</button>
+      <div class="task-desc" style="color: #166534;">เช็คสถานะการชำระเงิน ไซส์เสื้อ และยอดเงินของคุณ</div>
+      <button class="task-btn btn-success" style="margin-top: 8px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);" onclick="viewMyBooking()">ตรวจสอบข้อมูลของฉัน →</button>
     </div>
 
-    <div style="text-align: left; margin-bottom: 15px;">
-      <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; display:flex; align-items:center; justify-content:space-between;">
-        <span>กิจกรรมและงานทั้งหมด</span>
-        <span id="active-tasks-count" style="font-size:12px; color:var(--text-muted); font-weight:normal;"></span>
+    <div style="text-align: left; margin-bottom: 16px;">
+      <h3 style="font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display:flex; align-items:center; justify-content:space-between;">
+        <span>📅 กิจกรรมและงานทั้งหมด</span>
+        <span id="active-tasks-count" style="font-size:13px; color:var(--text-muted); font-weight:normal;"></span>
       </h3>
     </div>
     <div id="active-tasks-container"></div>
@@ -503,11 +591,11 @@
   <!-- 3. CHECK BOOKING SECTION -->
   <div id="check-booking-section" class="section">
     <div class="header-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลการจองของคุณ</div>
-    <h2 style="margin-bottom: 20px;">รายละเอียดการจอง</h2>
-    <div id="booking-details-content" style="text-align:left;">
+    <h2 style="margin-bottom: 20px;">รายละเอียดการจองเสื้อช็อป</h2>
+    <div id="booking-details-content">
       <!-- ข้อมูลการจองจะโหลดมาที่นี่ -->
     </div>
-    <div class="nav-group" style="margin-top:20px;">
+    <div class="nav-group" style="margin-top:25px; max-width: 400px; margin-left: auto; margin-right: auto;">
       <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
     </div>
   </div>
@@ -516,33 +604,52 @@
   <div id="booking-section" class="section">
     <div class="header-badge">STEP 1: เลือกไซส์เสื้อช็อป</div>
     <h3>ผู้จอง: <span id="studentName" style="color:var(--main-blue-light);"></span></h3>
-    <div class="shirt-gallery">
-      <img src="755732903_3416811905158788_5651129749747833900_n.jpg" class="shirt-preview">
-      <img src="IMG_3102.jpeg" onerror="this.src='IMG_3102.jpeg'" class="shirt-preview">
-      <img src="07E47613-B049-450F-9185-E6C68EF5604E.jpeg" class="shirt-preview">
-    </div>
-    <p style="margin: 0 0 15px; font-weight: 600; color: var(--main-blue);">ราคาตัวละ <span id="show-price" style="color:#d97706; font-size: 18px;">0</span> บาท</p>
     
-    <div class="size-row"><label>XS</label><input type="number" id="qty-xs" min="0" placeholder="0" oninput="calculateTotal()"></div>
-    <div class="size-row"><label>S</label><input type="number" id="qty-s" min="0" placeholder="0" oninput="calculateTotal()"></div>
-    <div class="size-row"><label>M</label><input type="number" id="qty-m" min="0" placeholder="0" oninput="calculateTotal()"></div>
-    <div class="size-row"><label>L</label><input type="number" id="qty-l" min="0" placeholder="0" oninput="calculateTotal()"></div>
-    <div class="size-row"><label>XL</label><input type="number" id="qty-xl" min="0" placeholder="0" oninput="calculateTotal()"></div>
-    <div class="size-row"><label>2XL</label><input type="number" id="qty-xxl" min="0" placeholder="0" oninput="calculateTotal()"></div>
-    <div style="margin-top: 12px; text-align: left; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px dashed #cbd5e1;">
-      <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); display: block; margin-bottom: 8px;">ไซส์ 3XL ขึ้นไป (+บวกเพิ่ม 30 บาท/ตัว):</label>
-      <div style="display: flex; gap: 8px;">
-        <input type="text" id="qty-other-text" placeholder="ระบุไซส์ เช่น 3XL" style="flex: 2; margin: 0;">
-        <input type="number" id="qty-other-num" min="0" placeholder="จำนวน" style="flex: 1; margin: 0; text-align: center;" oninput="calculateTotal()">
+    <div class="responsive-two-col">
+      <!-- Left Column: Gallery & Description -->
+      <div>
+        <div class="shirt-gallery">
+          <img src="755732903_3416811905158788_5651129749747833900_n.jpg" class="shirt-preview" onclick="openLightbox('755732903_3416811905158788_5651129749747833900_n.jpg')">
+          <img src="IMG_3102.jpeg" class="shirt-preview" onclick="openLightbox('IMG_3102.jpeg')">
+          <img src="07E47613-B049-450F-9185-E6C68EF5604E.jpeg" class="shirt-preview" onclick="openLightbox('07E47613-B049-450F-9185-E6C68EF5604E.jpeg')">
+        </div>
+        <p style="text-align: center; margin: 0 0 15px; font-weight: 600; color: var(--main-blue);">
+          ราคาตัวละ <span id="show-price" style="color:#d97706; font-size: 20px; font-weight: 700;">0</span> บาท 
+          <span style="font-size: 12px; color: #16a34a; font-weight: normal;">(จอง 2 ตัวขึ้นไป ลดทันที 10 บาท)</span>
+        </p>
       </div>
-    </div>
-    <div class="price-box">
-      <div style="font-size: 13px; color: #15803d; font-weight: 500;">จำนวนเสื้อรวมทั้งหมด: <span id="total-qty" style="font-weight: 700; font-size: 16px;">0</span> ตัว</div>
-      <div style="font-size: 22px; font-weight: 700; color: #15803d; margin-top: 4px;">ยอดชำระทั้งสิ้น: <span id="total-price">0</span> บาท</div>
-    </div>
-    <div class="nav-group">
-      <button class="btn-secondary" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
-      <button id="btnBook" onclick="submitOrder()">ถัดไป →</button>
+
+      <!-- Right Column: Size Choices & Price Box -->
+      <div>
+        <div class="size-grid-container">
+          <div class="size-row"><label>XS</label><input type="number" id="qty-xs" min="0" placeholder="0" oninput="calculateTotal()"></div>
+          <div class="size-row"><label>S</label><input type="number" id="qty-s" min="0" placeholder="0" oninput="calculateTotal()"></div>
+          <div class="size-row"><label>M</label><input type="number" id="qty-m" min="0" placeholder="0" oninput="calculateTotal()"></div>
+          <div class="size-row"><label>L</label><input type="number" id="qty-l" min="0" placeholder="0" oninput="calculateTotal()"></div>
+          <div class="size-row"><label>XL</label><input type="number" id="qty-xl" min="0" placeholder="0" oninput="calculateTotal()"></div>
+          <div class="size-row"><label>2XL</label><input type="number" id="qty-xxl" min="0" placeholder="0" oninput="calculateTotal()"></div>
+        </div>
+
+        <div style="margin-top: 14px; text-align: left; background: #f8fafc; padding: 14px 18px; border-radius: 14px; border: 1px dashed #cbd5e1;">
+          <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); display: block; margin-bottom: 8px;">
+            ไซส์ 3XL ขึ้นไป (+บวกเพิ่ม 30 บาท/ตัว):
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="qty-other-text" placeholder="ระบุไซส์ เช่น 3XL, 4XL" style="flex: 2; margin: 0;">
+            <input type="number" id="qty-other-num" min="0" placeholder="จำนวน" style="flex: 1; margin: 0; text-align: center;" oninput="calculateTotal()">
+          </div>
+        </div>
+
+        <div class="price-box">
+          <div style="font-size: 14px; color: #15803d; font-weight: 600;">จำนวนเสื้อรวมทั้งหมด: <span id="total-qty" style="font-weight: 700; font-size: 18px;">0</span> ตัว</div>
+          <div style="font-size: 24px; font-weight: 700; color: #15803d; margin-top: 6px;">ยอดชำระทั้งสิ้น: <span id="total-price">0</span> บาท</div>
+        </div>
+
+        <div class="nav-group">
+          <button class="btn-secondary" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
+          <button id="btnBook" onclick="submitOrder()">ถัดไป →</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -550,44 +657,53 @@
   <div id="upload-section" class="section">
     <div class="header-badge">STEP 2: ชำระเงิน & ยืนยัน</div>
     <h2>ชำระเงินผ่านบัญชีธนาคาร</h2>
-    <div class="payment-box">
-      <div style="font-size: 13px; color: #b45309; font-weight: 600;">ยอดที่ต้องโอนชำระ</div>
-      <div style="font-size: 32px; font-weight: 700; color: #d97706; margin: 2px 0;"><span id="pay-amount">0</span> บาท</div>
-      <img src="IMG_3131.jpeg" class="shirt-preview">
-      <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">ชื่อบัญชี: <span id="show-acc-name" style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">เลขบัญชี / พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
-      <div style="font-size: 14px; font-weight: 600; margin-top: 4px;"> ธนาคารกสิกรไทย </div>
-    </div>
-    
-    <div class="contact-box">
-      <label>ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
-      <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ">
-      <input type="email" id="contact-email" placeholder="2. อีเมล">
-      <label style="margin-top: 10px;">วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม.):</label>
-      <div style="display: flex; gap: 6px; align-items: center;">
-        <input type="date" id="transfer-date" style="flex: 2; margin: 0;">
-        <select id="transfer-hour" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">ชม.</option></select>
-        <span style="font-weight: 700; color: var(--main-blue);">:</span>
-        <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">นาที</option></select>
+
+    <div class="responsive-two-col">
+      <!-- Left Column: Payment QR & Bank Details -->
+      <div>
+        <div class="payment-box" style="margin-top:0;">
+          <div style="font-size: 13px; color: #b45309; font-weight: 600;">ยอดที่ต้องโอนชำระ</div>
+          <div style="font-size: 34px; font-weight: 700; color: #d97706; margin: 4px 0;"><span id="pay-amount">0</span> บาท</div>
+          <img src="IMG_3131.jpeg" class="shirt-preview" style="margin: 12px auto; display:block;" onclick="openLightbox('IMG_3131.jpeg')">
+          <div style="font-size: 14px; font-weight: 600; margin-top: 6px;">ชื่อบัญชี: <span id="show-acc-name" style="color:var(--main-blue);"></span></div>
+          <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">เลขบัญชี / พร้อมเพย์: <span id="show-pp-number" style="color:var(--main-blue);"></span></div>
+          <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">ธนาคารกสิกรไทย</div>
+        </div>
+      </div>
+
+      <!-- Right Column: Contact info & Slip Upload -->
+      <div>
+        <div class="contact-box" style="margin-top:0;">
+          <label>ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
+          <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ">
+          <input type="email" id="contact-email" placeholder="2. อีเมล">
+          <label style="margin-top: 10px;">วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม.):</label>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="date" id="transfer-date" style="flex: 2; margin: 0;">
+            <select id="transfer-hour" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">ชม.</option></select>
+            <span style="font-weight: 700; color: var(--main-blue);">:</span>
+            <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">นาที</option></select>
+          </div>
+        </div>
+
+        <div style="text-align: left; margin-top: 15px; background: white; padding: 16px; border-radius: 14px; border: 1px solid #e2e8f0;">
+          <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
+          <input type="file" id="slipFile" accept="image/*" style="margin-top: 6px; background:#f8fafc;" onchange="handleBackgroundUpload(this)">
+        </div> 
+
+        <button id="btnUpload" class="btn-success" onclick="finalizeOrderFast()" disabled style="margin-top: 15px;">กรุณาเลือกรูปสลิปก่อน ⏳</button>
+        <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
+        <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
       </div>
     </div>
-
-    <div style="text-align: left; margin-top: 15px;">
-      <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
-      <input type="file" id="slipFile" accept="image/*" style="margin-top: 5px; background:white;" onchange="handleBackgroundUpload(this)">
-    </div> 
-
-    <button id="btnUpload" class="btn-success" onclick="finalizeOrderFast()" disabled>กรุณาเลือกรูปสลิปก่อน ⏳</button>
-    <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
-    <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
   </div>
 
   <!-- 6. DONE SECTION -->
-  <div id="done-section" class="section">
+  <div id="done-section" class="section" style="max-width: 500px; margin: 0 auto;">
     <div class="header-badge" style="background: #dcfce7; color: #16a34a; border-color: #bbf7d0;">สำเร็จ</div>
     <h2 style="color: #16a34a;">ทำรายการเรียบร้อย!</h2>
     <p>ระบบได้รับข้อมูลการสั่งจองและสลิปชำระเงินของคุณแล้ว<br>ระบบได้ส่งใบเสร็จยืนยันไปที่อีเมลของคุณเรียบร้อยครับ</p>
-    <div style="font-size: 70px; margin: 30px 0; text-align: center;">✅</div>
+    <div style="font-size: 70px; margin: 25px 0; text-align: center;">✅</div>
     <button class="btn-success" onclick="switchSection('home-section')">กลับสู่หน้าหลัก (Home)</button>
   </div>
 
@@ -613,7 +729,6 @@
     console.warn('Firestore persistence:', err.code);
   });
 
-  // Apps Script URL (slip upload + email confirmation)
   var API_URL = 'https://script.google.com/macros/s/AKfycbwBLZoIb9BpTV_HgLyn1zx0ot74Rl6A_OJfM2M-k9NtLRQlzQ8u6kCCTSba_bd9C9eJTg/exec';
 
   var PRICE_PER_SHIRT = 379;
@@ -625,9 +740,6 @@
   var activeListeners = {};
   var commentImageBlobMap = {};
 
-  // =============================================
-  // 🔧 Utility
-  // =============================================
   function parseSafeDate(dateStr) {
     if (!dateStr) return new Date("2099/12/31");
     var d = new Date(dateStr);
@@ -640,9 +752,6 @@
 
   document.getElementById('show-price').innerText = PRICE_PER_SHIRT;
 
-  // =============================================
-  // 🚀 Page Load
-  // =============================================
   window.onload = function() {
     var hSel = document.getElementById('transfer-hour');
     var mSel = document.getElementById('transfer-minute');
@@ -670,7 +779,6 @@
 
       var results = await Promise.all([configPromise, activitiesPromise]);
 
-      // 1. Config
       if (results[0].exists) {
         appConfig = results[0].data();
         var ppNum = (appConfig.PROMPTPAY_NUMBER || '').toString().replace(/[^0-9]/g, '');
@@ -680,7 +788,6 @@
         document.getElementById('show-acc-name').innerText = appConfig.ACCOUNT_NAME || 'นายพิชยะ ประจิตต์';
       }
 
-      // 2. Activities
       allTasks = [];
       results[1].forEach(function(doc) {
         var data = doc.data();
@@ -734,7 +841,7 @@
   }
 
   // =============================================
-  // 🔄 Dynamic Activity Sections Renderer (No duplicate top back button)
+  // 🔄 Dynamic Activity Sections Renderer (Responsive 2-Columns on Desktop)
   // =============================================
   function renderDynamicSections() {
     document.querySelectorAll('.dynamic-section').forEach(function(el) { el.remove(); });
@@ -748,7 +855,7 @@
       section.className = 'section dynamic-section';
 
       var topBadgeHtml = `
-        <div style="text-align:center; margin-bottom:15px;">
+        <div style="text-align:center; margin-bottom:18px;">
           <div class="header-badge" style="margin-bottom:0;">${task.icon || '📌'} ${escapeHtml(task.title)}</div>
         </div>
       `;
@@ -757,81 +864,89 @@
 
       var bodyHtml = '';
 
-      // 1. POLL / VOTING SECTION
+      // 1. POLL / VOTING SECTION (Responsive 2-Column on Desktop)
       if (task.type === 'poll') {
         bodyHtml = `
-          ${coverImgHtml}
-          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
-          <p style="text-align:center; margin-bottom:15px;">${escapeHtml(task.desc || '')}</p>
-          
-          <div class="poll-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-              <span style="font-size:13px; font-weight:700; color:var(--main-blue);">📊 ตัวเลือกโหวต</span>
-              <span id="poll-total-${task.id}" style="font-size:12px; color:var(--text-muted); font-weight:600;">กำลังนับคะแนน...</span>
+          <div class="responsive-two-col">
+            <div>
+              ${coverImgHtml}
+              <h2 style="font-size:22px; margin-bottom:8px;">${escapeHtml(task.title)}</h2>
+              <p style="margin-bottom:15px; line-height:1.6;">${escapeHtml(task.desc || '')}</p>
             </div>
 
-            <div id="poll-options-container-${task.id}">
-              <!-- Rendered via JS -->
-            </div>
+            <div>
+              <div class="poll-box" style="margin-top:0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                  <span style="font-size:14px; font-weight:700; color:var(--main-blue);">📊 ตัวเลือกโหวต</span>
+                  <span id="poll-total-${task.id}" style="font-size:12px; color:var(--text-muted); font-weight:600;">กำลังนับคะแนน...</span>
+                </div>
 
-            <div id="poll-action-box-${task.id}" style="margin-top:16px;">
-              <button id="btn-vote-${task.id}" class="btn-success" onclick="submitSelectedVote('${task.id}')" style="margin-top:0;">
-                🗳️ ยืนยันการลงคะแนนโหวต
-              </button>
+                <div id="poll-options-container-${task.id}">
+                  <!-- Rendered via JS -->
+                </div>
+
+                <div id="poll-action-box-${task.id}" style="margin-top:16px;">
+                  <button id="btn-vote-${task.id}" class="btn-success" onclick="submitSelectedVote('${task.id}')" style="margin-top:0;">
+                    🗳️ ยืนยันการลงคะแนนโหวต
+                  </button>
+                </div>
+                <div id="poll-msg-${task.id}" style="font-size:13px; font-weight:600; text-align:center; margin-top:10px;"></div>
+              </div>
             </div>
-            <div id="poll-msg-${task.id}" style="font-size:13px; font-weight:600; text-align:center; margin-top:10px;"></div>
           </div>
         `;
       }
-      // 2. COMMENT / DISCUSSION BOARD
+      // 2. COMMENT / DISCUSSION BOARD (Responsive 2-Column on Desktop)
       else if (task.type === 'comment') {
         bodyHtml = `
-          ${coverImgHtml}
-          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
-          <p style="text-align:center; margin-bottom:15px;">${escapeHtml(task.desc || '')}</p>
+          <div class="responsive-two-col">
+            <div>
+              ${coverImgHtml}
+              <h2 style="font-size:22px; margin-bottom:8px;">${escapeHtml(task.title)}</h2>
+              <p style="margin-bottom:15px; line-height:1.6;">${escapeHtml(task.desc || '')}</p>
 
-          ${task.commentGuidelines ? `
-            <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:12px 16px; margin-bottom:15px; font-size:13px; color:#1e40af; text-align:left;">
-              <b>💡 ข้อตกลง:</b> ${escapeHtml(task.commentGuidelines)}
-            </div>
-          ` : ''}
+              ${task.commentGuidelines ? `
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; padding:14px 18px; margin-bottom:15px; font-size:13px; color:#1e40af; line-height:1.6;">
+                  <b>💡 ข้อตกลง:</b> ${escapeHtml(task.commentGuidelines)}
+                </div>
+              ` : ''}
 
-          <div class="comment-container">
-            <div class="comment-form-card">
-              <label style="font-size:13px; font-weight:700; color:var(--main-blue); margin-bottom:6px; display:block;">
-                💬 แสดงความคิดเห็นของคุณ:
-              </label>
-              <textarea id="comment-input-${task.id}" placeholder="พิมพ์ความคิดเห็นหรือข้อเสนอแนะที่นี่..." style="min-height:80px; margin-bottom:8px;"></textarea>
-              
-              <!-- Image attachment toolbar -->
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--main-blue); font-weight:600; margin:0; background:#f1f5f9; padding:6px 12px; border-radius:8px; border:1px solid #cbd5e1;">
-                  <span>📷 แนบรูปภาพ</span>
-                  <input type="file" id="comment-file-${task.id}" accept="image/*" style="display:none;" onchange="handleCommentImageSelect('${task.id}', this)">
+              <div class="comment-form-card">
+                <label style="font-size:14px; font-weight:700; color:var(--main-blue); margin-bottom:8px; display:block;">
+                  💬 แสดงความคิดเห็นของคุณ:
                 </label>
-                <span id="comment-img-label-${task.id}" style="font-size:12px; color:var(--text-muted);"></span>
-              </div>
+                <textarea id="comment-input-${task.id}" placeholder="พิมพ์ความคิดเห็นหรือข้อเสนอแนะที่นี่..." style="min-height:90px; margin-bottom:10px;"></textarea>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                  <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--main-blue); font-weight:600; margin:0; background:#f1f5f9; padding:6px 12px; border-radius:8px; border:1px solid #cbd5e1;">
+                    <span>📷 แนบรูปภาพ</span>
+                    <input type="file" id="comment-file-${task.id}" accept="image/*" style="display:none;" onchange="handleCommentImageSelect('${task.id}', this)">
+                  </label>
+                  <span id="comment-img-label-${task.id}" style="font-size:12px; color:var(--text-muted);"></span>
+                </div>
 
-              <!-- Image preview box -->
-              <div id="comment-img-preview-box-${task.id}" class="img-attach-preview-box">
-                <img id="comment-img-preview-${task.id}" class="img-attach-preview-thumb" src="">
-                <span style="font-size:12px; color:#334155; flex:1;">แนบรูปภาพพร้อมส่ง</span>
-                <button type="button" class="comment-del-btn" onclick="clearCommentImage('${task.id}')">✕ ยกเลิกรูป</button>
-              </div>
+                <div id="comment-img-preview-box-${task.id}" class="img-attach-preview-box">
+                  <img id="comment-img-preview-${task.id}" class="img-attach-preview-thumb" src="">
+                  <span style="font-size:12px; color:#334155; flex:1;">แนบรูปภาพพร้อมส่ง</span>
+                  <button type="button" class="comment-del-btn" onclick="clearCommentImage('${task.id}')">✕ ยกเลิกรูป</button>
+                </div>
 
-              <button class="btn-success" style="padding:10px 16px; margin-top:0; font-size:14px;" onclick="postComment('${task.id}')">
-                ส่งความคิดเห็น ✈️
-              </button>
-              <div id="comment-msg-${task.id}" style="font-size:12px; margin-top:6px;"></div>
+                <button class="btn-success" style="padding:12px 18px; margin-top:0; font-size:15px;" onclick="postComment('${task.id}')">
+                  ส่งความคิดเห็น ✈️
+                </button>
+                <div id="comment-msg-${task.id}" style="font-size:13px; margin-top:6px; text-align:center;"></div>
+              </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-              <h3 style="margin:0; font-size:15px; color:var(--main-blue);">ข้อความทั้งหมด</h3>
-              <span id="comment-count-${task.id}" style="font-size:12px; color:var(--text-muted);">0 ความคิดเห็น</span>
-            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อความทั้งหมด</h3>
+                <span id="comment-count-${task.id}" style="font-size:12px; color:var(--text-muted);">0 ความคิดเห็น</span>
+              </div>
 
-            <div id="comment-list-${task.id}">
-              <!-- Live Comments rendered here -->
+              <div id="comment-list-${task.id}" style="max-height: 600px; overflow-y: auto; padding-right: 4px;">
+                <!-- Live Comments rendered here -->
+              </div>
             </div>
           </div>
         `;
@@ -845,28 +960,34 @@
           '<span style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">🔵 ประกาศ</span>';
 
         bodyHtml = `
-          ${coverImgHtml}
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <span style="font-size:26px;">${task.icon || '📢'}</span>
-            ${priorityTag}
-          </div>
-          <h2 style="text-align:left; font-size:22px; margin-bottom:8px;">${escapeHtml(task.title)}</h2>
-          <p style="text-align:left; margin-bottom:18px;">${escapeHtml(task.desc || '')}</p>
-
-          <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; text-align:left; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
-            <div style="font-weight:700; color:var(--main-blue); margin-bottom:10px; font-size:15px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
-              📝 รายละเอียด & กำหนดการ:
+          <div class="responsive-two-col">
+            <div>
+              ${coverImgHtml}
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:28px;">${task.icon || '📢'}</span>
+                ${priorityTag}
+              </div>
+              <h2 style="font-size:22px; margin-bottom:8px;">${escapeHtml(task.title)}</h2>
+              <p style="margin-bottom:18px;">${escapeHtml(task.desc || '')}</p>
             </div>
-            <div style="font-size:14px; color:#334155; line-height:1.7; white-space:pre-line;">
-              ${escapeHtml(task.taskDetails || task.desc || 'ไม่มีรายละเอียดเพิ่มเติม')}
+
+            <div>
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:22px; text-align:left; margin-bottom:20px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+                <div style="font-weight:700; color:var(--main-blue); margin-bottom:12px; font-size:16px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+                  📝 รายละเอียด & กำหนดการ:
+                </div>
+                <div style="font-size:14px; color:#334155; line-height:1.7; white-space:pre-line;">
+                  ${escapeHtml(task.taskDetails || task.desc || 'ไม่มีรายละเอียดเพิ่มเติม')}
+                </div>
+              </div>
+
+              ${task.actionUrl ? `
+                <button class="btn-success" onclick="window.open('${task.actionUrl}', '_blank')" style="margin-top:0;">
+                  🔗 เข้าสู่ระบบส่งงาน / ลิงก์ที่เกี่ยวข้อง ↗
+                </button>
+              ` : ''}
             </div>
           </div>
-
-          ${task.actionUrl ? `
-            <button class="btn-success" onclick="window.open('${task.actionUrl}', '_blank')" style="margin-top:0;">
-              🔗 เข้าสู่ระบบส่งงาน / ลิงก์ที่เกี่ยวข้อง ↗
-            </button>
-          ` : ''}
         `;
       }
       // 4. FORM BUILDER
@@ -874,7 +995,7 @@
         var questionsHtml = (task.formQuestions || []).map(function(q, qIdx) {
           var inputField = '';
           if (q.type === 'textarea') {
-            inputField = '<textarea name="q_' + qIdx + '" placeholder="พิมพ์คำตอบ..." ' + (q.required ? 'required' : '') + ' style="min-height:80px;"></textarea>';
+            inputField = '<textarea name="q_' + qIdx + '" placeholder="พิมพ์คำตอบ..." ' + (q.required ? 'required' : '') + ' style="min-height:90px;"></textarea>';
           } else if (q.type === 'number') {
             inputField = '<input type="number" name="q_' + qIdx + '" placeholder="ระบุตัวเลข..." ' + (q.required ? 'required' : '') + '>';
           } else {
@@ -893,31 +1014,39 @@
         }).join('');
 
         bodyHtml = `
-          ${coverImgHtml}
-          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
-          <p style="text-align:center; margin-bottom:15px;">${escapeHtml(task.desc || '')}</p>
+          <div class="responsive-two-col">
+            <div>
+              ${coverImgHtml}
+              <h2 style="font-size:22px; margin-bottom:8px;">${escapeHtml(task.title)}</h2>
+              <p style="margin-bottom:15px;">${escapeHtml(task.desc || '')}</p>
+            </div>
 
-          <form id="custom-form-${task.id}" onsubmit="handleDynamicFormSubmit(event, '${task.id}')" style="background:white; border:1px solid #e2e8f0; border-radius:16px; padding:20px; text-align:left;">
-            ${questionsHtml}
-            <button type="submit" class="btn-success" style="margin-top:10px;">
-              📤 ส่งข้อมูลแบบฟอร์ม
-            </button>
-            <div id="form-msg-${task.id}" style="margin-top:10px; font-size:13px; text-align:center;"></div>
-          </form>
+            <div>
+              <form id="custom-form-${task.id}" onsubmit="handleDynamicFormSubmit(event, '${task.id}')" style="background:white; border:1px solid #e2e8f0; border-radius:18px; padding:22px; text-align:left;">
+                ${questionsHtml}
+                <button type="submit" class="btn-success" style="margin-top:10px;">
+                  📤 ส่งข้อมูลแบบฟอร์ม
+                </button>
+                <div id="form-msg-${task.id}" style="margin-top:10px; font-size:13px; text-align:center;"></div>
+              </form>
+            </div>
+          </div>
         `;
       }
       // 5. EXTERNAL LINK
       else if (task.type === 'link') {
         bodyHtml = `
-          ${coverImgHtml}
-          <h2 style="text-align:center; font-size:22px; margin-bottom:6px;">${escapeHtml(task.title)}</h2>
-          <p style="text-align:center; margin-bottom:20px;">${escapeHtml(task.desc || '')}</p>
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:30px 20px; text-align:center;">
-            <div style="font-size:48px; margin-bottom:15px;">🌐</div>
-            <p style="color:#475569; font-size:14px; margin-bottom:20px;">กดปุ่มด้านล่างเพื่อเปิดหน้าเว็บหรือแบบฟอร์มที่เชื่อมโยง</p>
-            <button class="btn-success" onclick="window.open('${task.targetUrl}', '${task.openNewTab !== false ? '_blank' : '_self'}')" style="margin-top:0; width:auto; padding:12px 28px;">
-              เปิดลิงก์ภายนอก ↗
-            </button>
+          <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+            ${coverImgHtml}
+            <h2 style="font-size:22px; margin-bottom:8px;">${escapeHtml(task.title)}</h2>
+            <p style="margin-bottom:20px;">${escapeHtml(task.desc || '')}</p>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:18px; padding:35px 20px; text-align:center;">
+              <div style="font-size:52px; margin-bottom:15px;">🌐</div>
+              <p style="color:#475569; font-size:14px; margin-bottom:20px;">กดปุ่มด้านล่างเพื่อเปิดหน้าเว็บหรือแบบฟอร์มที่เชื่อมโยง</p>
+              <button class="btn-success" onclick="window.open('${task.targetUrl}', '${task.openNewTab !== false ? '_blank' : '_self'}')" style="margin-top:0; width:auto; padding:12px 32px;">
+                เปิดลิงก์ภายนอก ↗
+              </button>
+            </div>
           </div>
         `;
       }
@@ -926,12 +1055,12 @@
         bodyHtml = `
           <h3 style="text-align:center;">${escapeHtml(task.title)}</h3>
           <p style="text-align:center;">${escapeHtml(task.desc || '')}</p>
-          <div id="form-${task.id}" style="width:100%; border-radius:12px; overflow:hidden; background:white;"></div>
+          <div id="form-${task.id}" style="width:100%; border-radius:16px; overflow:hidden; background:white;"></div>
         `;
       }
 
       var bottomNavHtml = `
-        <div class="nav-group" style="margin-top:20px;">
+        <div class="nav-group" style="margin-top:30px; max-width: 400px; margin-left: auto; margin-right: auto;">
           <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
         </div>
       `;
@@ -1027,7 +1156,7 @@
     document.getElementById('active-tasks-count').innerText = activeTasks.length + ' รายการ';
 
     if (activeTasks.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:30px 20px; color:#94a3b8; background:white; border-radius:16px; border:1px dashed #cbd5e1;">ไม่มีกิจกรรมที่กำลังดำเนินการในขณะนี้</div>';
+      container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:35px 20px; color:#94a3b8; background:white; border-radius:18px; border:1px dashed #cbd5e1;">ไม่มีกิจกรรมที่กำลังดำเนินการในขณะนี้</div>';
       return;
     }
 
@@ -1050,15 +1179,19 @@
 
       return `
         <div class="task-card">
-          <div class="task-title">
-            <span style="display:flex; align-items:center; gap:6px;">
-              <span>${task.icon || '📌'}</span> ${escapeHtml(task.title)}
-            </span>
-            <span class="task-type-tag">${tag}</span>
+          <div>
+            <div class="task-title">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <span>${task.icon || '📌'}</span> ${escapeHtml(task.title)}
+              </span>
+              <span class="task-type-tag">${tag}</span>
+            </div>
+            <div class="task-desc">${escapeHtml(task.desc || '')}</div>
           </div>
-          <div class="task-desc">${escapeHtml(task.desc || '')}</div>
-          <div class="task-timer" data-end="${task.endDate}">⏳ กำลังคำนวณ...</div>
-          <button class="task-btn" onclick="${actionStr}">เข้าสู่กิจกรรม →</button>
+          <div>
+            <div class="task-timer" data-end="${task.endDate}">⏳ กำลังคำนวณ...</div>
+            <button class="task-btn" onclick="${actionStr}">เข้าสู่กิจกรรม →</button>
+          </div>
         </div>
       `;
     }).join('');
@@ -1108,7 +1241,7 @@
         <div id="poll-opt-${task.id}-${idx}" class="poll-option-card" onclick="selectPollOption('${task.id}', ${idx})">
           <div id="poll-bar-${task.id}-${idx}" class="poll-bar-bg" style="width: 0%;"></div>
           <div class="poll-option-content">
-            <span style="display:flex; align-items:center; gap:8px;">
+            <span style="display:flex; align-items:center; gap:10px;">
               ${optImg ? `<img src="${optImg}" class="poll-opt-thumb" onclick="event.stopPropagation(); openLightbox('${optImg}')">` : ''}
               <span style="color:#64748b;">${idx + 1}.</span>
               <span>${escapeHtml(opt)}</span>
@@ -1244,7 +1377,7 @@
         if (countEl) countEl.innerText = comments.length + ' ความคิดเห็น';
 
         if (comments.length === 0) {
-          listEl.innerHTML = '<div style="text-align:center; padding:25px; color:#94a3b8;">ยังไม่มีความคิดเห็น มาร่วมเป็นคนแรกที่แสดงความคิดเห็นกันเถอะ!</div>';
+          listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; background:white; border-radius:14px; border:1px dashed #cbd5e1;">ยังไม่มีความคิดเห็น มาร่วมเป็นคนแรกที่แสดงความคิดเห็นกันเถอะ!</div>';
           return;
         }
 
@@ -1640,12 +1773,12 @@
   }
 
   // =============================================
-  // 🔎 View Booking Details (Preserved)
+  // 🔎 View Booking Details (Responsive 2-Column on Desktop)
   // =============================================
   async function viewMyBooking() {
     switchSection('check-booking-section');
     var container = document.getElementById('booking-details-content');
-    container.innerHTML = '<div style="text-align:center; padding:30px;"><div class="loading-spinner" style="margin:0 auto 15px auto;"></div><p style="color:var(--text-muted);">กำลังดึงข้อมูลจากฐานข้อมูล...</p></div>';
+    container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="loading-spinner" style="margin:0 auto 15px auto;"></div><p style="color:var(--text-muted);">กำลังดึงข้อมูลจากฐานข้อมูล...</p></div>';
     
     try {
       var snap = await db.collection('bookings').doc(currentStudentId).get();
@@ -1653,36 +1786,55 @@
         var data = snap.data();
         var isPaid = data.status === 'paid' || data.slipImageUrl;
         var statusHtml = isPaid ? 
-          '<span style="color:#16a34a; background:#dcfce7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #bbf7d0;">✅ ชำระเงินแล้ว</span>' : 
-          '<span style="color:#d97706; background:#fef3c7; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #fde68a;">⏳ รอชำระเงิน</span>';
+          '<span style="color:#16a34a; background:#dcfce7; padding:6px 12px; border-radius:8px; font-size:13px; font-weight:700; border:1px solid #bbf7d0;">✅ ชำระเงินแล้ว</span>' : 
+          '<span style="color:#d97706; background:#fef3c7; padding:6px 12px; border-radius:8px; font-size:13px; font-weight:700; border:1px solid #fde68a;">⏳ รอชำระเงิน</span>';
           
-        container.innerHTML = 
-          '<div class="contact-box" style="margin-top:0; border-top: 4px solid var(--main-blue);">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
-              '<h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อมูลผู้จอง</h3>' + statusHtml +
-            '</div>' +
-            '<p style="margin:5px 0; color:var(--text-main);"><b>ชื่อ-สกุล:</b> ' + currentStudentName + '</p>' +
-            '<p style="margin:5px 0; color:var(--text-main);"><b>รหัสนักศึกษา:</b> ' + currentStudentId + '</p>' +
-          '</div>' +
-          
-          '<div class="price-box" style="margin:15px 0; text-align:left; background:white; border:1px solid #e2e8f0; border-top: 4px solid #10b981; padding: 20px;">' +
-            '<h3 style="margin:0 0 12px 0; font-size:16px; color:#15803d; display:flex; align-items:center; gap:8px;"><span>👕</span> รายการเสื้อที่จอง</h3>' +
-            '<p style="margin:5px 0; font-size:16px; font-weight:600; color:var(--text-main); line-height:1.6;">' + data.summary + '</p>' +
-            '<hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">' +
-            (function(){ 
-              var q = (parseInt(data.xs)||0) + (parseInt(data.s)||0) + (parseInt(data.m)||0) + (parseInt(data.l)||0) + (parseInt(data.xl)||0) + (parseInt(data.xxl)||0) + (parseInt(data.otherNum)||0);
-              return q > 0 ? '<p style="margin:5px 0; font-size:16px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">' + q + ' ตัว</span></p>' : '';
-            })() +
-            '<p style="margin:5px 0; font-size:20px; color:var(--text-main);"><b>ยอดชำระ:</b> <span style="color:#dc2626; font-weight:700;">' + (data.totalPrice || 0).toLocaleString() + ' บาท</span></p>' +
-          '</div>' +
-          
-          '<div class="contact-box" style="border-top: 4px solid #f59e0b;">' +
-            '<h3 style="margin:0 0 10px 0; font-size:15px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>' +
-            '<p style="margin:5px 0; font-size:14px; color:var(--text-muted);"><b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:500;">' + (data.transferDateTime || '-') + '</span></p>' +
-            (data.slipImageUrl ? '<div style="margin-top:12px;"><a href="' + (data.slipFileUrl || data.slipImageUrl) + '" target="_blank" style="background:#f1f5f9; display:inline-block; padding:10px 15px; border-radius:10px; color:#2563eb; text-decoration:none; font-size:14px; font-weight:600; border:1px solid #e2e8f0;">📄 เปิดดูรูปสลิปที่แนบไว้</a></div>' : '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>') +
-          '</div>';
+        container.innerHTML = `
+          <div class="responsive-two-col">
+            <!-- Left Column: Student Info & Shirt Summary -->
+            <div>
+              <div class="contact-box" style="margin-top:0; border-top: 4px solid var(--main-blue);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:6px;">
+                  <h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อมูลผู้จอง</h3>
+                  ${statusHtml}
+                </div>
+                <p style="margin:6px 0; color:var(--text-main); font-size:15px;"><b>ชื่อ-สกุล:</b> ${escapeHtml(currentStudentName)}</p>
+                <p style="margin:6px 0; color:var(--text-main); font-size:15px;"><b>รหัสนักศึกษา:</b> ${escapeHtml(currentStudentId)}</p>
+              </div>
+
+              <div class="price-box" style="margin:16px 0; text-align:left; background:white; border:1px solid #e2e8f0; border-top: 4px solid #10b981; padding: 22px;">
+                <h3 style="margin:0 0 12px 0; font-size:16px; color:#15803d; display:flex; align-items:center; gap:8px;">
+                  <span>👕</span> รายการเสื้อที่จอง
+                </h3>
+                <p style="margin:6px 0; font-size:16px; font-weight:600; color:var(--text-main); line-height:1.6;">${escapeHtml(data.summary)}</p>
+                <hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">
+                ${(function(){ 
+                  var q = (parseInt(data.xs)||0) + (parseInt(data.s)||0) + (parseInt(data.m)||0) + (parseInt(data.l)||0) + (parseInt(data.xl)||0) + (parseInt(data.xxl)||0) + (parseInt(data.otherNum)||0);
+                  return q > 0 ? `<p style="margin:6px 0; font-size:15px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">${q} ตัว</span></p>` : '';
+                })()}
+                <p style="margin:6px 0; font-size:22px; color:var(--text-main);"><b>ยอดชำระ:</b> <span style="color:#dc2626; font-weight:700;">${(data.totalPrice || 0).toLocaleString()} บาท</span></p>
+              </div>
+            </div>
+
+            <!-- Right Column: Slip & Payment Info -->
+            <div>
+              <div class="contact-box" style="margin-top:0; border-top: 4px solid #f59e0b;">
+                <h3 style="margin:0 0 12px 0; font-size:16px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>
+                <p style="margin:6px 0; font-size:14px; color:var(--text-muted);"><b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:600;">${data.transferDateTime || '-'}</span></p>
+                ${data.slipImageUrl ? `
+                  <div style="margin-top:14px; text-align:center;">
+                    <img src="${data.slipImageUrl}" style="max-width:100%; max-height:260px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer;" onclick="openLightbox('${data.slipFileUrl || data.slipImageUrl}')">
+                    <div style="margin-top:8px;">
+                      <a href="${data.slipFileUrl || data.slipImageUrl}" target="_blank" style="background:#f1f5f9; display:inline-block; padding:8px 14px; border-radius:8px; color:#2563eb; text-decoration:none; font-size:13px; font-weight:600; border:1px solid #e2e8f0;">📄 เปิดดูไฟล์สลิปต้นฉบับ ↗</a>
+                    </div>
+                  </div>
+                ` : '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>'}
+              </div>
+            </div>
+          </div>
+        `;
       } else {
-        container.innerHTML = '<div style="text-align:center; padding:40px 20px; background:#f8fafc; border-radius:16px; border:2px dashed #cbd5e1;"><div style="font-size:45px; margin-bottom:15px;">👕</div><div style="color:var(--text-muted); font-size:16px; font-weight:500;">คุณยังไม่มีประวัติการจองเสื้อช็อปครับ</div><button class="btn-success" style="margin-top:20px; width:auto; padding:10px 20px;" onclick="switchSection(\'booking-section\')">ไปจองเสื้อกันเลย →</button></div>';
+        container.innerHTML = '<div style="text-align:center; padding:50px 20px; background:#f8fafc; border-radius:18px; border:2px dashed #cbd5e1;"><div style="font-size:50px; margin-bottom:15px;">👕</div><div style="color:var(--text-muted); font-size:16px; font-weight:500;">คุณยังไม่มีประวัติการจองเสื้อช็อปครับ</div><button class="btn-success" style="margin-top:20px; width:auto; padding:12px 28px;" onclick="switchSection(\'booking-section\')">ไปจองเสื้อกันเลย →</button></div>';
       }
     } catch (e) {
       container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px; margin-top:10px;"><b>เกิดข้อผิดพลาด:</b><br>' + e.message + '</div>';
