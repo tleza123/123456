@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin Dashboard • DE 06 Management System</title>
+  
+  <!-- Resource Hints for Fast Assets Fetching -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+  
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Firebase SDK (compat CDN) -->
@@ -29,10 +34,21 @@
       --danger: #ef4444;
       --warning: #f59e0b;
       --info: #3b82f6;
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      font-family: 'Prompt', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
     
+    html {
+      scroll-behavior: smooth;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
     body {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
       min-height: 100vh;
@@ -41,9 +57,14 @@
       color: var(--text-main);
     }
 
+    button, input, select, textarea, .nav-tab, .task-card-admin {
+      touch-action: manipulation;
+    }
+
     .dashboard-container {
-      max-width: 1050px;
+      max-width: 1080px;
       margin: 0 auto;
+      transform: translateZ(0);
     }
 
     /* Header */
@@ -86,14 +107,14 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: 0.2s;
+      transition: background 0.15s ease, color 0.15s ease;
     }
     .btn-site-link:hover {
       background: rgba(255, 255, 255, 0.2);
       color: white;
     }
 
-    /* Cards / Boxes */
+    /* Cards / Boxes with GPU acceleration */
     .box {
       background: var(--bg-card);
       border-radius: 20px;
@@ -101,6 +122,8 @@
       box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
       margin-bottom: 20px;
       border: 1px solid rgba(255, 255, 255, 0.8);
+      transform: translateZ(0);
+      contain: layout style;
     }
     .box-title {
       color: var(--main-blue);
@@ -141,7 +164,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.2s;
+      transition: background 0.15s ease, color 0.15s ease;
     }
     .nav-tab:hover {
       background: rgba(255, 255, 255, 0.25);
@@ -156,14 +179,15 @@
 
     .tab-pane {
       display: none;
-      animation: fadeIn 0.25s ease-out;
+      will-change: transform, opacity;
     }
     .tab-pane.active {
       display: block;
+      animation: fadeInSmooth 0.25s var(--ease-spring) forwards;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes fadeInSmooth {
+      from { opacity: 0; transform: translate3d(0, 6px, 0); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
 
     /* Form Inputs */
@@ -182,7 +206,7 @@
       border-radius: 12px;
       font-size: 14px;
       background: #f8fafc;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
@@ -212,16 +236,19 @@
       cursor: pointer;
       font-size: 15px;
       font-weight: 600;
-      transition: all 0.2s;
+      transition: transform 0.15s var(--ease-spring), opacity 0.15s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      transform: translateZ(0);
     }
     button:hover {
       opacity: 0.95;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 53, 102, 0.2);
+      transform: translate3d(0, -1px, 0);
+    }
+    button:active {
+      transform: translate3d(0, 0, 0);
     }
     button:disabled {
       opacity: 0.5;
@@ -246,10 +273,13 @@
       margin-bottom: 16px;
       border-left: 5px solid var(--main-blue);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      transition: all 0.2s;
+      transition: box-shadow 0.2s ease, transform 0.2s var(--ease-spring);
+      contain: content;
+      transform: translateZ(0);
     }
     .task-card-admin:hover {
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      transform: translate3d(0, -2px, 0);
     }
     .task-card-header {
       display: flex;
@@ -308,6 +338,7 @@
       bottom: 20px;
       background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 16px;
       padding: 14px 20px;
@@ -318,6 +349,7 @@
       gap: 15px;
       z-index: 999;
       margin-top: 25px;
+      transform: translateZ(0);
     }
     .floating-save-bar span {
       color: white;
@@ -338,7 +370,6 @@
     .msg-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .msg-loading { background: #fefce8; color: #a16207; border: 1px solid #fef08a; }
 
-    /* Export Action Buttons Bar */
     .export-actions-bar {
       display: flex;
       gap: 10px;
@@ -383,6 +414,7 @@
       top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       z-index: 1000;
       display: none;
       align-items: center;
@@ -398,11 +430,11 @@
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      animation: modalPop 0.25s ease-out;
+      animation: modalPop 0.2s var(--ease-spring);
     }
     @keyframes modalPop {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from { transform: scale(0.96) translate3d(0, 4px, 0); opacity: 0; }
+      to { transform: scale(1) translate3d(0, 0, 0); opacity: 1; }
     }
 
     /* Switch toggle */
@@ -416,13 +448,13 @@
     .slider {
       position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
       background-color: #cbd5e1;
-      transition: .3s;
+      transition: .25s ease;
       border-radius: 24px;
     }
     .slider:before {
       position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
       background-color: white;
-      transition: .3s;
+      transition: .25s ease;
       border-radius: 50%;
     }
     input:checked + .slider { background-color: var(--main-blue); }
@@ -439,7 +471,8 @@
       background: linear-gradient(90deg, var(--main-blue) 0%, var(--main-blue-light) 100%);
       height: 100%;
       border-radius: 6px;
-      transition: width 0.4s ease;
+      transition: width 0.35s var(--ease-spring);
+      will-change: width;
     }
 
     .img-preview-thumb {
@@ -449,6 +482,7 @@
       border-radius: 8px;
       border: 1px solid #cbd5e1;
       cursor: pointer;
+      content-visibility: auto;
     }
 
     .upload-btn-label {
@@ -464,7 +498,7 @@
       padding: 8px 14px;
       border-radius: 8px;
       border: 1.5px solid #cbd5e1;
-      transition: 0.2s;
+      transition: background 0.15s ease, border-color 0.15s ease;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .upload-btn-label:hover {
@@ -497,7 +531,7 @@
       กรุณากรอกรหัสผ่านแอดมินเพื่อเข้าสู่หน้าตั้งค่าและจัดการระบบทั้งหมด
     </p>
     <label>รหัสผ่านแอดมิน (Admin Password):</label>
-    <input type="password" id="adminPassInput" placeholder="กรอกรหัสผ่านเพื่อเข้าใช้งาน..." onkeypress="if(event.key==='Enter') attemptLogin()">
+    <input type="password" id="adminPassInput" placeholder="กรอกรหัสผ่านเพื่อเข้าใช้งาน..." autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
     <button onclick="attemptLogin()" style="width: 100%;">เข้าสู่ระบบจัดการ →</button>
     <div id="loginMsg"></div>
   </div>
@@ -604,7 +638,6 @@
           <option value="">-- กรุณาเลือกกิจกรรม --</option>
         </select>
 
-        <!-- Response Data Actions & Content -->
         <div id="responsesContent" style="margin-top: 20px;">
           <div style="text-align: center; color: var(--text-muted); padding: 30px;">
             กรุณาเลือกกิจกรรมด้านบนเพื่อดูสถิติ ผลการโหวต หรือความคิดเห็น
@@ -644,7 +677,7 @@
         <!-- Filter & Search -->
         <div class="field-row" style="margin-bottom: 14px;">
           <div style="flex: 2;">
-            <input type="text" id="bookingSearchInput" placeholder="🔍 ค้นหารหัสนักศึกษา หรือ ชื่อ..." oninput="filterBookingsTable()" style="margin-bottom: 0;">
+            <input type="text" id="bookingSearchInput" placeholder="🔍 ค้นหารหัสนักศึกษา หรือ ชื่อ..." oninput="debounceFilterBookings()" style="margin-bottom: 0;">
           </div>
           <div style="flex: 1;">
             <select id="bookingStatusFilter" onchange="filterBookingsTable()" style="margin-bottom: 0;">
@@ -735,7 +768,7 @@
 
 <script>
   // =============================================
-  // ⚙️ Firebase Initialization
+  // ⚙️ Firebase Initialization (Optimized)
   // =============================================
   firebase.initializeApp({
     apiKey: "AIzaSyBzlyOGkiO0QZ9C37Psv1K4zPfJuUtq6G0",
@@ -748,13 +781,13 @@
 
   const db = firebase.firestore();
 
-  // Global State
   let appConfig = {};
   let appActivities = [];
   let allBookingsList = [];
   let allStudentsMap = {};
   let currentLoadedResponses = { type: '', data: [], activity: null };
   let isAdminAuthenticated = false;
+  let filterDebounceTimer = null;
 
   window.addEventListener('DOMContentLoaded', () => {
     const sessionAuth = sessionStorage.getItem('de06_admin_auth');
@@ -982,7 +1015,7 @@
           </label>
           ${act.imageUrl ? `
             <div style="display:flex; align-items:center; gap:8px;">
-              <img src="${act.imageUrl}" class="img-preview-thumb" style="width:48px; height:48px;" onclick="openImageModal('${act.imageUrl}', '${escapeHtml(act.title)}')">
+              <img src="${act.imageUrl}" class="img-preview-thumb" loading="lazy" style="width:48px; height:48px;" onclick="openImageModal('${act.imageUrl}', '${escapeHtml(act.title)}')">
               <button type="button" class="btn-danger btn-sm" onclick="removeActivityImage(${index})" style="padding:4px 8px; font-size:11px;">✕ ลบรูป</button>
             </div>
           ` : '<span style="font-size:12px; color:#94a3b8;">ยังไม่ได้แนบรูปภาพ (เว้นว่างได้)</span>'}
@@ -1056,7 +1089,7 @@
                     </label>
                     ${optImg ? `
                       <div style="display:inline-flex; align-items:center; gap:6px;">
-                        <img src="${optImg}" class="img-preview-thumb" style="width:34px; height:34px;" onclick="openImageModal('${optImg}', 'รูปตัวเลือกที่ ${optIdx+1}')">
+                        <img src="${optImg}" class="img-preview-thumb" loading="lazy" style="width:34px; height:34px;" onclick="openImageModal('${optImg}', 'รูปตัวเลือกที่ ${optIdx+1}')">
                         <button type="button" class="btn-danger btn-sm" onclick="removePollOptionImage(${index}, ${optIdx})" style="padding:3px 6px; font-size:10px;">✕ ลบรูป</button>
                       </div>
                     ` : '<span style="font-size:11px; color:#94a3b8;">ยังไม่มีรูป</span>'}
@@ -1446,7 +1479,7 @@
                 <div style="margin-bottom:14px;">
                   <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:600; margin-bottom:4px;">
                     <span style="display:flex; align-items:center; gap:8px;">
-                      ${optImg ? `<img src="${optImg}" class="img-preview-thumb" style="width:28px; height:28px;" onclick="openImageModal('${optImg}', '${escapeHtml(opt)}')">` : ''}
+                      ${optImg ? `<img src="${optImg}" class="img-preview-thumb" loading="lazy" style="width:28px; height:28px;" onclick="openImageModal('${optImg}', '${escapeHtml(opt)}')">` : ''}
                       <span>${idx + 1}. ${escapeHtml(opt)}</span>
                     </span>
                     <span style="color:var(--main-blue);">${count} โหวต (${pct}%)</span>
@@ -1521,7 +1554,7 @@
                   </div>
                   ${c.imageUrl ? `
                     <div style="margin-top:10px;">
-                      <img src="${c.imageUrl}" style="max-width:140px; max-height:140px; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" onclick="openImageModal('${c.imageUrl}', 'รูปแนบจาก: ${escapeHtml(c.studentName)}')">
+                      <img src="${c.imageUrl}" style="max-width:140px; max-height:140px; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openImageModal('${c.imageUrl}', 'รูปแนบจาก: ${escapeHtml(c.studentName)}')">
                     </div>
                   ` : ''}
                 </div>
@@ -1741,13 +1774,18 @@
     }
   }
 
+  function debounceFilterBookings() {
+    clearTimeout(filterDebounceTimer);
+    filterDebounceTimer = setTimeout(filterBookingsTable, 200);
+  }
+
   function filterBookingsTable() {
     const query = document.getElementById('bookingSearchInput').value.toLowerCase().trim();
     const statusFilter = document.getElementById('bookingStatusFilter').value;
     const tableBody = document.getElementById('bookingsTableBody');
 
     const filtered = allBookingsList.filter(b => {
-      const matchQuery = b.studentId.toLowerCase().includes(query) || b.name.toLowerCase().includes(query);
+      const matchQuery = !query || b.studentId.toLowerCase().includes(query) || b.name.toLowerCase().includes(query);
       const matchStatus = statusFilter === 'all' || b.status === statusFilter;
       return matchQuery && matchStatus;
     });
@@ -1793,7 +1831,7 @@
     const body = document.getElementById('imageModalBody');
     modalTitle.innerText = title || '🖼️ ดูรูปภาพ';
     body.innerHTML = `
-      <img src="${url}" style="max-width:100%; max-height:65vh; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+      <img src="${url}" loading="lazy" style="max-width:100%; max-height:65vh; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
       <div style="margin-top:14px;">
         <a href="${url}" target="_blank" class="btn-site-link" style="background:#003566; color:white; border:none; display:inline-block;">เปิดดูรูปขนาดเต็ม ↗</a>
       </div>
