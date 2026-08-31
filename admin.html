@@ -546,6 +546,7 @@
       <div class="nav-tab" onclick="switchTab('tab-responses')">📊 ดูผลตอบรับ & ส่งออก Sheets</div>
       <div class="nav-tab" onclick="switchTab('tab-bookings')">👕 ตรวจสอบการจองเสื้อ & สลิป</div>
       <div class="nav-tab" onclick="switchTab('tab-settings')">⚙️ ตั้งค่าระบบ & รหัสผ่าน (Settings)</div>
+      <div class="nav-tab" onclick="switchTab('tab-logs')">🛡️ ประวัติการเข้าใช้ (Logs)</div>
     </div>
 
     <!-- TAB 1: 📅 จัดการกิจกรรม -->
@@ -741,6 +742,23 @@
       </div>
     </div>
 
+    <!-- TAB 6: 🛡️ ประวัติการเข้าใช้แอดมิน (Admin Access Logs) -->
+    <div id="tab-logs" class="tab-pane">
+      <div class="box">
+        <div class="box-title">
+          <span>🛡️ ประวัติผู้เข้าใช้งานหน้า Admin (Access Logs)</span>
+          <button class="btn-site-link btn-sm" onclick="loadAdminLogs()" style="color:var(--main-blue); border-color:#cbd5e1; background:#f8fafc; cursor:pointer;">🔄 รีเฟรชข้อมูล</button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
+          บันทึกเวลา, ชื่อรุ่น/ชื่อเครื่อง (อุปกรณ์และเบราว์เซอร์) และ IP Address ของผู้ที่เข้าสู่ระบบหน้าแอดมิน (แสดง 50 รายการล่าสุด)
+        </p>
+
+        <div id="adminLogsContainer" style="overflow-x: auto;">
+          <div style="text-align:center; padding:30px; color:#64748b;">กำลังโหลดข้อมูลประวัติ...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Sticky Floating Save Bar -->
     <div class="floating-save-bar">
       <span>💾 มีการเปลี่ยนแปลง? อย่าลืมกดบันทึก</span>
@@ -807,6 +825,10 @@
       document.getElementById('adminPanel').style.display = 'block';
       document.getElementById('headerLogoutBtn').style.display = 'inline-flex';
       document.getElementById('headerRefreshBtn').style.display = 'inline-flex';
+      if (!sessionStorage.getItem('de06_admin_logged_session')) {
+        sessionStorage.setItem('de06_admin_logged_session', 'true');
+        recordAdminAccessLog('success');
+      }
       await loadInitialData();
     } catch (e) {
       sessionStorage.removeItem('de06_admin_auth');
@@ -842,12 +864,14 @@
 
       isAdminAuthenticated = true;
       sessionStorage.setItem('de06_admin_auth', 'true');
+      sessionStorage.setItem('de06_admin_logged_session', 'true');
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('adminPanel').style.display = 'block';
       document.getElementById('headerLogoutBtn').style.display = 'inline-flex';
       document.getElementById('headerRefreshBtn').style.display = 'inline-flex';
       msgEl.innerHTML = '';
 
+      recordAdminAccessLog('success');
       await loadInitialData();
     } catch(e) {
       console.error(e);
@@ -946,6 +970,8 @@
       displaySelectedActivityResponses();
     } else if (tabId === 'tab-bookings') {
       loadBookingsData();
+    } else if (tabId === 'tab-logs') {
+      loadAdminLogs();
     }
   }
 
@@ -1930,6 +1956,159 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  // =============================================
+  // 🛡️ Admin Access Tracking & Logs
+  // =============================================
+  function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let os = "Desktop / PC";
+    let deviceModel = "";
+    let browser = "Web Browser";
+
+    if (/iPhone/i.test(ua)) {
+      os = "iOS";
+      deviceModel = "iPhone";
+    } else if (/iPad/i.test(ua)) {
+      os = "iPadOS";
+      deviceModel = "iPad";
+    } else if (/Android/i.test(ua)) {
+      os = "Android";
+      const modelMatch = ua.match(/Android\s+([\d.]+);\s*([^;)]+)\s*Build/i) || ua.match(/Android\s+([\d.]+);\s*([^;)]+)\)/i);
+      if (modelMatch && modelMatch[2]) {
+        deviceModel = modelMatch[2].trim();
+      } else {
+        deviceModel = "Android Device";
+      }
+    } else if (/Windows NT 10.0/i.test(ua)) {
+      os = "Windows 10/11";
+      deviceModel = "PC / Laptop";
+    } else if (/Windows NT 6.3/i.test(ua)) {
+      os = "Windows 8.1";
+      deviceModel = "PC / Laptop";
+    } else if (/Windows NT 6.1/i.test(ua)) {
+      os = "Windows 7";
+      deviceModel = "PC / Laptop";
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      os = "macOS";
+      deviceModel = "Mac / MacBook";
+    } else if (/Linux/i.test(ua)) {
+      os = "Linux";
+      deviceModel = "Linux Machine";
+    }
+
+    if (/Edg\//i.test(ua)) browser = "Microsoft Edge";
+    else if (/Chrome\//i.test(ua) && !/Chromium|Edg/i.test(ua)) browser = "Google Chrome";
+    else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = "Apple Safari";
+    else if (/Firefox\//i.test(ua)) browser = "Mozilla Firefox";
+    else if (/OPR\/|Opera\//i.test(ua)) browser = "Opera";
+
+    if (deviceModel && os) {
+      return `${deviceModel} (${os} • ${browser})`;
+    }
+    return `${os} (${browser})`;
+  }
+
+  async function fetchClientIP() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ip) return data.ip;
+      }
+    } catch (e) {}
+
+    try {
+      const res2 = await fetch('https://api64.ipify.org?format=json');
+      if (res2.ok) {
+        const data2 = await res2.json();
+        if (data2 && data2.ip) return data2.ip;
+      }
+    } catch (e2) {}
+
+    return 'ไม่สามารถระบุ IP ได้ (บล็อก/ออฟไลน์)';
+  }
+
+  async function recordAdminAccessLog(status = 'success') {
+    try {
+      const device = getDeviceInfo();
+      const ip = await fetchClientIP();
+      const now = new Date();
+      const formattedTime = now.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+
+      await db.collection('admin_logs').add({
+        ip: ip,
+        device: device,
+        userAgent: navigator.userAgent,
+        status: status,
+        formattedTime: formattedTime,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) {
+      console.warn('Failed to record admin access log:', e);
+    }
+  }
+
+  async function loadAdminLogs() {
+    if (!isAdminAuthenticated) return;
+    const container = document.getElementById('adminLogsContainer');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b;"><div class="loading-spinner" style="margin:0 auto 10px auto; width:28px; height:28px; border-width:3px;"></div>กำลังดึงข้อมูลประวัติ...</div>';
+
+    try {
+      const snap = await db.collection('admin_logs').orderBy('timestamp', 'desc').limit(50).get();
+      if (snap.empty) {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">ยังไม่มีประวัติการเข้าใช้งานในระบบ</div>';
+        return;
+      }
+
+      let rows = '';
+      let count = 1;
+      snap.forEach(doc => {
+        const d = doc.data();
+        const timeStr = d.formattedTime || (d.timestamp ? d.timestamp.toDate().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }) : '-');
+        const ipStr = d.ip || 'ไม่ระบุ';
+        const deviceStr = d.device || d.userAgent || 'ไม่ระบุ';
+        const statusBadge = d.status === 'success' ? 
+          '<span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:600;">เข้าสู่ระบบสำเร็จ</span>' : 
+          '<span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:600;">รหัสผ่านไม่ถูกต้อง</span>';
+
+        rows += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 14px; text-align: center; color: #64748b;">${count++}</td>
+            <td style="padding: 12px 14px; font-weight: 600; color: #1e293b; white-space: nowrap;">${escapeHtml(timeStr)}</td>
+            <td style="padding: 12px 14px; font-family: monospace; font-size: 13px; color: var(--main-blue); font-weight: 600; white-space: nowrap;">${escapeHtml(ipStr)}</td>
+            <td style="padding: 12px 14px; color: #334155; font-size: 13px;">${escapeHtml(deviceStr)}</td>
+            <td style="padding: 12px 14px; text-align: center;">${statusBadge}</td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+          <thead>
+            <tr style="background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0;">
+              <th style="padding: 12px 14px; text-align: center; width: 50px;">ลำดับ</th>
+              <th style="padding: 12px 14px; width: 180px;">⏰ วัน-เวลา</th>
+              <th style="padding: 12px 14px; width: 150px;">🌐 IP Address</th>
+              <th style="padding: 12px 14px;">💻 ชื่อรุ่น / ชื่อเครื่อง / อุปกรณ์</th>
+              <th style="padding: 12px 14px; text-align: center; width: 130px;">สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+
+    } catch (err) {
+      console.error('Load admin logs error:', err);
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px;">เกิดข้อผิดพลาดในการโหลดประวัติ: ' + escapeHtml(err.message) + '</div>';
+    }
   }
 </script>
 </body>
