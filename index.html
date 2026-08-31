@@ -1187,13 +1187,6 @@
   function goToSection(sectionId) { switchSection(sectionId); }
 
   function switchSection(sectionId) {
-  // เคลียร์ Listener ทุกครั้งที่มีการเปลี่ยนหน้า (ย้ายเงื่อนไขออก) ป้องกันบั๊กสูบ Read
-  Object.keys(activeListeners).forEach(function(k) {
-    if (typeof activeListeners[k] === 'function') {
-      activeListeners[k]();
-      delete activeListeners[k];
-    }
-  });
 
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
   var target = document.getElementById(sectionId);
@@ -1226,6 +1219,15 @@
     currentStudentId = ''; currentStudentName = '';
     document.getElementById('studentId').value = '';
     sessionStorage.removeItem('de06_student');
+    
+    // เคลียร์ Listener เมื่อออกจากระบบ เพื่อให้โหลดข้อมูลใหม่เมื่อล็อกอินใหม่
+    Object.keys(activeListeners).forEach(function(k) {
+      if (typeof activeListeners[k] === 'function') {
+        activeListeners[k]();
+        delete activeListeners[k];
+      }
+    });
+
     closeMenuModal();
     switchSection('login-section');
   }
@@ -1347,7 +1349,7 @@
     if (!optContainer) return;
 
     if (activeListeners['poll_' + task.id]) {
-      activeListeners['poll_' + task.id]();
+      return; // Already initialized, keep using the active background listener
     }
 
     var options = task.pollOptions || ['เห็นด้วย', 'ไม่เห็นด้วย'];
@@ -1479,7 +1481,7 @@
     if (!listEl) return;
 
     if (activeListeners['comment_' + task.id]) {
-      activeListeners['comment_' + task.id]();
+      return; // Already initialized, keep using the active background listener
     }
 
     activeListeners['comment_' + task.id] = db.collection('comments')
