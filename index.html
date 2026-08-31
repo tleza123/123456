@@ -846,18 +846,29 @@
     var statusEl = document.getElementById('loading-status');
     var loadingScreen = document.getElementById('loading-screen');
 
-    // Instant local cache restore if present
-    try {
-      var cachedCfg = sessionStorage.getItem('de06_cached_config');
-      var cachedActs = sessionStorage.getItem('de06_cached_acts');
-      if (cachedCfg && cachedActs) {
+    // Smart Local Cache with 5-minute TTL (Zero-read repeat loads)
+    var cachedCfg = localStorage.getItem('de06_cached_config');
+    var cachedActs = localStorage.getItem('de06_cached_acts');
+    var cacheTime = localStorage.getItem('de06_cached_time');
+    var isCacheFresh = cacheTime && (Date.now() - parseInt(cacheTime) < 5 * 60 * 1000);
+
+    if (cachedCfg && cachedActs) {
+      try {
         appConfig = JSON.parse(cachedCfg);
         allTasks = JSON.parse(cachedActs);
         applyConfigToUI();
         renderAnnouncementBanner();
         renderDynamicSections();
-      }
-    } catch(e) {}
+
+        if (isCacheFresh) {
+          if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(function() { loadingScreen.style.display = 'none'; }, 180);
+          }
+          return; // Skip Firestore read entirely when cache is fresh!
+        }
+      } catch(e) {}
+    }
 
     try {
       if (statusEl) statusEl.innerText = 'กำลังโหลดข้อมูล...';
@@ -869,7 +880,7 @@
 
       if (results[0].exists) {
         appConfig = results[0].data();
-        sessionStorage.setItem('de06_cached_config', JSON.stringify(appConfig));
+        localStorage.setItem('de06_cached_config', JSON.stringify(appConfig));
         applyConfigToUI();
       }
 
@@ -884,14 +895,15 @@
         }
         allTasks.push(data);
       });
-      sessionStorage.setItem('de06_cached_acts', JSON.stringify(allTasks));
+      localStorage.setItem('de06_cached_acts', JSON.stringify(allTasks));
+      localStorage.setItem('de06_cached_time', Date.now().toString());
 
       renderAnnouncementBanner();
       renderDynamicSections();
       
       if (loadingScreen) {
         loadingScreen.style.opacity = '0';
-        setTimeout(function() { loadingScreen.style.display = 'none'; }, 260);
+        setTimeout(function() { loadingScreen.style.display = 'none'; }, 200);
       }
 
     } catch (e) {
@@ -1487,6 +1499,7 @@
     activeListeners['comment_' + task.id] = db.collection('comments')
       .where('activityId', '==', task.id)
       .orderBy('createdAt', 'desc')
+      .limit(40)
       .onSnapshot(function(snapshot) {
         var comments = [];
         snapshot.forEach(function(doc) {
@@ -1682,7 +1695,7 @@
     var errorEl = document.getElementById('loginError');
     errorEl.innerText = '';
 
-    var cached = sessionStorage.getItem('de06_student');
+    var cached = localStorage.getItem('de06_student_' + id);
     if (cached) {
       try {
         var c = JSON.parse(cached);
@@ -1690,6 +1703,7 @@
           currentStudentId = id; currentStudentName = c.name;
           document.getElementById('homeStudentName').innerText = c.name;
           document.getElementById('studentName').innerText = c.name;
+          sessionStorage.setItem('de06_student', JSON.stringify({ studentId: id, name: c.name }));
           switchSection('home-section');
           return;
         }
@@ -1704,6 +1718,7 @@
         currentStudentId = id; currentStudentName = name;
         document.getElementById('homeStudentName').innerText = name;
         document.getElementById('studentName').innerText = name;
+        localStorage.setItem('de06_student_' + id, JSON.stringify({ studentId: id, name: name }));
         sessionStorage.setItem('de06_student', JSON.stringify({ studentId: id, name: name }));
         switchSection('home-section');
       } else {
@@ -1769,6 +1784,8 @@
 
     try {
       await db.collection('bookings').doc(currentStudentId).set({
+        studentId: currentStudentId,
+        studentName: currentStudentName,
         xs: xs, s: s, m: m, l: l, xl: xl, xxl: xxl,
         other: otherText, otherNum: otherNum,
         summary: summary.join(', '),

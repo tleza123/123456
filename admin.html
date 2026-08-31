@@ -937,10 +937,6 @@
       populateActivityDropdowns();
       showGlobalToast('✅ โหลดข้อมูลกิจกรรมและการตั้งค่าสำเร็จ', 'success');
 
-      db.collection('students').get().then(snap => {
-        snap.forEach(doc => { allStudentsMap[doc.id] = doc.data().name || ''; });
-      });
-
     } catch (err) {
       console.error(err);
       showGlobalToast('❌ โหลดข้อมูลล้มเหลว: ' + err.message, 'error');
@@ -1757,7 +1753,7 @@
     tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px;">⏳ กำลังโหลดข้อมูลการจอง...</td></tr>';
 
     try {
-      const snap = await db.collection('bookings').get();
+      const snap = await db.collection('bookings').limit(150).get();
       allBookingsList = [];
       let paidCount = 0;
       let pendingCount = 0;
@@ -1766,7 +1762,7 @@
       snap.forEach(doc => {
         const data = doc.data();
         const studentId = doc.id;
-        const name = allStudentsMap[studentId] || data.studentName || 'ไม่ระบุชื่อ';
+        const name = data.studentName || allStudentsMap[studentId] || ('นักศึกษา ' + studentId);
         const isPaid = data.status === 'paid' || !!data.slipImageUrl;
 
         if (isPaid) {
