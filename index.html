@@ -1187,15 +1187,38 @@
   function goToSection(sectionId) { switchSection(sectionId); }
 
   function switchSection(sectionId) {
-    // Unsubscribe previous active listeners to save memory and CPU
-    if (sectionId === 'home-section' || sectionId === 'login-section') {
-      Object.keys(activeListeners).forEach(function(k) {
-        if (typeof activeListeners[k] === 'function') {
-          activeListeners[k]();
-          delete activeListeners[k];
-        }
-      });
+  // เคลียร์ Listener ทุกครั้งที่มีการเปลี่ยนหน้า (ย้ายเงื่อนไขออก) ป้องกันบั๊กสูบ Read
+  Object.keys(activeListeners).forEach(function(k) {
+    if (typeof activeListeners[k] === 'function') {
+      activeListeners[k]();
+      delete activeListeners[k];
     }
+  });
+
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  var target = document.getElementById(sectionId);
+  if (target) { target.classList.add('active'); }
+  else { document.getElementById('home-section').classList.add('active'); sectionId = 'home-section'; }
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  if (sectionId === 'home-section') {
+    document.getElementById('fabMenuBtn').style.display = 'flex';
+    renderHomeTasks();
+    renderMenu();
+  } else {
+    document.getElementById('fabMenuBtn').style.display = 'none';
+
+    if (sectionId.startsWith('dynamic-')) {
+      var actId = sectionId.replace('dynamic-', '');
+      var task = allTasks.find(function(t) { return t.id === actId; });
+      if (task) {
+        if (task.type === 'poll') initPollSection(task);
+        if (task.type === 'comment') initCommentSection(task);
+      }
+    }
+  }
+
+
 
     document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
     var target = document.getElementById(sectionId);
