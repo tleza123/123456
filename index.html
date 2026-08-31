@@ -1215,7 +1215,9 @@
         if (task.type === 'poll') initPollSection(task);
         if (task.type === 'comment') initCommentSection(task);
       }
+    }
   }
+}
 
   function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
   function closeMenuModal(e) { if (!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
