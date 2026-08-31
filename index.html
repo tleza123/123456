@@ -1215,33 +1215,6 @@
         if (task.type === 'poll') initPollSection(task);
         if (task.type === 'comment') initCommentSection(task);
       }
-    }
-  }
-
-
-
-    document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-    var target = document.getElementById(sectionId);
-    if (target) { target.classList.add('active'); }
-    else { document.getElementById('home-section').classList.add('active'); sectionId = 'home-section'; }
-    window.scrollTo({ top: 0, behavior: 'instant' });
-
-    if (sectionId === 'home-section') {
-      document.getElementById('fabMenuBtn').style.display = 'flex';
-      renderHomeTasks();
-      renderMenu();
-    } else {
-      document.getElementById('fabMenuBtn').style.display = 'none';
-
-      if (sectionId.startsWith('dynamic-')) {
-        var actId = sectionId.replace('dynamic-', '');
-        var task = allTasks.find(function(t) { return t.id === actId; });
-        if (task) {
-          if (task.type === 'poll') initPollSection(task);
-          if (task.type === 'comment') initCommentSection(task);
-        }
-      }
-    }
   }
 
   function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
