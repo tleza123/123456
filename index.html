@@ -987,9 +987,12 @@
 
             <div>
               <div class="poll-box" style="margin-top:0;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
                   <span style="font-size:14px; font-weight:700; color:var(--main-blue);">📊 ตัวเลือกโหวต</span>
-                  <span id="poll-total-${task.id}" style="font-size:12px; color:var(--text-muted); font-weight:600;">กำลังนับคะแนน...</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="poll-total-${task.id}" style="font-size:12px; color:var(--text-muted); font-weight:600;">กำลังโหลด...</span>
+                    <button type="button" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; padding:3px 8px; cursor:pointer; color:#475569;" onclick="refreshPoll('${task.id}')">🔄 อัปเดตผล</button>
+                  </div>
                 </div>
 
                 <div id="poll-options-container-${task.id}">
@@ -1050,9 +1053,12 @@
             </div>
 
             <div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
                 <h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อความทั้งหมด</h3>
-                <span id="comment-count-${task.id}" style="font-size:12px; color:var(--text-muted);">0 ความคิดเห็น</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span id="comment-count-${task.id}" style="font-size:12px; color:var(--text-muted);">0 ความคิดเห็น</span>
+                  <button type="button" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; padding:3px 8px; cursor:pointer; color:#475569;" onclick="refreshComments('${task.id}')">🔄 รีเฟรช</button>
+                </div>
               </div>
 
               <div id="comment-list-${task.id}" style="max-height: 600px; overflow-y: auto; padding-right: 4px;">
@@ -1231,15 +1237,8 @@
     currentStudentId = ''; currentStudentName = '';
     document.getElementById('studentId').value = '';
     sessionStorage.removeItem('de06_student');
-    
-    // เคลียร์ Listener เมื่อออกจากระบบ เพื่อให้โหลดข้อมูลใหม่เมื่อล็อกอินใหม่
-    Object.keys(activeListeners).forEach(function(k) {
-      if (typeof activeListeners[k] === 'function') {
-        activeListeners[k]();
-        delete activeListeners[k];
-      }
-    });
-
+    pollDataCache = {};
+    commentDataCache = {};
     closeMenuModal();
     switchSection('login-section');
   }
@@ -1351,86 +1350,111 @@
   }
 
   // =============================================
-  // 📊 POLL / VOTING ENGINE (Real-time Firestore)
+  // 📊 POLL / VOTING ENGINE (On-Demand & Ultra-Efficient)
   // =============================================
   var studentCurrentVoteMap = {};
   var selectedVoteOption = {};
+  var pollDataCache = {};
 
-  function initPollSection(task) {
+  function refreshPoll(actId) {
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    if (task) initPollSection(task, true);
+  }
+
+  function refreshComments(actId) {
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    if (task) initCommentSection(task, true);
+  }
+
+  async function initPollSection(task, forceRefresh) {
     var optContainer = document.getElementById('poll-options-container-' + task.id);
     if (!optContainer) return;
-
-    if (activeListeners['poll_' + task.id]) {
-      return; // Already initialized, keep using the active background listener
-    }
 
     var options = task.pollOptions || ['เห็นด้วย', 'ไม่เห็นด้วย'];
     var optionImages = task.pollOptionImages || [];
 
-    optContainer.innerHTML = options.map(function(opt, idx) {
-      var optImg = optionImages[idx] || '';
-      return `
-        <div id="poll-opt-${task.id}-${idx}" class="poll-option-card" onclick="selectPollOption('${task.id}', ${idx})">
-          <div id="poll-bar-${task.id}-${idx}" class="poll-bar-bg" style="width: 0%;"></div>
-          <div class="poll-option-content">
-            <span style="display:flex; align-items:center; gap:10px;">
-              ${optImg ? `<img src="${optImg}" class="poll-opt-thumb" loading="lazy" onclick="event.stopPropagation(); openLightbox('${optImg}')">` : ''}
-              <span style="color:#64748b;">${idx + 1}.</span>
-              <span>${escapeHtml(opt)}</span>
-            </span>
-            <span id="poll-stat-${task.id}-${idx}" class="poll-status-tag">0 โหวต (0%)</span>
+    if (!optContainer.children.length || forceRefresh) {
+      optContainer.innerHTML = options.map(function(opt, idx) {
+        var optImg = optionImages[idx] || '';
+        return `
+          <div id="poll-opt-${task.id}-${idx}" class="poll-option-card" onclick="selectPollOption('${task.id}', ${idx})">
+            <div id="poll-bar-${task.id}-${idx}" class="poll-bar-bg" style="width: 0%;"></div>
+            <div class="poll-option-content">
+              <span style="display:flex; align-items:center; gap:10px;">
+                ${optImg ? `<img src="${optImg}" class="poll-opt-thumb" loading="lazy" onclick="event.stopPropagation(); openLightbox('${optImg}')">` : ''}
+                <span style="color:#64748b;">${idx + 1}.</span>
+                <span>${escapeHtml(opt)}</span>
+              </span>
+              <span id="poll-stat-${task.id}-${idx}" class="poll-status-tag">0 โหวต (0%)</span>
+            </div>
           </div>
-        </div>
-      `;
-    }).join('');
+        `;
+      }).join('');
+    }
 
-    activeListeners['poll_' + task.id] = db.collection('votes')
-      .where('activityId', '==', task.id)
-      .onSnapshot(function(snapshot) {
-        var votes = [];
-        var myVote = null;
-        var counts = {};
-        options.forEach(function(_, i) { counts[i] = 0; });
+    var cacheKey = 'poll_' + task.id;
+    var now = Date.now();
+    if (!forceRefresh && pollDataCache[cacheKey] && (now - pollDataCache[cacheKey].time < 30000)) {
+      renderPollStats(task, pollDataCache[cacheKey].data, options);
+      return;
+    }
 
-        snapshot.forEach(function(doc) {
-          var data = doc.data();
-          votes.push(data);
-          if (data.studentId === currentStudentId) {
-            myVote = data;
-          }
-          if (counts[data.optionIndex] !== undefined) {
-            counts[data.optionIndex]++;
-          }
-        });
+    var totalEl = document.getElementById('poll-total-' + task.id);
+    if (totalEl) totalEl.innerText = 'กำลังโหลดคะแนน...';
 
-        var total = votes.length;
-        var totalEl = document.getElementById('poll-total-' + task.id);
-        if (totalEl) totalEl.innerText = 'โหวตแล้วทั้งหมด ' + total + ' คน';
+    try {
+      var snapshot = await db.collection('votes').where('activityId', '==', task.id).get();
+      var votes = [];
+      snapshot.forEach(function(doc) { votes.push(doc.data()); });
+      pollDataCache[cacheKey] = { time: now, data: votes };
+      renderPollStats(task, votes, options);
+    } catch (err) {
+      console.warn('Poll load error:', err);
+      if (totalEl) totalEl.innerText = 'โหลดคะแนนไม่สำเร็จ';
+    }
+  }
 
-        options.forEach(function(_, i) {
-          var count = counts[i] || 0;
-          var pct = total > 0 ? Math.round((count / total) * 100) : 0;
-          var barEl = document.getElementById('poll-bar-' + task.id + '-' + i);
-          var statEl = document.getElementById('poll-stat-' + task.id + '-' + i);
-          if (barEl) barEl.style.width = pct + '%';
-          if (statEl) statEl.innerText = count + ' โหวต (' + pct + '%)';
-        });
+  function renderPollStats(task, votes, options) {
+    var myVote = null;
+    var counts = {};
+    options.forEach(function(_, i) { counts[i] = 0; });
 
-        var msgEl = document.getElementById('poll-msg-' + task.id);
-        var btnVote = document.getElementById('btn-vote-' + task.id);
+    votes.forEach(function(data) {
+      if (data.studentId === currentStudentId) {
+        myVote = data;
+      }
+      if (counts[data.optionIndex] !== undefined) {
+        counts[data.optionIndex]++;
+      }
+    });
 
-        if (myVote) {
-          studentCurrentVoteMap[task.id] = myVote.optionIndex;
-          highlightSelectedPollCard(task.id, myVote.optionIndex);
-          if (msgEl) {
-            msgEl.innerHTML = '<span style="color:#16a34a;">✅ คุณได้ลงคะแนนแล้ว (เลือกข้อ ' + (myVote.optionIndex + 1) + ': ' + escapeHtml(myVote.optionText) + ')</span>';
-          }
-          if (btnVote) {
-            btnVote.innerText = task.allowChangeVote !== false ? '🔄 เปลี่ยนแปลงการลงคะแนน' : '✅ คุณลงคะแนนเรียบร้อยแล้ว';
-            btnVote.disabled = task.allowChangeVote === false;
-          }
-        }
-      });
+    var total = votes.length;
+    var totalEl = document.getElementById('poll-total-' + task.id);
+    if (totalEl) totalEl.innerText = 'โหวตแล้วทั้งหมด ' + total + ' คน';
+
+    options.forEach(function(_, i) {
+      var count = counts[i] || 0;
+      var pct = total > 0 ? Math.round((count / total) * 100) : 0;
+      var barEl = document.getElementById('poll-bar-' + task.id + '-' + i);
+      var statEl = document.getElementById('poll-stat-' + task.id + '-' + i);
+      if (barEl) barEl.style.width = pct + '%';
+      if (statEl) statEl.innerText = count + ' โหวต (' + pct + '%)';
+    });
+
+    var msgEl = document.getElementById('poll-msg-' + task.id);
+    var btnVote = document.getElementById('btn-vote-' + task.id);
+
+    if (myVote) {
+      studentCurrentVoteMap[task.id] = myVote.optionIndex;
+      highlightSelectedPollCard(task.id, myVote.optionIndex);
+      if (msgEl) {
+        msgEl.innerHTML = '<span style="color:#16a34a;">✅ คุณได้ลงคะแนนแล้ว (เลือกข้อ ' + (myVote.optionIndex + 1) + ': ' + escapeHtml(myVote.optionText) + ')</span>';
+      }
+      if (btnVote) {
+        btnVote.innerText = task.allowChangeVote !== false ? '🔄 เปลี่ยนแปลงการลงคะแนน' : '✅ คุณลงคะแนนเรียบร้อยแล้ว';
+        btnVote.disabled = task.allowChangeVote === false;
+      }
+    }
   }
 
   function selectPollOption(actId, optIdx) {
@@ -1467,7 +1491,7 @@
 
     try {
       var voteDocId = actId + '_' + currentStudentId;
-      await db.collection('votes').doc(voteDocId).set({
+      var voteData = {
         activityId: actId,
         studentId: currentStudentId,
         studentName: currentStudentName,
@@ -1475,7 +1499,20 @@
         optionText: optText,
         votedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      };
+      await db.collection('votes').doc(voteDocId).set(voteData);
+
+      // Optimistically update local cache
+      var cacheKey = 'poll_' + actId;
+      if (pollDataCache[cacheKey]) {
+        var existingIdx = pollDataCache[cacheKey].data.findIndex(function(v) { return v.studentId === currentStudentId; });
+        if (existingIdx >= 0) {
+          pollDataCache[cacheKey].data[existingIdx] = voteData;
+        } else {
+          pollDataCache[cacheKey].data.push(voteData);
+        }
+        renderPollStats(task, pollDataCache[cacheKey].data, task.pollOptions || ['เห็นด้วย', 'ไม่เห็นด้วย']);
+      }
 
       alert('🎉 บันทึกการลงคะแนนโหวตของคุณเรียบร้อยแล้ว!');
     } catch(err) {
@@ -1486,60 +1523,81 @@
   }
 
   // =============================================
-  // 💬 COMMENT BOARD ENGINE (Real-time Firestore)
+  // 💬 COMMENT BOARD ENGINE (On-Demand & Ultra-Efficient)
   // =============================================
-  function initCommentSection(task) {
+  var commentDataCache = {};
+
+  async function initCommentSection(task, forceRefresh) {
     var listEl = document.getElementById('comment-list-' + task.id);
     if (!listEl) return;
 
-    if (activeListeners['comment_' + task.id]) {
-      return; // Already initialized, keep using the active background listener
+    var cacheKey = 'comments_' + task.id;
+    var now = Date.now();
+    if (!forceRefresh && commentDataCache[cacheKey] && (now - commentDataCache[cacheKey].time < 30000)) {
+      renderCommentList(task, commentDataCache[cacheKey].data);
+      return;
     }
 
-    activeListeners['comment_' + task.id] = db.collection('comments')
-      .where('activityId', '==', task.id)
-      .orderBy('createdAt', 'desc')
-      .limit(40)
-      .onSnapshot(function(snapshot) {
-        var comments = [];
-        snapshot.forEach(function(doc) {
-          comments.push({ id: doc.id, ...doc.data() });
-        });
+    var countEl = document.getElementById('comment-count-' + task.id);
+    if (countEl) countEl.innerText = 'กำลังโหลด...';
 
-        var countEl = document.getElementById('comment-count-' + task.id);
-        if (countEl) countEl.innerText = comments.length + ' ความคิดเห็น';
+    try {
+      var snapshot = await db.collection('comments')
+        .where('activityId', '==', task.id)
+        .orderBy('createdAt', 'desc')
+        .limit(30)
+        .get();
 
-        if (comments.length === 0) {
-          listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; background:white; border-radius:14px; border:1px dashed #cbd5e1;">ยังไม่มีความคิดเห็น มาร่วมเป็นคนแรกที่แสดงความคิดเห็นกันเถอะ!</div>';
-          return;
-        }
-
-        listEl.innerHTML = comments.map(function(c) {
-          var isMyComment = c.studentId === currentStudentId;
-          var delBtn = (isMyComment && task.allowDeleteOwn !== false) ? 
-            `<button class="comment-del-btn" onclick="deleteMyComment('${c.id}')">ลบ</button>` : '';
-
-          var imgHtml = c.imageUrl ? `<img src="${c.imageUrl}" class="comment-img-attachment" loading="lazy" onclick="openLightbox('${c.imageUrl}')">` : '';
-
-          return `
-            <div class="comment-card">
-              <div class="comment-header">
-                <div class="comment-user">
-                  <span>👤</span>
-                  <span>${escapeHtml(c.studentName || 'นักศึกษา')}</span>
-                  ${isMyComment ? '<span style="font-size:10px; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px;">คุณ</span>' : ''}
-                </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <span class="comment-time">${c.formattedTime || ''}</span>
-                  ${delBtn}
-                </div>
-              </div>
-              <div class="comment-body">${escapeHtml(c.message || '')}</div>
-              ${imgHtml}
-            </div>
-          `;
-        }).join('');
+      var comments = [];
+      snapshot.forEach(function(doc) {
+        comments.push({ id: doc.id, ...doc.data() });
       });
+
+      commentDataCache[cacheKey] = { time: now, data: comments };
+      renderCommentList(task, comments);
+    } catch (err) {
+      console.warn('Comment load error:', err);
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626;">โหลดความคิดเห็นไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</div>';
+    }
+  }
+
+  function renderCommentList(task, comments) {
+    var listEl = document.getElementById('comment-list-' + task.id);
+    if (!listEl) return;
+
+    var countEl = document.getElementById('comment-count-' + task.id);
+    if (countEl) countEl.innerText = comments.length + ' ความคิดเห็น';
+
+    if (comments.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; background:white; border-radius:14px; border:1px dashed #cbd5e1;">ยังไม่มีความคิดเห็น มาร่วมเป็นคนแรกที่แสดงความคิดเห็นกันเถอะ!</div>';
+      return;
+    }
+
+    listEl.innerHTML = comments.map(function(c) {
+      var isMyComment = c.studentId === currentStudentId;
+      var delBtn = (isMyComment && task.allowDeleteOwn !== false) ? 
+        `<button class="comment-del-btn" onclick="deleteMyComment('${c.id}', '${task.id}')">ลบ</button>` : '';
+
+      var imgHtml = c.imageUrl ? `<img src="${c.imageUrl}" class="comment-img-attachment" loading="lazy" onclick="openLightbox('${c.imageUrl}')">` : '';
+
+      return `
+        <div class="comment-card">
+          <div class="comment-header">
+            <div class="comment-user">
+              <span>👤</span>
+              <span>${escapeHtml(c.studentName || 'นักศึกษา')}</span>
+              ${isMyComment ? '<span style="font-size:10px; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px;">คุณ</span>' : ''}
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="comment-time">${c.formattedTime || ''}</span>
+              ${delBtn}
+            </div>
+          </div>
+          <div class="comment-body">${escapeHtml(c.message || '')}</div>
+          ${imgHtml}
+        </div>
+      `;
+    }).join('');
   }
 
   function handleCommentImageSelect(actId, input) {
@@ -1600,7 +1658,7 @@
     msgEl.style.color = '#d97706';
 
     try {
-      await db.collection('comments').add({
+      var commentData = {
         activityId: actId,
         studentId: currentStudentId,
         studentName: currentStudentName,
@@ -1608,7 +1666,18 @@
         imageUrl: attachedImg,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         formattedTime: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })
-      });
+      };
+
+      var newDocRef = await db.collection('comments').add(commentData);
+      commentData.id = newDocRef.id;
+
+      // Optimistically update local cache
+      var cacheKey = 'comments_' + actId;
+      if (commentDataCache[cacheKey]) {
+        commentDataCache[cacheKey].data.unshift(commentData);
+        var task = allTasks.find(function(t) { return t.id === actId; });
+        if (task) renderCommentList(task, commentDataCache[cacheKey].data);
+      }
 
       input.value = '';
       clearCommentImage(actId);
@@ -1621,10 +1690,16 @@
     }
   }
 
-  async function deleteMyComment(docId) {
+  async function deleteMyComment(docId, actId) {
     if (!confirm('ต้องการลบความคิดเห็นของคุณใช่หรือไม่?')) return;
     try {
       await db.collection('comments').doc(docId).delete();
+      var cacheKey = 'comments_' + actId;
+      if (commentDataCache[cacheKey]) {
+        commentDataCache[cacheKey].data = commentDataCache[cacheKey].data.filter(function(c) { return c.id !== docId; });
+        var task = allTasks.find(function(t) { return t.id === actId; });
+        if (task) renderCommentList(task, commentDataCache[cacheKey].data);
+      }
     } catch(err) {
       alert('เกิดข้อผิดพลาด: ' + err.message);
     }
