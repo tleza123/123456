@@ -505,6 +505,172 @@
       background: #f1f5f9;
       border-color: var(--main-blue);
     }
+
+    /* Enhanced Shirt Statistics & Size Summary Cards */
+    .stats-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .stat-card-premium {
+      background: white;
+      border: 1px solid #e2e8f0;
+      padding: 16px 18px;
+      border-radius: 14px;
+      text-align: left;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+    .stat-card-premium .stat-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+    .stat-card-premium .stat-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-card-premium .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--main-blue);
+      margin: 4px 0;
+      line-height: 1.2;
+    }
+    .stat-card-premium .stat-subtext {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    /* Size Breakdown Box */
+    .size-summary-box {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 22px;
+    }
+    .size-summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .size-summary-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--main-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .size-filter-tabs {
+      display: inline-flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 10px;
+      gap: 4px;
+    }
+    .size-filter-tab {
+      border: none;
+      background: none;
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .size-filter-tab.active {
+      background: white;
+      color: var(--main-blue);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .size-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .size-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--main-blue);
+    }
+    .size-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .size-count {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+    .size-detail {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .size-progress-bar {
+      height: 4px;
+      background: #f1f5f9;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .size-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    .custom-sizes-details {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed #cbd5e1;
+      font-size: 12px;
+      color: #475569;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .custom-size-pill {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #334155;
+    }
   </style>
 </head>
 <body>
@@ -652,26 +818,67 @@
       <div class="box">
         <div class="box-title">
           <span>👕 รายการจองเสื้อช็อปและสลิปชำระเงิน</span>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-secondary btn-sm" onclick="copySizeSummaryToClipboard()">📋 คัดลอกสรุปไซส์</button>
             <button class="btn-sheets btn-sm" onclick="exportBookingsToCSV()">📥 ส่งออก CSV</button>
             <button class="btn-secondary btn-sm" onclick="copyBookingsToClipboard()">📋 คัดลอกไป Sheets</button>
             <button class="btn-secondary btn-sm" onclick="loadBookingsData()">🔄 ดึงข้อมูลล่าสุด</button>
           </div>
         </div>
 
-        <!-- Bookings Summary Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 12px; color: #166534; font-weight: 600;">ชำระเงินแล้ว</div>
-            <div id="stat_paid_count" style="font-size: 24px; font-weight: 700; color: #15803d; margin-top: 4px;">0</div>
+        <!-- Bookings Summary Stats (4-Card Grid) -->
+        <div class="stats-summary-grid">
+          <div class="stat-card-premium" style="border-left: 4px solid var(--main-blue);">
+            <div class="stat-icon">👕</div>
+            <div class="stat-title">ยอดเสื้อรวมทั้งหมด</div>
+            <div class="stat-value"><span id="stat_total_shirts">0</span> <span style="font-size:16px; font-weight:600; color:#64748b;">ตัว</span></div>
+            <div class="stat-subtext" id="stat_shirts_subtext">ชำระแล้ว 0 ตัว • รอชำระ 0 ตัว</div>
           </div>
-          <div style="background: #fefce8; border: 1px solid #fef08a; padding: 14px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 12px; color: #854d0e; font-weight: 600;">รอชำระ / รอยืนยัน</div>
-            <div id="stat_pending_count" style="font-size: 24px; font-weight: 700; color: #a16207; margin-top: 4px;">0</div>
+
+          <div class="stat-card-premium" style="border-left: 4px solid #10b981;">
+            <div class="stat-icon">👥</div>
+            <div class="stat-title">จำนวนผู้สั่งซื้อ</div>
+            <div class="stat-value"><span id="stat_total_orders">0</span> <span style="font-size:16px; font-weight:600; color:#64748b;">คน</span></div>
+            <div class="stat-subtext" id="stat_orders_subtext">ชำระแล้ว <span id="stat_paid_count">0</span> • รอชำระ <span id="stat_pending_count">0</span></div>
           </div>
-          <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 14px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 12px; color: #1e40af; font-weight: 600;">ยอดเงินรวมที่ชำระแล้ว</div>
-            <div id="stat_total_income" style="font-size: 24px; font-weight: 700; color: var(--main-blue); margin-top: 4px;">0 ฿</div>
+
+          <div class="stat-card-premium" style="border-left: 4px solid #f59e0b;">
+            <div class="stat-icon">💰</div>
+            <div class="stat-title">ยอดเงินรวมที่ชำระแล้ว</div>
+            <div class="stat-value" id="stat_total_income" style="color:#15803d;">0 ฿</div>
+            <div class="stat-subtext" id="stat_income_subtext">จากยอดคำสั่งซื้อทั้งหมด 0 ฿</div>
+          </div>
+
+          <div class="stat-card-premium" style="border-left: 4px solid #6366f1;">
+            <div class="stat-icon">📈</div>
+            <div class="stat-title">ความคืบหน้าการชำระเงิน</div>
+            <div class="stat-value" id="stat_payment_percentage" style="color:#4f46e5;">0%</div>
+            <div class="size-progress-bar" style="margin-top:6px; height:6px;">
+              <div id="stat_payment_progress_fill" class="size-progress-fill" style="width: 0%; background:linear-gradient(90deg,#4f46e5,#818cf8);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Size Breakdown Box -->
+        <div class="size-summary-box">
+          <div class="size-summary-header">
+            <div class="size-summary-title">
+              <span>📦 สรุปยอดสั่งเสื้อแยกตามไซส์</span>
+              <span id="size_summary_badge" style="font-size:12px; background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:20px; font-weight:600;">รวม 0 ตัว</span>
+            </div>
+            <div class="size-filter-tabs">
+              <button class="size-filter-tab active" id="btn-size-all" onclick="setSizeBreakdownView('all')">ทั้งหมด</button>
+              <button class="size-filter-tab" id="btn-size-paid" onclick="setSizeBreakdownView('paid')">เฉพาะชำระแล้ว</button>
+              <button class="size-filter-tab" id="btn-size-pending" onclick="setSizeBreakdownView('pending')">รอชำระเงิน</button>
+            </div>
+          </div>
+
+          <div class="size-grid" id="sizeCardsGrid">
+            <!-- Rendered dynamically by renderSizeBreakdown() -->
+          </div>
+
+          <div id="customSizesContainer" class="custom-sizes-details" style="display:none;">
+            <!-- Rendered if custom sizes exist -->
           </div>
         </div>
 
@@ -696,6 +903,7 @@
                 <th>รหัส นศ.</th>
                 <th>ชื่อ-สกุล</th>
                 <th>รายการที่จอง</th>
+                <th style="text-align:center;">จำนวน</th>
                 <th>ยอดเงิน</th>
                 <th>สถานะ</th>
                 <th>วัน-เวลาโอน</th>
@@ -704,7 +912,7 @@
             </thead>
             <tbody id="bookingsTableBody">
               <tr>
-                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">
                   คลิกแท็บนี้เพื่อโหลดข้อมูลการจอง
                 </td>
               </tr>
@@ -806,6 +1014,12 @@
   let currentLoadedResponses = { type: '', data: [], activity: null };
   let isAdminAuthenticated = false;
   let filterDebounceTimer = null;
+  let currentSizeView = 'all'; // 'all' | 'paid' | 'pending'
+  let currentAggregatedSizeStats = {
+    all: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
+    paid: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
+    pending: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} }
+  };
 
   window.addEventListener('DOMContentLoaded', () => {
     const sessionAuth = sessionStorage.getItem('de06_admin_auth');
@@ -1680,11 +1894,12 @@
 
   function exportBookingsToCSV() {
     if (allBookingsList.length === 0) return alert('ไม่มีข้อมูลการจองสำหรับส่งออก');
-    const headers = ['รหัสนักศึกษา', 'ชื่อ-สกุล', 'รายการที่จอง', 'ยอดเงิน (บาท)', 'สถานะ', 'วัน-เวลาโอน', 'เบอร์โทร', 'อีเมล', 'ลิงก์สลิป'];
+    const headers = ['รหัสนักศึกษา', 'ชื่อ-สกุล', 'รายการที่จอง', 'จำนวน (ตัว)', 'ยอดเงิน (บาท)', 'สถานะ', 'วัน-เวลาโอน', 'เบอร์โทร', 'อีเมล', 'ลิงก์สลิป'];
     const rows = allBookingsList.map(b => [
       b.studentId,
       b.name,
       b.summary,
+      b.sizes ? b.sizes.totalQty : 1,
       b.totalPrice,
       b.status === 'paid' ? 'ชำระแล้ว' : 'รอชำระ',
       b.transferDateTime,
@@ -1697,11 +1912,12 @@
 
   function copyBookingsToClipboard() {
     if (allBookingsList.length === 0) return alert('ไม่มีข้อมูลการจองสำหรับคัดลอก');
-    const headers = ['รหัสนักศึกษา', 'ชื่อ-สกุล', 'รายการที่จอง', 'ยอดเงิน (บาท)', 'สถานะ', 'วัน-เวลาโอน', 'เบอร์โทร', 'อีเมล', 'ลิงก์สลิป'];
+    const headers = ['รหัสนักศึกษา', 'ชื่อ-สกุล', 'รายการที่จอง', 'จำนวน (ตัว)', 'ยอดเงิน (บาท)', 'สถานะ', 'วัน-เวลาโอน', 'เบอร์โทร', 'อีเมล', 'ลิงก์สลิป'];
     const rows = allBookingsList.map(b => [
       b.studentId,
       b.name,
       b.summary,
+      b.sizes ? b.sizes.totalQty : 1,
       b.totalPrice,
       b.status === 'paid' ? 'ชำระแล้ว' : 'รอชำระ',
       b.transferDateTime,
@@ -1745,55 +1961,286 @@
   }
 
   // =============================================
-  // 👕 Tab 4: Bookings Management
+  // 👕 Tab 4: Bookings Management & Size Breakdown
   // =============================================
+  function extractBookingSizes(data) {
+    let xs = parseInt(data.xs) || 0;
+    let s = parseInt(data.s) || 0;
+    let m = parseInt(data.m) || 0;
+    let l = parseInt(data.l) || 0;
+    let xl = parseInt(data.xl) || 0;
+    let xxl = parseInt(data.xxl) || 0;
+    let otherNum = parseInt(data.otherNum) || 0;
+    let otherText = (data.other || '').toString().trim();
+
+    // Fallback parsing from summary string if direct numeric fields are 0
+    if ((xs + s + m + l + xl + xxl + otherNum) === 0 && data.summary) {
+      const summary = data.summary.toString();
+      
+      const xsMatch = summary.match(/\bXS\s*\((\d+)\)/i);
+      if (xsMatch) xs = parseInt(xsMatch[1]) || 0;
+
+      const sMatch = summary.match(/(?:^|[^X\w])S\s*\((\d+)\)/i);
+      if (sMatch) s = parseInt(sMatch[1]) || 0;
+
+      const mMatch = summary.match(/\bM\s*\((\d+)\)/i);
+      if (mMatch) m = parseInt(mMatch[1]) || 0;
+
+      const lMatch = summary.match(/(?:^|[^X\w])L\s*\((\d+)\)/i);
+      if (lMatch) l = parseInt(lMatch[1]) || 0;
+
+      const xlMatch = summary.match(/(?:^|[^2\w])XL\s*\((\d+)\)/i);
+      if (xlMatch) xl = parseInt(xlMatch[1]) || 0;
+
+      const xxlMatch = summary.match(/\b(?:2XL|XXL)\s*\((\d+)\)/i);
+      if (xxlMatch) xxl = parseInt(xxlMatch[1]) || 0;
+
+      const customRegex = /([0-9]+XL|[^\s,()]+)\s*\((\d+)(?:\s*ตัว)?\)/gi;
+      let match;
+      while ((match = customRegex.exec(summary)) !== null) {
+        const tag = match[1].toUpperCase().trim();
+        if (!['XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL'].includes(tag)) {
+          const qty = parseInt(match[2]) || 0;
+          otherNum += qty;
+          if (!otherText) otherText = `${match[1]} (${qty} ตัว)`;
+          else if (!otherText.includes(match[1])) otherText += `, ${match[1]} (${qty} ตัว)`;
+        }
+      }
+    }
+
+    const totalQty = xs + s + m + l + xl + xxl + otherNum;
+    return { xs, s, m, l, xl, xxl, otherNum, otherText, totalQty };
+  }
+
   async function loadBookingsData() {
     if (!isAdminAuthenticated) return;
     const tableBody = document.getElementById('bookingsTableBody');
-    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px;">⏳ กำลังโหลดข้อมูลการจอง...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">⏳ กำลังโหลดข้อมูลการจอง...</td></tr>';
 
     try {
-      const snap = await db.collection('bookings').limit(150).get();
+      const snap = await db.collection('bookings').limit(300).get();
       allBookingsList = [];
-      let paidCount = 0;
-      let pendingCount = 0;
-      let totalIncome = 0;
+
+      currentAggregatedSizeStats = {
+        all: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
+        paid: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
+        pending: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} }
+      };
 
       snap.forEach(doc => {
         const data = doc.data();
         const studentId = doc.id;
         const name = data.studentName || allStudentsMap[studentId] || ('นักศึกษา ' + studentId);
         const isPaid = data.status === 'paid' || !!data.slipImageUrl;
+        const statusKey = isPaid ? 'paid' : 'pending';
+        const totalPrice = data.totalPrice || 0;
 
-        if (isPaid) {
-          paidCount++;
-          totalIncome += (data.totalPrice || 0);
-        } else {
-          pendingCount++;
-        }
+        const sizes = extractBookingSizes(data);
+
+        // Aggregate stats
+        ['all', statusKey].forEach(cat => {
+          const st = currentAggregatedSizeStats[cat];
+          st.orders++;
+          st.totalShirts += sizes.totalQty;
+          st.totalIncome += totalPrice;
+          st.xs += sizes.xs;
+          st.s += sizes.s;
+          st.m += sizes.m;
+          st.l += sizes.l;
+          st.xl += sizes.xl;
+          st.xxl += sizes.xxl;
+          st.other += sizes.otherNum;
+
+          if (sizes.otherNum > 0 && sizes.otherText) {
+            const rawOther = sizes.otherText.split(',').map(s => s.trim()).filter(Boolean);
+            rawOther.forEach(item => {
+              st.customMap[item] = (st.customMap[item] || 0) + sizes.otherNum;
+            });
+          }
+        });
 
         allBookingsList.push({
           studentId: studentId,
           name: name,
           summary: data.summary || '-',
-          totalPrice: data.totalPrice || 0,
+          totalPrice: totalPrice,
           status: isPaid ? 'paid' : 'pending',
           transferDateTime: data.transferDateTime || '-',
           slipUrl: data.slipFileUrl || data.slipImageUrl || '',
           phone: data.phone || '',
-          email: data.email || ''
+          email: data.email || '',
+          sizes: sizes
         });
       });
 
-      document.getElementById('stat_paid_count').innerText = paidCount + ' ราย';
-      document.getElementById('stat_pending_count').innerText = pendingCount + ' ราย';
-      document.getElementById('stat_total_income').innerText = totalIncome.toLocaleString() + ' ฿';
+      // Update Top Stats Grid
+      const totalShirts = currentAggregatedSizeStats.all.totalShirts;
+      const paidShirts = currentAggregatedSizeStats.paid.totalShirts;
+      const pendingShirts = currentAggregatedSizeStats.pending.totalShirts;
 
+      const totalOrders = currentAggregatedSizeStats.all.orders;
+      const paidOrders = currentAggregatedSizeStats.paid.orders;
+      const pendingOrders = currentAggregatedSizeStats.pending.orders;
+
+      const paidIncome = currentAggregatedSizeStats.paid.totalIncome;
+      const totalExpectedIncome = currentAggregatedSizeStats.all.totalIncome;
+
+      const payPercentage = totalExpectedIncome > 0 ? Math.round((paidIncome / totalExpectedIncome) * 100) : (totalOrders > 0 && paidOrders === totalOrders ? 100 : 0);
+
+      const elTotalShirts = document.getElementById('stat_total_shirts');
+      if (elTotalShirts) elTotalShirts.innerText = totalShirts.toLocaleString();
+
+      const elShirtsSubtext = document.getElementById('stat_shirts_subtext');
+      if (elShirtsSubtext) elShirtsSubtext.innerHTML = `ชำระแล้ว <b style="color:#15803d;">${paidShirts.toLocaleString()}</b> ตัว • รอชำระ <b style="color:#b45309;">${pendingShirts.toLocaleString()}</b> ตัว`;
+
+      const elTotalOrders = document.getElementById('stat_total_orders');
+      if (elTotalOrders) elTotalOrders.innerText = totalOrders.toLocaleString();
+
+      const elPaidCount = document.getElementById('stat_paid_count');
+      if (elPaidCount) elPaidCount.innerText = paidOrders;
+
+      const elPendingCount = document.getElementById('stat_pending_count');
+      if (elPendingCount) elPendingCount.innerText = pendingOrders;
+
+      const elTotalIncome = document.getElementById('stat_total_income');
+      if (elTotalIncome) elTotalIncome.innerText = paidIncome.toLocaleString() + ' ฿';
+
+      const elIncomeSubtext = document.getElementById('stat_income_subtext');
+      if (elIncomeSubtext) elIncomeSubtext.innerText = `จากยอดคำสั่งซื้อทั้งหมด ${totalExpectedIncome.toLocaleString()} ฿`;
+
+      const elPayPct = document.getElementById('stat_payment_percentage');
+      if (elPayPct) elPayPct.innerText = payPercentage + '%';
+
+      const fillBar = document.getElementById('stat_payment_progress_fill');
+      if (fillBar) fillBar.style.width = payPercentage + '%';
+
+      renderSizeBreakdown();
       filterBookingsTable();
+
     } catch(err) {
       console.error(err);
-      tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#dc2626;">❌ โหลดข้อมูลล้มเหลว: ' + err.message + '</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#dc2626;">❌ โหลดข้อมูลล้มเหลว: ' + err.message + '</td></tr>';
     }
+  }
+
+  function setSizeBreakdownView(view) {
+    currentSizeView = view;
+    document.querySelectorAll('.size-filter-tab').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('btn-size-' + view);
+    if (btn) btn.classList.add('active');
+    renderSizeBreakdown();
+  }
+
+  function renderSizeBreakdown() {
+    const grid = document.getElementById('sizeCardsGrid');
+    const badge = document.getElementById('size_summary_badge');
+    const customContainer = document.getElementById('customSizesContainer');
+    if (!grid) return;
+
+    const data = currentAggregatedSizeStats[currentSizeView] || currentAggregatedSizeStats.all;
+    const totalShirtsInView = data.totalShirts;
+
+    const viewLabels = {
+      all: 'ยอดสั่งทั้งหมด',
+      paid: 'เฉพาะที่ชำระเงินแล้ว',
+      pending: 'รอชำระเงิน'
+    };
+
+    if (badge) {
+      badge.innerText = `${viewLabels[currentSizeView]}: รวม ${totalShirtsInView.toLocaleString()} ตัว`;
+    }
+
+    const sizesConfig = [
+      { key: 'xs', label: 'XS', bg: '#f0fdf4', border: '#bbf7d0', color: '#166534', badgeBg: '#dcfce7' },
+      { key: 's', label: 'S', bg: '#eff6ff', border: '#bfdbfe', color: '#1e40af', badgeBg: '#dbeafe' },
+      { key: 'm', label: 'M', bg: '#fdf4ff', border: '#f5d0fe', color: '#86198f', badgeBg: '#fae8ff' },
+      { key: 'l', label: 'L', bg: '#fff7ed', border: '#fed7aa', color: '#9a3412', badgeBg: '#ffedd5' },
+      { key: 'xl', label: 'XL', bg: '#fef2f2', border: '#fecaca', color: '#991b1b', badgeBg: '#fee2e2' },
+      { key: 'xxl', label: '2XL', bg: '#faf5ff', border: '#e9d5ff', color: '#6b21a8', badgeBg: '#f3e8ff' },
+      { key: 'other', label: 'อื่นๆ / พิเศษ', bg: '#f8fafc', border: '#cbd5e1', color: '#334155', badgeBg: '#e2e8f0' }
+    ];
+
+    grid.innerHTML = sizesConfig.map(cfg => {
+      const count = data[cfg.key] || 0;
+      const paidCount = currentAggregatedSizeStats.paid[cfg.key] || 0;
+      const pendingCount = currentAggregatedSizeStats.pending[cfg.key] || 0;
+      const percent = totalShirtsInView > 0 ? Math.round((count / totalShirtsInView) * 100) : 0;
+
+      let subDetail = '';
+      if (currentSizeView === 'all') {
+        subDetail = `ชำระ <b style="color:#15803d;">${paidCount}</b> • รอ <b style="color:#b45309;">${pendingCount}</b>`;
+      } else if (currentSizeView === 'paid') {
+        subDetail = `คิดเป็น <b>${percent}%</b> ของที่ชำระ`;
+      } else {
+        subDetail = `คิดเป็น <b>${percent}%</b> ของที่รอชำระ`;
+      }
+
+      return `
+        <div class="size-card" style="background:${cfg.bg}; border-color:${cfg.border};">
+          <div class="size-badge" style="background:${cfg.badgeBg}; color:${cfg.color};">${cfg.label}</div>
+          <div class="size-count" style="color:${cfg.color};">${count.toLocaleString()} <span style="font-size:13px; font-weight:600;">ตัว</span></div>
+          <div class="size-detail">${subDetail}</div>
+          <div class="size-progress-bar" style="background:rgba(0,0,0,0.06);">
+            <div class="size-progress-fill" style="width:${percent}%; background:${cfg.color};"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Custom sizes details
+    const customEntries = Object.keys(data.customMap || {});
+    if (customContainer) {
+      if (customEntries.length > 0) {
+        customContainer.style.display = 'flex';
+        customContainer.innerHTML = `
+          <b style="color:var(--main-blue);">🏷️ รายการไซส์พิเศษที่ระบุ:</b>
+          ${customEntries.map(item => `<span class="custom-size-pill">${escapeHtml(item)}</span>`).join('')}
+        `;
+      } else {
+        customContainer.style.display = 'none';
+      }
+    }
+  }
+
+  function copySizeSummaryToClipboard() {
+    const all = currentAggregatedSizeStats.all;
+    const paid = currentAggregatedSizeStats.paid;
+    const pending = currentAggregatedSizeStats.pending;
+
+    if (all.totalShirts === 0) {
+      return alert('ยังไม่มีข้อมูลการสั่งจองเสื้อในระบบครับ');
+    }
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    let summaryText = `👕 สรุปยอดสั่งจองเสื้อช็อป DE 06\n`;
+    summaryText += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    summaryText += `📦 ยอดสั่งเสื้อรวมทั้งหมด: ${all.totalShirts.toLocaleString()} ตัว\n`;
+    summaryText += `   • ชำระเงินแล้ว: ${paid.totalShirts.toLocaleString()} ตัว\n`;
+    summaryText += `   • รอชำระเงิน: ${pending.totalShirts.toLocaleString()} ตัว\n\n`;
+    summaryText += `👥 จำนวนผู้สั่งซื้อ: ${all.orders} คน (ชำระแล้ว ${paid.orders} คน / รอชำระ ${pending.orders} คน)\n`;
+    summaryText += `💰 ยอดเงินที่ได้รับแล้ว: ${paid.totalIncome.toLocaleString()} บาท (ยอดรวมทั้งหมด ${all.totalIncome.toLocaleString()} บาท)\n\n`;
+    summaryText += `📊 สรุปจำนวนเสื้อแยกตามไซส์:\n`;
+    summaryText += `• ไซส์ XS  : ${all.xs} ตัว (ชำระแล้ว ${paid.xs} / รอ ${pending.xs})\n`;
+    summaryText += `• ไซส์ S   : ${all.s} ตัว (ชำระแล้ว ${paid.s} / รอ ${pending.s})\n`;
+    summaryText += `• ไซส์ M   : ${all.m} ตัว (ชำระแล้ว ${paid.m} / รอ ${pending.m})\n`;
+    summaryText += `• ไซส์ L   : ${all.l} ตัว (ชำระแล้ว ${paid.l} / รอ ${pending.l})\n`;
+    summaryText += `• ไซส์ XL  : ${all.xl} ตัว (ชำระแล้ว ${paid.xl} / รอ ${pending.xl})\n`;
+    summaryText += `• ไซส์ 2XL : ${all.xxl} ตัว (ชำระแล้ว ${paid.xxl} / รอ ${pending.xxl})\n`;
+    if (all.other > 0) {
+      const customList = Object.keys(all.customMap).join(', ') || 'ตามที่ระบุ';
+      summaryText += `• ไซส์อื่นๆ : ${all.other} ตัว [${customList}] (ชำระแล้ว ${paid.other} / รอ ${pending.other})\n`;
+    }
+    summaryText += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    summaryText += `(ข้อมูลอัปเดต ณ ${dateStr})`;
+
+    navigator.clipboard.writeText(summaryText).then(() => {
+      showGlobalToast('📋 คัดลอกข้อความสรุปยอดเสื้อแยกไซส์เรียบร้อยแล้ว! สามารถส่งในกลุ่มหรือส่งให้ร้านได้เลย', 'success');
+      alert('📋 คัดลอกข้อความสรุปยอดเสื้อแยกไซส์เรียบร้อยแล้ว!\n\n' + summaryText);
+    }).catch(err => {
+      alert('คัดลอกล้มเหลว: ' + err.message);
+    });
   }
 
   function debounceFilterBookings() {
@@ -1813,7 +2260,7 @@
     });
 
     if (filtered.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:gray; padding:30px;">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:gray; padding:30px;">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</td></tr>';
       return;
     }
 
@@ -1827,6 +2274,8 @@
         `<button class="btn-secondary btn-sm" onclick="openImageModal('${b.slipUrl}', 'สลิปของ: ${escapeHtml(b.name)}')">📄 ดูสลิป</button>` :
         '<span style="color:#94a3b8; font-size:12px;">ไม่มีสลิป</span>';
 
+      const qty = b.sizes ? b.sizes.totalQty : 1;
+
       return `
         <tr>
           <td><b>${b.studentId}</b></td>
@@ -1835,6 +2284,7 @@
             <div style="font-size:11px; color:#64748b;">${b.phone || ''} ${b.email ? '• ' + b.email : ''}</div>
           </td>
           <td><span style="font-size:12px; font-weight:500;">${escapeHtml(b.summary)}</span></td>
+          <td style="text-align:center;"><span style="background:#f1f5f9; color:#1e293b; font-weight:700; padding:4px 10px; border-radius:12px; font-size:12px; border:1px solid #e2e8f0;">${qty} ตัว</span></td>
           <td><b>${b.totalPrice.toLocaleString()} ฿</b></td>
           <td>${statusBadge}</td>
           <td style="font-size:12px; color:#64748b;">${b.transferDateTime}</td>
