@@ -1895,36 +1895,64 @@
   function exportBookingsToCSV() {
     if (allBookingsList.length === 0) return alert('ไม่มีข้อมูลการจองสำหรับส่งออก');
     const headers = ['รหัสนักศึกษา', 'ชื่อ-สกุล', 'รายการที่จอง', 'จำนวน (ตัว)', 'ยอดเงิน (บาท)', 'สถานะ', 'วัน-เวลาโอน', 'เบอร์โทร', 'อีเมล', 'ลิงก์สลิป'];
-    const rows = allBookingsList.map(b => [
-      b.studentId,
-      b.name,
-      b.summary,
-      b.sizes ? b.sizes.totalQty : 1,
-      b.totalPrice,
-      b.status === 'paid' ? 'ชำระแล้ว' : 'รอชำระ',
-      b.transferDateTime,
-      b.phone,
-      b.email,
-      b.slipUrls && b.slipUrls.length > 0 ? b.slipUrls.join(' | ') : (b.slipUrl || '')
-    ]);
+    const rows = allBookingsList.map(b => {
+      let slipUrlsCol = '';
+      if (b.slipUrls && b.slipUrls.length > 0) {
+        slipUrlsCol = b.slipUrls.join('\n');
+      } else if (b.slipUrl) {
+        slipUrlsCol = b.slipUrl;
+      }
+
+      let timeCol = b.transferDateTime || '-';
+      if (b.slips && b.slips.length > 1) {
+        timeCol = b.slips.map((s, idx) => `สลิป ${idx + 1}: ${s.transferDateTime || b.transferDateTime || '-'}`).join('\n');
+      }
+
+      return [
+        b.studentId,
+        b.name,
+        b.summary,
+        b.sizes ? b.sizes.totalQty : 1,
+        b.totalPrice,
+        b.status === 'paid' ? 'ชำระแล้ว' : 'รอชำระ',
+        timeCol,
+        b.phone,
+        b.email,
+        slipUrlsCol
+      ];
+    });
     exportArrayToCSV('DE06_Shirt_Bookings.csv', headers, rows);
   }
 
   function copyBookingsToClipboard() {
     if (allBookingsList.length === 0) return alert('ไม่มีข้อมูลการจองสำหรับคัดลอก');
     const headers = ['รหัสนักศึกษา', 'ชื่อ-สกุล', 'รายการที่จอง', 'จำนวน (ตัว)', 'ยอดเงิน (บาท)', 'สถานะ', 'วัน-เวลาโอน', 'เบอร์โทร', 'อีเมล', 'ลิงก์สลิป'];
-    const rows = allBookingsList.map(b => [
-      b.studentId,
-      b.name,
-      b.summary,
-      b.sizes ? b.sizes.totalQty : 1,
-      b.totalPrice,
-      b.status === 'paid' ? 'ชำระแล้ว' : 'รอชำระ',
-      b.transferDateTime,
-      b.phone,
-      b.email,
-      b.slipUrls && b.slipUrls.length > 0 ? b.slipUrls.join(' | ') : (b.slipUrl || '')
-    ]);
+    const rows = allBookingsList.map(b => {
+      let slipUrlsCol = '';
+      if (b.slipUrls && b.slipUrls.length > 0) {
+        slipUrlsCol = b.slipUrls.join('\n');
+      } else if (b.slipUrl) {
+        slipUrlsCol = b.slipUrl;
+      }
+
+      let timeCol = b.transferDateTime || '-';
+      if (b.slips && b.slips.length > 1) {
+        timeCol = b.slips.map((s, idx) => `สลิป ${idx + 1}: ${s.transferDateTime || b.transferDateTime || '-'}`).join('\n');
+      }
+
+      return [
+        b.studentId,
+        b.name,
+        b.summary,
+        b.sizes ? b.sizes.totalQty : 1,
+        b.totalPrice,
+        b.status === 'paid' ? 'ชำระแล้ว' : 'รอชำระ',
+        timeCol,
+        b.phone,
+        b.email,
+        slipUrlsCol
+      ];
+    });
     copyDataToClipboard(headers, rows);
   }
 
@@ -1950,7 +1978,13 @@
   function copyDataToClipboard(headers, rows) {
     let tsv = headers.join('\t') + '\n';
     rows.forEach(row => {
-      tsv += row.map(c => (c || '').toString().replace(/\t/g, ' ').replace(/\n/g, ' ')).join('\t') + '\n';
+      tsv += row.map(c => {
+        let str = (c || '').toString().replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        if (str.includes('\n') || str.includes('\t') || str.includes('"')) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      }).join('\t') + '\n';
     });
 
     navigator.clipboard.writeText(tsv).then(() => {

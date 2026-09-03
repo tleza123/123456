@@ -2399,7 +2399,7 @@
 
       var overallTransferDateTime = slipsData.length === 1 ?
         slipsData[0].transferDateTime :
-        slipsData.map(function(s, idx) { return 'สลิป ' + (idx + 1) + ': ' + s.transferDateTime; }).join(' | ');
+        slipsData.map(function(s, idx) { return 'สลิป ' + (idx + 1) + ': ' + s.transferDateTime; }).join('\n');
 
       await db.collection('bookings').doc(currentStudentId).set({
         // Overwrite existing slip fields:
@@ -2419,6 +2419,8 @@
       var bookingDoc = await db.collection('bookings').doc(currentStudentId).get();
       var bookingData = bookingDoc.data() || {};
 
+      var slipUrlsJoined = slipUrls.join('\n');
+
       callAPI('sendEmail', {
         studentId: currentStudentId,
         studentName: currentStudentName,
@@ -2426,8 +2428,8 @@
         totalPrice: bookingData.totalPrice || 0,
         email: email,
         transferDateTime: overallTransferDateTime,
-        fileUrl: primarySlip.fileUrl || '',
-        slipUrls: slipUrls.join(', ')
+        fileUrl: slipUrlsJoined || primarySlip.fileUrl || '',
+        slipUrls: slipUrlsJoined
       }).catch(function(e) { console.warn('Email send failed:', e); });
 
       // Clean up in-memory slips state
@@ -2478,7 +2480,7 @@
           var singleTime = singleSlip.transferDateTime || data.transferDateTime || '-';
           slipsHtml = `
             <div style="margin-top:10px; font-size:14px; color:var(--text-muted);">
-              <b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:600;">${escapeHtml(singleTime)}</span>
+              <b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:600;">${escapeHtml(singleTime).replace(/\n/g, '<br>')}</span>
             </div>
             <div style="margin-top:12px; text-align:center;">
               <img src="${singleSlip.imageUrl || mainUrl}" style="max-width:100%; max-height:260px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${mainUrl}')">
@@ -2502,7 +2504,7 @@
                       <img src="${s.imageUrl || targetUrl}" style="width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${targetUrl}')" title="คลิกเพื่อขยาย">
                       <div style="flex:1; min-width:0;">
                         <div style="font-size:13px; font-weight:700; color:var(--main-blue);">สลิปที่ ${idx + 1}</div>
-                        <div style="font-size:12px; color:#475569; margin-top:2px;"><b>วัน-เวลาโอน:</b> <span style="color:#0f172a; font-weight:600;">${escapeHtml(sTime)}</span></div>
+                        <div style="font-size:12px; color:#475569; margin-top:2px;"><b>วัน-เวลาโอน:</b> <span style="color:#0f172a; font-weight:600;">${escapeHtml(sTime).replace(/\n/g, '<br>')}</span></div>
                         <div style="margin-top:6px;">
                           <a href="${targetUrl}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:3px;">
                             ${Icons.file} ดูต้นฉบับ ↗
