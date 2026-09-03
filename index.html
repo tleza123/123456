@@ -827,14 +827,37 @@
           </div>
         </div>
 
-        <div style="text-align: left; margin-top: 15px; background: white; padding: 16px; border-radius: 14px; border: 1px solid #e2e8f0;">
-          <label style="font-weight: 600; font-size: 13px;">แนบรูปภาพสลิปชำระเงิน:</label>
-          <input type="file" id="slipFile" accept="image/*" style="margin-top: 6px; background:#f8fafc;" onchange="handleBackgroundUpload(this)">
+        <div style="text-align: left; margin-top: 15px; background: white; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <label style="font-weight: 700; font-size: 14px; color: var(--text-main); margin:0;">แนบรูปภาพสลิปชำระเงิน:</label>
+            <span style="font-size:12px; color:var(--text-muted); background:#f1f5f9; padding:2px 8px; border-radius:12px;">แนบได้หลายใบ</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 12px 0;">กรณีแบ่งโอนหรือมียอดโอนมากกว่า 1 สลิป สามารถเลือกหรือกดเพิ่มสลิปได้เลยครับ (หากมีสลิปเดิมอยู่แล้ว การยืนยันสลิปชุดใหม่นี้จะบันทึกทับข้อมูลเดิมทันที)</p>
+          
+          <!-- Hidden multi-file input -->
+          <input type="file" id="slipFileInput" accept="image/*" multiple style="display:none;" onchange="handleFilesSelected(this)">
+          
+          <!-- Upload trigger zone -->
+          <div onclick="document.getElementById('slipFileInput').click()" style="border: 2px dashed #93c5fd; background: #f0f9ff; border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+            <div style="color: var(--main-blue); margin-bottom: 4px; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              คลิกเพื่อเลือกรูปสลิป (เลือกได้หลายรูป)
+            </div>
+            <div style="font-size: 11px; color: #64748b;">รองรับไฟล์รูปภาพ JPG, PNG, WEBP หรือถ่ายรูปสลิป</div>
+          </div>
+
+          <!-- Preview & Slip List Container -->
+          <div id="slipPreviewContainer" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;"></div>
+
+          <!-- Add More Button (shown when at least 1 slip exists) -->
+          <button id="btnAddMoreSlip" type="button" class="btn-secondary btn-sm" onclick="document.getElementById('slipFileInput').click()" style="margin-top:10px; width:100%; display:none; justify-content:center; align-items:center; gap:6px; border-style:dashed;">
+            + เพิ่มรูปสลิปอีกใบ
+          </button>
         </div> 
 
         <button id="btnUpload" class="btn-success" onclick="finalizeOrderFast()" disabled style="margin-top: 15px;">กรุณาเลือกรูปสลิปก่อน</button>
         <button class="btn-secondary" style="margin-top: 12px;" onclick="switchSection('booking-section')">← ย้อนกลับไปแก้ไขไซส์เสื้อช็อป</button>
-        <div id="uploadMsg" class="error" style="color: var(--main-blue);"></div>
+        <div id="uploadMsg" class="error" style="color: var(--main-blue); margin-top: 8px;"></div>
       </div>
     </div>
   </div>
@@ -2016,10 +2039,12 @@
   }
 
   // =============================================
-  //  Slip Upload & Finalize (Preserved)
+  //  Slip Upload & Finalize (Multi-Slip Supported)
   // =============================================
   var preUploadedImageUrl = '';
   var preUploadedFileUrl = '';
+  var uploadedSlips = [];
+  var isProcessingSlipQueue = false;
 
   async function callAPI(action, dataPayload, retries) {
     if (!dataPayload) dataPayload = {};
@@ -2042,36 +2067,216 @@
     }
   }
 
-  function handleBackgroundUpload(input) {
-    var file = input.files[0];
-    var uploadMsg = document.getElementById('uploadMsg');
-    var btnUpload = document.getElementById('btnUpload');
-    if (!file) return;
-    preUploadedImageUrl = ''; preUploadedFileUrl = '';
-    uploadMsg.innerHTML = '⏳ กำลังเตรียมไฟล์สลิป...';
-    uploadMsg.style.color = '#d97706';
-    btnUpload.disabled = true; btnUpload.innerText = 'กำลังเตรียมข้อมูล... ⏳';
+  function handleFilesSelected(input) {
+    var files = Array.from(input.files || []);
+    if (files.length === 0) return;
 
-    var reader = new FileReader();
-    reader.onload = async function(e) {
-      var base64 = e.target.result.split(',')[1];
-      try {
-        var res = await callAPI('preUploadImage', {
-          studentId: currentStudentId, base64Data: base64, fileName: file.name, mimeType: file.type
-        });
-        if (res.success) {
-          preUploadedImageUrl = res.imageUrl; preUploadedFileUrl = res.fileUrl;
-          uploadMsg.innerHTML = '<span style="display:inline-flex; align-items:center; gap:4px;">' + Icons.check + ' เตรียมรูปภาพสลิปพร้อมใช้งานแล้ว</span>';
-          uploadMsg.style.color = '#15803d';
-          btnUpload.disabled = false; btnUpload.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;">' + Icons.check + ' ยืนยันการชำระเงิน & เสร็จสิ้น</span>';
-        } else {
-          uploadMsg.innerHTML = 'อัปโหลดรูปล้มเหลว โปรดเลือกรูปใหม่'; uploadMsg.style.color = '#e11d48';
-        }
-      } catch (err) {
-        uploadMsg.innerHTML = 'การเชื่อมต่อขัดข้อง โปรดเลือกรูปใหม่'; uploadMsg.style.color = '#e11d48';
+    files.forEach(function(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('กรุณาเลือกไฟล์รูปภาพเท่านั้นครับ (' + file.name + ')');
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+      var slipId = 'slip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+      uploadedSlips.push({
+        id: slipId,
+        file: file,
+        fileName: file.name,
+        previewUrl: URL.createObjectURL(file),
+        imageUrl: '',
+        fileUrl: '',
+        status: 'uploading',
+        inProgress: false,
+        error: ''
+      });
+    });
+
+    input.value = '';
+    renderSlipsList();
+    updateUploadButtonState();
+    processSlipUploadQueue();
+  }
+
+  // Backward compatibility alias
+  function handleBackgroundUpload(input) {
+    handleFilesSelected(input);
+  }
+
+  async function processSlipUploadQueue() {
+    if (isProcessingSlipQueue) return;
+    isProcessingSlipQueue = true;
+
+    try {
+      for (var i = 0; i < uploadedSlips.length; i++) {
+        var item = uploadedSlips[i];
+        if (item.status === 'uploading' && !item.inProgress) {
+          item.inProgress = true;
+          renderSlipsList();
+          updateUploadButtonState();
+          await uploadSingleSlip(item);
+          item.inProgress = false;
+          renderSlipsList();
+          updateUploadButtonState();
+        }
+      }
+    } finally {
+      isProcessingSlipQueue = false;
+    }
+  }
+
+  function uploadSingleSlip(item) {
+    return new Promise(function(resolve) {
+      var reader = new FileReader();
+      reader.onload = async function(e) {
+        var base64 = e.target.result.split(',')[1];
+        try {
+          var res = await callAPI('preUploadImage', {
+            studentId: currentStudentId,
+            base64Data: base64,
+            fileName: item.fileName,
+            mimeType: item.file.type
+          });
+          if (res && res.success) {
+            item.imageUrl = res.imageUrl || '';
+            item.fileUrl = res.fileUrl || '';
+            item.status = 'done';
+            item.error = '';
+          } else {
+            item.status = 'error';
+            item.error = (res && res.message) || 'อัปโหลดรูปล้มเหลว';
+          }
+        } catch (err) {
+          item.status = 'error';
+          item.error = 'การเชื่อมต่อขัดข้อง';
+        }
+        syncLegacySlipUrls();
+        resolve();
+      };
+      reader.onerror = function() {
+        item.status = 'error';
+        item.error = 'อ่านไฟล์รูปภาพไม่สำเร็จ';
+        syncLegacySlipUrls();
+        resolve();
+      };
+      reader.readAsDataURL(item.file);
+    });
+  }
+
+  function syncLegacySlipUrls() {
+    var firstDone = uploadedSlips.find(function(s) { return s.status === 'done'; });
+    if (firstDone) {
+      preUploadedImageUrl = firstDone.imageUrl;
+      preUploadedFileUrl = firstDone.fileUrl;
+    } else {
+      preUploadedImageUrl = '';
+      preUploadedFileUrl = '';
+    }
+  }
+
+  function removeSlip(id) {
+    var idx = uploadedSlips.findIndex(function(s) { return s.id === id; });
+    if (idx !== -1) {
+      var item = uploadedSlips[idx];
+      if (item.previewUrl) {
+        try { URL.revokeObjectURL(item.previewUrl); } catch (e) {}
+      }
+      uploadedSlips.splice(idx, 1);
+      syncLegacySlipUrls();
+      renderSlipsList();
+      updateUploadButtonState();
+    }
+  }
+
+  function retrySlip(id) {
+    var item = uploadedSlips.find(function(s) { return s.id === id; });
+    if (item) {
+      item.status = 'uploading';
+      item.error = '';
+      item.inProgress = false;
+      renderSlipsList();
+      updateUploadButtonState();
+      processSlipUploadQueue();
+    }
+  }
+
+  function renderSlipsList() {
+    var container = document.getElementById('slipPreviewContainer');
+    var addMoreBtn = document.getElementById('btnAddMoreSlip');
+    if (!container) return;
+
+    if (uploadedSlips.length === 0) {
+      container.innerHTML = '';
+      if (addMoreBtn) addMoreBtn.style.display = 'none';
+      return;
+    }
+
+    if (addMoreBtn) addMoreBtn.style.display = 'flex';
+
+    var html = uploadedSlips.map(function(item, idx) {
+      var statusBadge = '';
+      if (item.status === 'uploading') {
+        statusBadge = '<span style="color:#d97706; background:#fef3c7; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;"><span class="loading-spinner" style="width:10px; height:10px; border-width:2px; margin:0;"></span> กำลังอัปโหลด...</span>';
+      } else if (item.status === 'done') {
+        statusBadge = '<span style="color:#15803d; background:#dcfce7; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">' + Icons.check + ' อัปโหลดสำเร็จ</span>';
+      } else {
+        statusBadge = '<span style="color:#e11d48; background:#ffe4e6; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600;">' + (item.error || 'ล้มเหลว') + '</span> <button type="button" class="btn-secondary btn-sm" style="padding:1px 6px; font-size:10px;" onclick="retrySlip(\'' + item.id + '\')">ลองใหม่</button>';
+      }
+
+      return `
+        <div style="display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 12px;">
+          <img src="${item.previewUrl}" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" onclick="openLightbox('${item.previewUrl}')" title="คลิกเพื่อดูรูปขนาดเต็ม">
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span style="font-weight:700; font-size:12px; color:var(--text-main);">สลิปที่ ${idx + 1}</span>
+              ${statusBadge}
+            </div>
+            <div style="font-size:11px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;" title="${escapeHtml(item.fileName)}">${escapeHtml(item.fileName)}</div>
+          </div>
+          <button type="button" onclick="removeSlip('${item.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:6px; border-radius:6px; display:flex; align-items:center; justify-content:center;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="ลบสลิปนี้">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
+  function updateUploadButtonState() {
+    var btnUpload = document.getElementById('btnUpload');
+    var uploadMsg = document.getElementById('uploadMsg');
+    if (!btnUpload) return;
+
+    if (uploadedSlips.length === 0) {
+      btnUpload.disabled = true;
+      btnUpload.innerText = 'กรุณาเลือกรูปสลิปก่อน';
+      if (uploadMsg) uploadMsg.innerHTML = '';
+      return;
+    }
+
+    var hasUploading = uploadedSlips.some(function(s) { return s.status === 'uploading'; });
+    var hasError = uploadedSlips.some(function(s) { return s.status === 'error'; });
+    var doneCount = uploadedSlips.filter(function(s) { return s.status === 'done'; }).length;
+
+    if (hasUploading) {
+      btnUpload.disabled = true;
+      btnUpload.innerText = 'กำลังอัปโหลดสลิป... ⏳';
+      if (uploadMsg) {
+        uploadMsg.innerHTML = '<span style="color:#d97706;">⏳ กำลังอัปโหลดสลิปชำระเงิน (' + doneCount + '/' + uploadedSlips.length + ')...</span>';
+      }
+    } else if (hasError) {
+      btnUpload.disabled = true;
+      btnUpload.innerText = 'มีสลิปที่อัปโหลดไม่สำเร็จ โปรดลองใหม่หรือลบออก';
+      if (uploadMsg) {
+        uploadMsg.innerHTML = '<span style="color:#e11d48;">บางรูปอัปโหลดไม่สำเร็จ กรุณากด "ลองใหม่" หรือกดลบรูปที่ไม่ต้องการออกครับ</span>';
+      }
+    } else if (doneCount > 0) {
+      btnUpload.disabled = false;
+      var slipLabel = doneCount === 1 ? 'สลิปชำระเงิน' : doneCount + ' สลิป';
+      btnUpload.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;">' + Icons.check + ' ยืนยันการชำระเงิน & เสร็จสิ้น (' + slipLabel + ')</span>';
+      if (uploadMsg) {
+        uploadMsg.innerHTML = '<span style="color:#15803d; font-weight:600; display:inline-flex; align-items:center; gap:4px;">' + Icons.check + ' เตรียมสลิปพร้อมใช้งานแล้ว (' + doneCount + ' ใบ)</span>';
+      }
+    }
   }
 
   async function finalizeOrderFast() {
@@ -2084,7 +2289,12 @@
     if (!phone) return alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ');
     if (!email || !email.includes('@')) return alert('กรุณากรอกอีเมลให้ถูกต้องครับ');
     if (!transferDate || transferHour === "" || transferMinute === "") return alert('กรุณาระบุวันที่และเวลาที่โอนเงินครับ');
-    if (!preUploadedImageUrl) return alert('ระบบกำลังประมวลผลรูปภาพ กรุณารอสักครู่');
+
+    var doneSlips = uploadedSlips.filter(function(s) { return s.status === 'done'; });
+    if (doneSlips.length === 0) return alert('กรุณาแนบรูปภาพสลิปชำระเงินและรอให้อัปโหลดเสร็จสิ้นก่อนครับ');
+    if (uploadedSlips.some(function(s) { return s.status === 'uploading'; })) {
+      return alert('ระบบกำลังประมวลผลรูปภาพ กรุณารอสักครู่ให้เสร็จสิ้นก่อนครับ');
+    }
 
     var parts = transferDate.split('-');
     var formattedDateTime = parts[2] + '/' + parts[1] + '/' + parts[0] + ' เวลา ' + transferHour + ':' + transferMinute + ' น.';
@@ -2093,15 +2303,30 @@
     btn.disabled = true; btn.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;">' + Icons.refresh + ' กำลังบันทึกข้อมูล...</span>';
 
     try {
-      await db.collection('bookings').doc(currentStudentId).update({
-        slipImageUrl: preUploadedImageUrl,
-        slipFileUrl: preUploadedFileUrl,
+      var slipsData = doneSlips.map(function(s) {
+        return {
+          imageUrl: s.imageUrl,
+          fileUrl: s.fileUrl,
+          fileName: s.fileName
+        };
+      });
+      var primarySlip = slipsData[0] || {};
+      var slipUrls = slipsData.map(function(s) { return s.fileUrl || s.imageUrl; }).filter(Boolean);
+
+      await db.collection('bookings').doc(currentStudentId).set({
+        // Overwrite existing slip fields:
+        slipImageUrl: primarySlip.imageUrl || '',
+        slipFileUrl: primarySlip.fileUrl || '',
+        // Multi-slip fields:
+        slips: slipsData,
+        slipUrls: slipUrls,
+        slipCount: slipsData.length,
         phone: phone,
         email: email,
         transferDateTime: formattedDateTime,
         status: 'paid',
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      }, { merge: true });
 
       var bookingDoc = await db.collection('bookings').doc(currentStudentId).get();
       var bookingData = bookingDoc.data() || {};
@@ -2113,18 +2338,24 @@
         totalPrice: bookingData.totalPrice || 0,
         email: email,
         transferDateTime: formattedDateTime,
-        fileUrl: preUploadedFileUrl
+        fileUrl: primarySlip.fileUrl || '',
+        slipUrls: slipUrls.join(', ')
       }).catch(function(e) { console.warn('Email send failed:', e); });
+
+      // Clean up in-memory slips state
+      uploadedSlips = [];
+      renderSlipsList();
 
       switchSection('done-section');
     } catch (e) {
       alert('เกิดข้อผิดพลาด: ' + e.message);
-      btn.disabled = false; btn.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;">' + Icons.check + ' ยืนยันการชำระเงิน & เสร็จสิ้น</span>';
+      btn.disabled = false;
+      updateUploadButtonState();
     }
   }
 
   // =============================================
-  //  View Booking Details (Optimized)
+  //  View Booking Details (Multi-Slip Supported)
   // =============================================
   async function viewMyBooking() {
     switchSection('check-booking-section');
@@ -2135,10 +2366,60 @@
       var snap = await db.collection('bookings').doc(currentStudentId).get();
       if (snap.exists && snap.data().summary) {
         var data = snap.data();
-        var isPaid = data.status === 'paid' || data.slipImageUrl;
+        var isPaid = data.status === 'paid' || data.slipImageUrl || (Array.isArray(data.slips) && data.slips.length > 0) || (Array.isArray(data.slipUrls) && data.slipUrls.length > 0);
         var statusHtml = isPaid ? 
           '<span class="badge-status-paid">' + Icons.check + ' ชำระเงินแล้ว</span>' : 
           '<span class="badge-status-pending">' + Icons.clock + ' รอชำระเงิน</span>';
+
+        // Backward-compatible slips extraction
+        var slips = [];
+        if (Array.isArray(data.slips) && data.slips.length > 0) {
+          slips = data.slips;
+        } else if (Array.isArray(data.slipUrls) && data.slipUrls.length > 0) {
+          slips = data.slipUrls.map(function(u, i) { return { imageUrl: u, fileUrl: u, fileName: 'สลิป ' + (i + 1) }; });
+        } else if (data.slipImageUrl || data.slipFileUrl) {
+          slips = [{ imageUrl: data.slipImageUrl || data.slipFileUrl, fileUrl: data.slipFileUrl || data.slipImageUrl, fileName: 'สลิปชำระเงิน' }];
+        }
+
+        var slipsHtml = '';
+        if (slips.length === 0) {
+          slipsHtml = '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>';
+        } else if (slips.length === 1) {
+          var singleSlip = slips[0];
+          var mainUrl = singleSlip.fileUrl || singleSlip.imageUrl;
+          slipsHtml = `
+            <div style="margin-top:14px; text-align:center;">
+              <img src="${singleSlip.imageUrl || mainUrl}" style="max-width:100%; max-height:260px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${mainUrl}')">
+              <div style="margin-top:8px;">
+                <a href="${mainUrl}" target="_blank" style="background:#f1f5f9; display:inline-block; padding:8px 14px; border-radius:8px; color:#2563eb; text-decoration:none; font-size:13px; font-weight:600; border:1px solid #e2e8f0;">
+                  <span style="display:inline-flex; align-items:center; gap:6px;">${Icons.file} เปิดดูไฟล์สลิปต้นฉบับ</span>
+                </a>
+              </div>
+            </div>
+          `;
+        } else {
+          slipsHtml = `
+            <div style="margin-top:12px;">
+              <div style="font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:8px;">สลิปที่แนบไว้ (${slips.length} ใบ):</div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+                ${slips.map(function(s, idx) {
+                  var targetUrl = s.fileUrl || s.imageUrl;
+                  return `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px; text-align:center;">
+                      <div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:4px;">สลิปที่ ${idx + 1}</div>
+                      <img src="${s.imageUrl || targetUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${targetUrl}')" title="คลิกเพื่อขยาย">
+                      <div style="margin-top:6px;">
+                        <a href="${targetUrl}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:3px;">
+                          ${Icons.file} ดูต้นฉบับ ↗
+                        </a>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
           
         container.innerHTML = `
           <div class="responsive-two-col">
@@ -2172,14 +2453,11 @@
               <div class="contact-box" style="margin-top:0; border-top: 4px solid #f59e0b;">
                 <h3 style="margin:0 0 12px 0; font-size:16px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>
                 <p style="margin:6px 0; font-size:14px; color:var(--text-muted);"><b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:600;">${data.transferDateTime || '-'}</span></p>
-                ${data.slipImageUrl ? `
-                  <div style="margin-top:14px; text-align:center;">
-                    <img src="${data.slipImageUrl}" style="max-width:100%; max-height:260px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${data.slipFileUrl || data.slipImageUrl}')">
-                    <div style="margin-top:8px;">
-                      <a href="${data.slipFileUrl || data.slipImageUrl}" target="_blank" style="background:#f1f5f9; display:inline-block; padding:8px 14px; border-radius:8px; color:#2563eb; text-decoration:none; font-size:13px; font-weight:600; border:1px solid #e2e8f0;"><span style="display:inline-flex; align-items:center; gap:6px;">${Icons.file} เปิดดูไฟล์สลิปต้นฉบับ</span></a>
-                    </div>
-                  </div>
-                ` : '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>'}
+                ${slipsHtml}
+                <button class="btn-secondary btn-sm" style="margin-top:14px; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; color:#2563eb; border-color:#93c5fd; background:#f0f9ff; font-weight:600; padding:10px 14px; border-radius:10px;" onclick="goToReuploadSlips()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  ${slips.length > 0 ? 'แนบสลิปใหม่ / เพิ่มสลิป (บันทึกทับข้อมูลเดิม)' : 'แนบรูปภาพสลิปชำระเงิน'}
+                </button>
               </div>
             </div>
           </div>
@@ -2190,6 +2468,27 @@
     } catch (e) {
       container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px; margin-top:10px;"><b>เกิดข้อผิดพลาด:</b><br>' + e.message + '</div>';
     }
+  }
+
+  async function goToReuploadSlips() {
+    try {
+      var snap = await db.collection('bookings').doc(currentStudentId).get();
+      if (snap.exists) {
+        var data = snap.data();
+        if (data.totalPrice) {
+          var formattedPrice = (data.totalPrice).toLocaleString();
+          var payAmountEl = document.getElementById('pay-amount');
+          if (payAmountEl) payAmountEl.textContent = formattedPrice;
+        }
+        if (data.phone) document.getElementById('contact-phone').value = data.phone;
+        if (data.email) document.getElementById('contact-email').value = data.email;
+      }
+    } catch (e) { }
+
+    uploadedSlips = [];
+    renderSlipsList();
+    updateUploadButtonState();
+    switchSection('upload-section');
   }
 
   function escapeHtml(str) {
