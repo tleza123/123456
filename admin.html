@@ -2062,12 +2062,17 @@
         // Backward-compatible slips extraction
         let slips = [];
         if (Array.isArray(data.slips) && data.slips.length > 0) {
-          slips = data.slips;
+          slips = data.slips.map((s, idx) => ({
+            fileUrl: s.fileUrl || s.imageUrl || '',
+            imageUrl: s.imageUrl || s.fileUrl || '',
+            fileName: s.fileName || `สลิป ${idx + 1}`,
+            transferDateTime: s.transferDateTime || data.transferDateTime || '-'
+          }));
         } else if (Array.isArray(data.slipUrls) && data.slipUrls.length > 0) {
-          slips = data.slipUrls.map((u, idx) => ({ fileUrl: u, imageUrl: u, fileName: `สลิป ${idx + 1}` }));
+          slips = data.slipUrls.map((u, idx) => ({ fileUrl: u, imageUrl: u, fileName: `สลิป ${idx + 1}`, transferDateTime: data.transferDateTime || '-' }));
         } else if (data.slipFileUrl || data.slipImageUrl) {
           const u = data.slipFileUrl || data.slipImageUrl;
-          slips = [{ fileUrl: u, imageUrl: data.slipImageUrl || u, fileName: 'สลิปชำระเงิน' }];
+          slips = [{ fileUrl: u, imageUrl: data.slipImageUrl || u, fileName: 'สลิปชำระเงิน', transferDateTime: data.transferDateTime || '-' }];
         }
         const slipUrls = slips.map(s => s.fileUrl || s.imageUrl).filter(Boolean);
 
@@ -2306,7 +2311,17 @@
           <td style="text-align:center;"><span style="background:#f1f5f9; color:#1e293b; font-weight:700; padding:4px 10px; border-radius:12px; font-size:12px; border:1px solid #e2e8f0;">${qty} ตัว</span></td>
           <td><b>${b.totalPrice.toLocaleString()} ฿</b></td>
           <td>${statusBadge}</td>
-          <td style="font-size:12px; color:#64748b;">${b.transferDateTime}</td>
+          <td style="font-size:12px; color:#64748b;">
+            ${(function(){
+              if (b.slips && b.slips.length > 1) {
+                return b.slips.map((s, idx) => {
+                  const t = s.transferDateTime || b.transferDateTime || '-';
+                  return `<div style="font-size:11px; line-height:1.4; margin-bottom:2px;"><span style="font-weight:600; color:#1e293b;">สลิป ${idx + 1}:</span> ${escapeHtml(t)}</div>`;
+                }).join('');
+              }
+              return escapeHtml(b.transferDateTime);
+            })()}
+          </td>
           <td>${slipBtn}</td>
         </tr>
       `;
@@ -2346,25 +2361,38 @@
 
     if (urls.length === 1) {
       const url = urls[0];
+      const s = (b.slips && b.slips[0]) ? b.slips[0] : { fileUrl: url, imageUrl: url };
+      const timeStr = s.transferDateTime || b.transferDateTime || '-';
       modalTitle.innerText = `สลิปของ: ${b.name}`;
       body.innerHTML = `
-        <img src="${url}" loading="lazy" style="max-width:100%; max-height:65vh; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+        <div style="margin-bottom:12px;">
+          <span style="font-size:13px; font-weight:600; color:#b45309; background:#fef3c7; border:1px solid #fde68a; display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px;">
+            วัน-เวลาที่โอน: ${escapeHtml(timeStr)}
+          </span>
+        </div>
+        <img src="${s.imageUrl || url}" loading="lazy" style="max-width:100%; max-height:60vh; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
         <div style="margin-top:14px;">
           <a href="${url}" target="_blank" class="btn-site-link" style="background:#003566; color:white; border:none; display:inline-block;">เปิดดูรูปขนาดเต็ม ↗</a>
         </div>
       `;
     } else {
       modalTitle.innerText = `สลิปของ: ${b.name} (ทั้งหมด ${urls.length} ใบ)`;
-      const slipsList = b.slips && b.slips.length > 0 ? b.slips : urls.map((u, i) => ({ fileUrl: u, imageUrl: u, fileName: `สลิป ${i+1}` }));
+      const slipsList = b.slips && b.slips.length > 0 ? b.slips : urls.map((u, i) => ({ fileUrl: u, imageUrl: u, fileName: `สลิป ${i+1}`, transferDateTime: b.transferDateTime || '-' }));
       body.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:16px; max-height:72vh; overflow-y:auto; padding:4px;">
           ${slipsList.map((s, idx) => {
             const url = s.fileUrl || s.imageUrl;
             const fileNameHtml = s.fileName ? `<div style="font-size:12px; color:#64748b; margin-top:2px;">${escapeHtml(s.fileName)}</div>` : '';
+            const sTime = s.transferDateTime || b.transferDateTime || '-';
             return `
               <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:14px; text-align:center;">
                 <div style="font-size:14px; font-weight:700; color:var(--main-blue);">สลิปที่ ${idx + 1} จาก ${urls.length}</div>
                 ${fileNameHtml}
+                <div style="margin:8px 0 10px 0;">
+                  <span style="font-size:13px; font-weight:600; color:#b45309; background:#fef3c7; border:1px solid #fde68a; display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:8px;">
+                    วัน-เวลาที่โอน: ${escapeHtml(sTime)}
+                  </span>
+                </div>
                 <div style="margin:10px auto;">
                   <img src="${s.imageUrl || url}" loading="lazy" style="max-width:100%; max-height:48vh; border-radius:10px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
                 </div>

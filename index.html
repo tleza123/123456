@@ -818,13 +818,10 @@
           <label>ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
           <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" autocomplete="tel">
           <input type="email" id="contact-email" placeholder="2. อีเมล" autocomplete="email">
-          <label style="margin-top: 10px;">วันที่และเวลาที่โอนเงิน (ระบบ 24 ชม.):</label>
-          <div style="display: flex; gap: 6px; align-items: center;">
-            <input type="date" id="transfer-date" style="flex: 2; margin: 0;">
-            <select id="transfer-hour" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">ชม.</option></select>
-            <span style="font-weight: 700; color: var(--main-blue);">:</span>
-            <select id="transfer-minute" style="flex: 1; margin: 0; padding: 11px 4px; text-align: center;"><option value="">นาที</option></select>
-          </div>
+          <!-- Fallback hidden elements for legacy script compatibility -->
+          <input type="hidden" id="transfer-date">
+          <select id="transfer-hour" style="display:none;"><option value="">ชม.</option></select>
+          <select id="transfer-minute" style="display:none;"><option value="">นาที</option></select>
         </div>
 
         <div style="text-align: left; margin-top: 15px; background: white; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
@@ -832,7 +829,7 @@
             <label style="font-weight: 700; font-size: 14px; color: var(--text-main); margin:0;">แนบรูปภาพสลิปชำระเงิน:</label>
             <span style="font-size:12px; color:var(--text-muted); background:#f1f5f9; padding:2px 8px; border-radius:12px;">แนบได้หลายใบ</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 12px 0;">กรณีแบ่งโอนหรือมียอดโอนมากกว่า 1 สลิป สามารถเลือกหรือกดเพิ่มสลิปได้เลยครับ (หากมีสลิปเดิมอยู่แล้ว การยืนยันสลิปชุดใหม่นี้จะบันทึกทับข้อมูลเดิมทันที)</p>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 12px 0;">กรณีแบ่งโอนหรือมีหลายสลิป สามารถแนบและระบุวัน-เวลาโอนของแต่ละสลิปได้เลยครับ (หากมีสลิปเดิมอยู่แล้ว การยืนยันสลิปชุดใหม่นี้จะบันทึกทับข้อมูลเดิมทันที)</p>
           
           <!-- Hidden multi-file input -->
           <input type="file" id="slipFileInput" accept="image/*" multiple style="display:none;" onchange="handleFilesSelected(this)">
@@ -2067,9 +2064,59 @@
     }
   }
 
+  function getTodayDateString() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = (now.getMonth() + 1).toString().padStart(2, '0');
+    var day = now.getDate().toString().padStart(2, '0');
+    return year + '-' + month + '-' + day;
+  }
+
+  function getHourOptionsHtml(selectedVal) {
+    var html = '<option value="">ชม.</option>';
+    for (var i = 0; i <= 23; i++) {
+      var val = i.toString().padStart(2, '0');
+      var sel = (val === selectedVal) ? ' selected' : '';
+      html += '<option value="' + val + '"' + sel + '>' + val + '</option>';
+    }
+    return html;
+  }
+
+  function getMinuteOptionsHtml(selectedVal) {
+    var html = '<option value="">นาที</option>';
+    for (var j = 0; j <= 59; j++) {
+      var val = j.toString().padStart(2, '0');
+      var sel = (val === selectedVal) ? ' selected' : '';
+      html += '<option value="' + val + '"' + sel + '>' + val + '</option>';
+    }
+    return html;
+  }
+
+  function updateSlipDateTime(id, field, val) {
+    var item = uploadedSlips.find(function(s) { return s.id === id; });
+    if (item) {
+      item[field] = val;
+      syncLegacyDateTimeInputs();
+    }
+  }
+
+  function syncLegacyDateTimeInputs() {
+    if (uploadedSlips.length > 0) {
+      var s0 = uploadedSlips[0];
+      var dEl = document.getElementById('transfer-date');
+      var hEl = document.getElementById('transfer-hour');
+      var mEl = document.getElementById('transfer-minute');
+      if (dEl && s0.transferDate) dEl.value = s0.transferDate;
+      if (hEl && s0.transferHour) hEl.value = s0.transferHour;
+      if (mEl && s0.transferMinute) mEl.value = s0.transferMinute;
+    }
+  }
+
   function handleFilesSelected(input) {
     var files = Array.from(input.files || []);
     if (files.length === 0) return;
+
+    var todayStr = getTodayDateString();
 
     files.forEach(function(file) {
       if (!file.type.startsWith('image/')) {
@@ -2086,13 +2133,17 @@
         fileUrl: '',
         status: 'uploading',
         inProgress: false,
-        error: ''
+        error: '',
+        transferDate: todayStr,
+        transferHour: '',
+        transferMinute: ''
       });
     });
 
     input.value = '';
     renderSlipsList();
     updateUploadButtonState();
+    syncLegacyDateTimeInputs();
     processSlipUploadQueue();
   }
 
@@ -2181,6 +2232,7 @@
       }
       uploadedSlips.splice(idx, 1);
       syncLegacySlipUrls();
+      syncLegacyDateTimeInputs();
       renderSlipsList();
       updateUploadButtonState();
     }
@@ -2222,18 +2274,42 @@
       }
 
       return `
-        <div style="display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 12px;">
-          <img src="${item.previewUrl}" style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" onclick="openLightbox('${item.previewUrl}')" title="คลิกเพื่อดูรูปขนาดเต็ม">
-          <div style="flex:1; min-width:0;">
-            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-              <span style="font-weight:700; font-size:12px; color:var(--text-main);">สลิปที่ ${idx + 1}</span>
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:14px; padding:12px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+          <!-- Top bar of card: Badge, Status, and Delete button -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span style="font-weight:700; font-size:13px; color:var(--main-blue); background:#e0f2fe; padding:3px 10px; border-radius:8px;">สลิปที่ ${idx + 1}</span>
               ${statusBadge}
             </div>
-            <div style="font-size:11px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;" title="${escapeHtml(item.fileName)}">${escapeHtml(item.fileName)}</div>
+            <button type="button" onclick="removeSlip('${item.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="ลบสลิปนี้">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              ลบสลิปนี้
+            </button>
           </div>
-          <button type="button" onclick="removeSlip('${item.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:6px; border-radius:6px; display:flex; align-items:center; justify-content:center;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="ลบสลิปนี้">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+
+          <!-- Content of card: Image preview + Date/time input -->
+          <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+            <div style="text-align:center;">
+              <img src="${item.previewUrl}" style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #cbd5e1; cursor:pointer;" onclick="openLightbox('${item.previewUrl}')" title="คลิกเพื่อดูรูปขนาดเต็ม">
+              <div style="font-size:10px; color:#64748b; max-width:70px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px;" title="${escapeHtml(item.fileName)}">${escapeHtml(item.fileName)}</div>
+            </div>
+            <div style="flex:1; min-width:210px;">
+              <label style="font-size:12px; font-weight:700; color:#334155; display:flex; align-items:center; gap:5px; margin-bottom:5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                วันและเวลาที่โอน (ตามสลิปที่ ${idx + 1}):
+              </label>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input type="date" value="${item.transferDate || ''}" onchange="updateSlipDateTime('${item.id}', 'transferDate', this.value)" style="flex:2; margin:0; padding:8px; font-size:13px; background:white; border:1px solid #cbd5e1; border-radius:8px;">
+                <select onchange="updateSlipDateTime('${item.id}', 'transferHour', this.value)" style="flex:1; margin:0; padding:8px 2px; text-align:center; font-size:13px; background:white; border:1px solid #cbd5e1; border-radius:8px;">
+                  ${getHourOptionsHtml(item.transferHour)}
+                </select>
+                <span style="font-weight:700; color:var(--main-blue);">:</span>
+                <select onchange="updateSlipDateTime('${item.id}', 'transferMinute', this.value)" style="flex:1; margin:0; padding:8px 2px; text-align:center; font-size:13px; background:white; border:1px solid #cbd5e1; border-radius:8px;">
+                  ${getMinuteOptionsHtml(item.transferMinute)}
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
       `;
     }).join('');
@@ -2282,13 +2358,9 @@
   async function finalizeOrderFast() {
     var phone = document.getElementById('contact-phone').value.trim();
     var email = document.getElementById('contact-email').value.trim();
-    var transferDate = document.getElementById('transfer-date').value;
-    var transferHour = document.getElementById('transfer-hour').value;
-    var transferMinute = document.getElementById('transfer-minute').value;
 
     if (!phone) return alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับด้วยครับ');
     if (!email || !email.includes('@')) return alert('กรุณากรอกอีเมลให้ถูกต้องครับ');
-    if (!transferDate || transferHour === "" || transferMinute === "") return alert('กรุณาระบุวันที่และเวลาที่โอนเงินครับ');
 
     var doneSlips = uploadedSlips.filter(function(s) { return s.status === 'done'; });
     if (doneSlips.length === 0) return alert('กรุณาแนบรูปภาพสลิปชำระเงินและรอให้อัปโหลดเสร็จสิ้นก่อนครับ');
@@ -2296,22 +2368,38 @@
       return alert('ระบบกำลังประมวลผลรูปภาพ กรุณารอสักครู่ให้เสร็จสิ้นก่อนครับ');
     }
 
-    var parts = transferDate.split('-');
-    var formattedDateTime = parts[2] + '/' + parts[1] + '/' + parts[0] + ' เวลา ' + transferHour + ':' + transferMinute + ' น.';
+    // Validate date and time for each individual slip
+    for (var k = 0; k < doneSlips.length; k++) {
+      var sItem = doneSlips[k];
+      if (!sItem.transferDate || sItem.transferHour === "" || sItem.transferMinute === "") {
+        return alert('กรุณาระบุวันที่และเวลาที่โอนเงินของ "สลิปที่ ' + (k + 1) + '" ให้ครบถ้วนด้วยครับ');
+      }
+    }
 
     var btn = document.getElementById('btnUpload');
     btn.disabled = true; btn.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;">' + Icons.refresh + ' กำลังบันทึกข้อมูล...</span>';
 
     try {
       var slipsData = doneSlips.map(function(s) {
+        var parts = s.transferDate.split('-');
+        var formattedSlipDateTime = parts[2] + '/' + parts[1] + '/' + parts[0] + ' เวลา ' + s.transferHour + ':' + s.transferMinute + ' น.';
         return {
           imageUrl: s.imageUrl,
           fileUrl: s.fileUrl,
-          fileName: s.fileName
+          fileName: s.fileName,
+          transferDate: s.transferDate,
+          transferHour: s.transferHour,
+          transferMinute: s.transferMinute,
+          transferDateTime: formattedSlipDateTime
         };
       });
+
       var primarySlip = slipsData[0] || {};
       var slipUrls = slipsData.map(function(s) { return s.fileUrl || s.imageUrl; }).filter(Boolean);
+
+      var overallTransferDateTime = slipsData.length === 1 ?
+        slipsData[0].transferDateTime :
+        slipsData.map(function(s, idx) { return 'สลิป ' + (idx + 1) + ': ' + s.transferDateTime; }).join(' | ');
 
       await db.collection('bookings').doc(currentStudentId).set({
         // Overwrite existing slip fields:
@@ -2323,7 +2411,7 @@
         slipCount: slipsData.length,
         phone: phone,
         email: email,
-        transferDateTime: formattedDateTime,
+        transferDateTime: overallTransferDateTime,
         status: 'paid',
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
@@ -2337,7 +2425,7 @@
         orderSummary: bookingData.summary || '',
         totalPrice: bookingData.totalPrice || 0,
         email: email,
-        transferDateTime: formattedDateTime,
+        transferDateTime: overallTransferDateTime,
         fileUrl: primarySlip.fileUrl || '',
         slipUrls: slipUrls.join(', ')
       }).catch(function(e) { console.warn('Email send failed:', e); });
@@ -2376,9 +2464,9 @@
         if (Array.isArray(data.slips) && data.slips.length > 0) {
           slips = data.slips;
         } else if (Array.isArray(data.slipUrls) && data.slipUrls.length > 0) {
-          slips = data.slipUrls.map(function(u, i) { return { imageUrl: u, fileUrl: u, fileName: 'สลิป ' + (i + 1) }; });
+          slips = data.slipUrls.map(function(u, i) { return { imageUrl: u, fileUrl: u, fileName: 'สลิป ' + (i + 1), transferDateTime: data.transferDateTime || '-' }; });
         } else if (data.slipImageUrl || data.slipFileUrl) {
-          slips = [{ imageUrl: data.slipImageUrl || data.slipFileUrl, fileUrl: data.slipFileUrl || data.slipImageUrl, fileName: 'สลิปชำระเงิน' }];
+          slips = [{ imageUrl: data.slipImageUrl || data.slipFileUrl, fileUrl: data.slipFileUrl || data.slipImageUrl, fileName: 'สลิปชำระเงิน', transferDateTime: data.transferDateTime || '-' }];
         }
 
         var slipsHtml = '';
@@ -2387,8 +2475,12 @@
         } else if (slips.length === 1) {
           var singleSlip = slips[0];
           var mainUrl = singleSlip.fileUrl || singleSlip.imageUrl;
+          var singleTime = singleSlip.transferDateTime || data.transferDateTime || '-';
           slipsHtml = `
-            <div style="margin-top:14px; text-align:center;">
+            <div style="margin-top:10px; font-size:14px; color:var(--text-muted);">
+              <b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:600;">${escapeHtml(singleTime)}</span>
+            </div>
+            <div style="margin-top:12px; text-align:center;">
               <img src="${singleSlip.imageUrl || mainUrl}" style="max-width:100%; max-height:260px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${mainUrl}')">
               <div style="margin-top:8px;">
                 <a href="${mainUrl}" target="_blank" style="background:#f1f5f9; display:inline-block; padding:8px 14px; border-radius:8px; color:#2563eb; text-decoration:none; font-size:13px; font-weight:600; border:1px solid #e2e8f0;">
@@ -2399,19 +2491,23 @@
           `;
         } else {
           slipsHtml = `
-            <div style="margin-top:12px;">
+            <div style="margin-top:10px;">
               <div style="font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:8px;">สลิปที่แนบไว้ (${slips.length} ใบ):</div>
-              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+              <div style="display:flex; flex-direction:column; gap:12px;">
                 ${slips.map(function(s, idx) {
                   var targetUrl = s.fileUrl || s.imageUrl;
+                  var sTime = s.transferDateTime || data.transferDateTime || '-';
                   return `
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px; text-align:center;">
-                      <div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:4px;">สลิปที่ ${idx + 1}</div>
-                      <img src="${s.imageUrl || targetUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${targetUrl}')" title="คลิกเพื่อขยาย">
-                      <div style="margin-top:6px;">
-                        <a href="${targetUrl}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:3px;">
-                          ${Icons.file} ดูต้นฉบับ ↗
-                        </a>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; display:flex; gap:12px; align-items:center;">
+                      <img src="${s.imageUrl || targetUrl}" style="width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${targetUrl}')" title="คลิกเพื่อขยาย">
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-size:13px; font-weight:700; color:var(--main-blue);">สลิปที่ ${idx + 1}</div>
+                        <div style="font-size:12px; color:#475569; margin-top:2px;"><b>วัน-เวลาโอน:</b> <span style="color:#0f172a; font-weight:600;">${escapeHtml(sTime)}</span></div>
+                        <div style="margin-top:6px;">
+                          <a href="${targetUrl}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:3px;">
+                            ${Icons.file} ดูต้นฉบับ ↗
+                          </a>
+                        </div>
                       </div>
                     </div>
                   `;
@@ -2452,7 +2548,6 @@
             <div>
               <div class="contact-box" style="margin-top:0; border-top: 4px solid #f59e0b;">
                 <h3 style="margin:0 0 12px 0; font-size:16px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>
-                <p style="margin:6px 0; font-size:14px; color:var(--text-muted);"><b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:600;">${data.transferDateTime || '-'}</span></p>
                 ${slipsHtml}
                 <button class="btn-secondary btn-sm" style="margin-top:14px; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; color:#2563eb; border-color:#93c5fd; background:#f0f9ff; font-weight:600; padding:10px 14px; border-radius:10px;" onclick="goToReuploadSlips()">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
