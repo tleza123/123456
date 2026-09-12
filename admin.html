@@ -729,19 +729,26 @@
       <div class="nav-tab" onclick="switchTab('tab-announcement')">ประกาศด่วนหน้าหลัก</div>
       <div class="nav-tab" onclick="switchTab('tab-responses')">ดูผลตอบรับและส่งออกชีต</div>
       <div class="nav-tab" onclick="switchTab('tab-bookings')">ตรวจสอบการจองเสื้อและสลิป</div>
+      <div class="nav-tab" onclick="switchTab('tab-inquiries')">ข้อความสอบถาม</div>
       <div class="nav-tab" onclick="switchTab('tab-settings')">ตั้งค่าระบบและรหัสผ่าน</div>
       <div class="nav-tab" onclick="switchTab('tab-logs')">ประวัติการเข้าใช้</div>
     </div>
 
-    <!-- TAB 1:  จัดการกิจกรรม -->
+    <!-- TAB 1: จัดการกิจกรรม -->
     <div id="tab-activities" class="tab-pane active">
       <div class="box">
-        <div class="box-title">
-          <span> รายการกิจกรรมทั้งหมดในระบบ</span>
-          <button class="btn-success btn-sm" onclick="addNewActivity()">+ เพิ่มกิจกรรมใหม่</button>
+        <div class="box-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span>รายการกิจกรรมทั้งหมดในระบบ</span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn-secondary btn-sm" onclick="addNewActivity('poll')">+ โพลล์</button>
+            <button class="btn-secondary btn-sm" onclick="addNewActivity('form')">+ แบบฟอร์ม</button>
+            <button class="btn-secondary btn-sm" onclick="addNewActivity('comment')">+ พูดคุย</button>
+            <button class="btn-secondary btn-sm" onclick="addNewActivity('booking')">+ สั่งจอง</button>
+            <button class="btn-success btn-sm" onclick="addNewActivity()">+ เพิ่มกิจกรรม</button>
+          </div>
         </div>
-        <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
-          เพิ่ม แก้ไข หรือปรับแต่งกิจกรรมต่างๆ เช่น โพลล์โหวต กระดานความคิดเห็น แจ้งเตือนงาน โดยไม่ต้องเขียน HTML
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -6px; margin-bottom: 20px;">
+          เพิ่ม แก้ไข หรือคัดลอกกิจกรรมชนิดเดียวกันได้หลายอัน เช่น โพลล์หลายหัวข้อ แบบฟอร์มหลายชุด หรือกระดานพูดคุย โดยไม่ต้องเขียน HTML
         </p>
 
         <div id="activitiesContainer">
@@ -977,6 +984,23 @@
       </div>
     </div>
 
+    <!-- TAB: ข้อความสอบถามจากนักศึกษา -->
+    <div id="tab-inquiries" class="tab-pane">
+      <div class="box">
+        <div class="box-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>ข้อความสอบถามจากนักศึกษา</span>
+          <button class="btn-site-link btn-sm" onclick="loadInquiriesData()" style="color:var(--main-blue); border-color:#cbd5e1; background:#f8fafc; cursor:pointer;">รีเฟรชข้อความ</button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
+          ข้อความหรือคำถามที่นักศึกษาส่งเข้ามาผ่านแบบฟอร์มสอบถามบนหน้าเว็บไซต์
+        </p>
+
+        <div id="inquiriesContainer" style="overflow-x: auto;">
+          <div style="text-align:center; padding:30px; color:#64748b;">กำลังโหลดข้อความ...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- TAB 6: ประวัติการเข้าใช้แอดมิน -->
     <div id="tab-logs" class="tab-pane">
       <div class="box">
@@ -1206,6 +1230,8 @@
       displaySelectedActivityResponses();
     } else if (tabId === 'tab-bookings') {
       loadBookingsData();
+    } else if (tabId === 'tab-inquiries') {
+      loadInquiriesData();
     } else if (tabId === 'tab-logs') {
       loadAdminLogs();
     }
@@ -1248,6 +1274,7 @@
             <span class="task-type-badge">${typeLabels[currentType] || currentType}</span>
           </div>
           <div style="display:flex; gap:6px; align-items:center;">
+            <button class="btn-secondary btn-sm" onclick="duplicateActivity(${index})" title="คัดลอกกิจกรรมนี้">คัดลอก</button>
             <button class="btn-secondary btn-sm" onclick="moveActivity(${index}, -1)" ${index === 0 ? 'disabled' : ''} title="เลื่อนขึ้น"></button>
             <button class="btn-secondary btn-sm" onclick="moveActivity(${index}, 1)" ${index === appActivities.length - 1 ? 'disabled' : ''} title="เลื่อนลง"></button>
             <button class="btn-danger btn-sm" onclick="removeActivity(${index})">ลบ</button>
@@ -1580,27 +1607,72 @@
     renderActivitiesList();
   }
 
-  function addNewActivity() {
-    const newId = 'act-' + Date.now().toString().slice(-6);
-    appActivities.push({
+  function addNewActivity(type) {
+    const actType = type || 'poll';
+    const newId = 'act-' + actType + '-' + Date.now().toString().slice(-6);
+    let newAct = {
       id: newId,
       icon: '',
       title: 'กิจกรรมใหม่',
       desc: 'รายละเอียดกิจกรรม',
       imageUrl: '',
       endDate: '2026-12-31T23:59',
-      type: 'poll',
-      pollOptions: ['เห็นด้วย', 'ไม่เห็นด้วย'],
-      pollOptionImages: ['', ''],
-      allowChangeVote: true,
-      showResults: true,
-      action: "goToSection('dynamic-" + newId + "')",
+      type: actType,
+      action: actType === 'booking' ? "goToSection('booking-section')" : "goToSection('dynamic-" + newId + "')",
       order: appActivities.length + 1
-    });
+    };
+
+    if (actType === 'poll') {
+      newAct.title = 'โพลล์สำรวจความคิดเห็นใหม่';
+      newAct.desc = 'ร่วมออกเสียงและแสดงความเห็นสำหรับกิจกรรมนี้';
+      newAct.pollOptions = ['เห็นด้วย', 'ไม่เห็นด้วย'];
+      newAct.pollOptionImages = ['', ''];
+      newAct.allowChangeVote = true;
+      newAct.showResults = true;
+    } else if (actType === 'form') {
+      newAct.title = 'แบบสอบถามและรับสมัครใหม่';
+      newAct.desc = 'กรอกข้อมูลและส่งแบบฟอร์มออนไลน์';
+      newAct.formQuestions = [
+        { label: 'ข้อเสนอแนะหรือรายละเอียด', type: 'text', required: true }
+      ];
+    } else if (actType === 'comment') {
+      newAct.title = 'กระดานพูดคุยแลกเปลี่ยน';
+      newAct.desc = 'พื้นที่พูดคุยและแสดงความคิดเห็นสำหรับนักศึกษา';
+    } else if (actType === 'booking') {
+      newAct.title = 'ระบบสั่งจองสินค้าและเสื้อช็อป';
+      newAct.desc = 'สั่งจองสินค้าหรือเสื้อประจำกิจกรรมพร้อมแนบหลักฐานการชำระเงิน';
+    } else if (actType === 'announcement') {
+      newAct.title = 'ประกาศด่วน';
+      newAct.desc = 'รายละเอียดข่าวสารและประกาศสำคัญ';
+    }
+
+    appActivities.push(newAct);
     renderActivitiesList();
     setTimeout(() => {
       const lastCard = document.getElementById('activity-card-' + (appActivities.length - 1));
       if (lastCard) lastCard.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  }
+
+  function duplicateActivity(index) {
+    if (index < 0 || index >= appActivities.length) return;
+    const source = appActivities[index];
+    const cloned = JSON.parse(JSON.stringify(source));
+    const newId = 'act-' + (cloned.type || 'item') + '-' + Date.now().toString().slice(-6);
+    cloned.id = newId;
+    cloned.title = (cloned.title || 'กิจกรรม') + ' สำเนา';
+    if (cloned.type === 'booking') {
+      cloned.action = "goToSection('booking-section')";
+    } else {
+      cloned.action = "goToSection('dynamic-" + newId + "')";
+    }
+    cloned.order = appActivities.length + 1;
+    appActivities.splice(index + 1, 0, cloned);
+    renderActivitiesList();
+    showGlobalToast('คัดลอกกิจกรรมสำเร็จ สามารถปรับแต่งรายละเอียดได้ทันที', 'success');
+    setTimeout(() => {
+      const newCard = document.getElementById('activity-card-' + (index + 1));
+      if (newCard) newCard.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   }
 
@@ -2720,6 +2792,115 @@
 
     } catch (e) {
       console.warn('Failed to record admin access log:', e);
+    }
+  }
+
+  // =============================================
+  //  Inquiries Management
+  // =============================================
+  let allInquiriesList = [];
+
+  async function loadInquiriesData() {
+    if (!isAdminAuthenticated) return;
+    const container = document.getElementById('inquiriesContainer');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b;"><div class="loading-spinner" style="margin:0 auto 10px auto; width:28px; height:28px; border-width:3px;"></div>กำลังโหลดข้อความสอบถาม...</div>';
+
+    try {
+      const snap = await db.collection('inquiries').orderBy('createdAt', 'desc').limit(100).get();
+      allInquiriesList = [];
+      snap.forEach(doc => {
+        allInquiriesList.push({ id: doc.id, ...doc.data() });
+      });
+
+      if (allInquiriesList.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:36px; color:#64748b; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">ยังไม่มีข้อความสอบถามจากนักศึกษา</div>';
+        return;
+      }
+
+      let rows = '';
+      allInquiriesList.forEach((inq, idx) => {
+        const timeStr = inq.createdAtStr || (inq.createdAt ? (inq.createdAt.toDate ? inq.createdAt.toDate().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }) : inq.createdAt) : '-');
+        const isResolved = inq.status === 'resolved';
+        const statusBadge = isResolved ?
+          '<span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:600;">ตอบแล้ว</span>' :
+          '<span style="background:#fef3c7; color:#b45309; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:600;">รอดำเนินการ</span>';
+
+        const toggleBtn = isResolved ?
+          `<button class="btn-secondary btn-sm" onclick="setInquiryStatus('${inq.id}', 'pending')" style="padding:3px 8px; font-size:11px;">ตั้งเป็นรอดำเนินการ</button>` :
+          `<button class="btn-success btn-sm" onclick="setInquiryStatus('${inq.id}', 'resolved')" style="padding:3px 8px; font-size:11px;">ทำเครื่องหมายว่าตอบแล้ว</button>`;
+
+        rows += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 14px; text-align: center; color: #64748b;">${idx + 1}</td>
+            <td style="padding: 12px 14px; font-weight: 600; color: #1e293b; white-space: nowrap;">${escapeHtml(timeStr)}</td>
+            <td style="padding: 12px 14px; white-space: nowrap;">
+              <div style="font-weight:700; color:var(--main-blue);">${escapeHtml(inq.studentName || 'นักศึกษา')}</div>
+              <div style="font-size:12px; color:#64748b;">${escapeHtml(inq.studentId || '-')}</div>
+            </td>
+            <td style="padding: 12px 14px; font-weight: 600; color: #334155;">${escapeHtml(inq.topic || 'สอบถามทั่วไป')}</td>
+            <td style="padding: 12px 14px; color: #1e293b; max-width: 320px; line-height: 1.5; background: #fafafa; border-radius: 8px;">
+              ${escapeHtml(inq.message || '')}
+              ${inq.contact ? `<div style="font-size:12px; color:#64748b; margin-top:4px;"><b>ติดต่อ:</b> ${escapeHtml(inq.contact)}</div>` : ''}
+            </td>
+            <td style="padding: 12px 14px; text-align: center;">${statusBadge}</td>
+            <td style="padding: 12px 14px; text-align: center; white-space: nowrap;">
+              <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                ${toggleBtn}
+                <button class="btn-danger btn-sm" onclick="deleteInquiry('${inq.id}')" style="padding:3px 8px; font-size:11px;">ลบ</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+          <thead>
+            <tr style="background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0;">
+              <th style="padding: 12px 14px; text-align: center; width: 40px;">ลำดับ</th>
+              <th style="padding: 12px 14px; width: 140px;">วัน-เวลา</th>
+              <th style="padding: 12px 14px; width: 160px;">ผู้สอบถาม</th>
+              <th style="padding: 12px 14px; width: 150px;">หัวข้อ</th>
+              <th style="padding: 12px 14px;">ข้อความสอบถาม</th>
+              <th style="padding: 12px 14px; text-align: center; width: 140px;">สถานะ</th>
+              <th style="padding: 12px 14px; text-align: center; width: 130px;">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+    } catch(err) {
+      console.error(err);
+      container.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการดึงข้อความ: ' + err.message + '</div>';
+    }
+  }
+
+  async function setInquiryStatus(docId, newStatus) {
+    if (!isAdminAuthenticated) return alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
+    try {
+      await db.collection('inquiries').doc(docId).update({
+        status: newStatus,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      showGlobalToast('อัปเดตสถานะข้อความเรียบร้อย', 'success');
+      loadInquiriesData();
+    } catch(e) {
+      alert('ไม่สามารถอัปเดตสถานะได้: ' + e.message);
+    }
+  }
+
+  async function deleteInquiry(docId) {
+    if (!isAdminAuthenticated) return alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
+    if (!confirm('ยืนยันที่จะลบข้อความสอบถามนี้ใช่หรือไม่?')) return;
+    try {
+      await db.collection('inquiries').doc(docId).delete();
+      showGlobalToast('ลบข้อความสอบถามเรียบร้อย', 'success');
+      loadInquiriesData();
+    } catch(e) {
+      alert('เกิดข้อผิดพลาดในการลบ: ' + e.message);
     }
   }
 

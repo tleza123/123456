@@ -235,6 +235,174 @@
     }
     .banner-btn:hover { background: #f8fafc; border-color: var(--main-blue); }
 
+    /* Quick Navigation Hub */
+    .quick-nav-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    @media (min-width: 640px) {
+      .quick-nav-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
+    }
+    .quick-nav-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.2s var(--ease-spring), box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .quick-nav-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 53, 102, 0.08);
+      border-color: #93c5fd;
+    }
+    .quick-nav-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .quick-nav-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--main-blue);
+      margin-bottom: 4px;
+    }
+    .quick-nav-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Activity Filter Tabs */
+    .activity-filter-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .activity-filter-tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .filter-tab-btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-muted);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .filter-tab-btn.active {
+      background: var(--main-blue);
+      color: #ffffff;
+      border-color: var(--main-blue);
+    }
+
+    /* Shop Catalog Grid */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (min-width: 640px) {
+      .shop-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+      }
+    }
+    @media (min-width: 1024px) {
+      .shop-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+    }
+    .product-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s var(--ease-spring), box-shadow 0.2s;
+    }
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 53, 102, 0.08);
+      border-color: #93c5fd;
+    }
+    .product-thumb {
+      width: 100%;
+      height: auto;
+      max-height: 220px;
+      object-fit: contain;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      background: #f8fafc;
+      cursor: pointer;
+    }
+    .product-tag-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .product-price-tag {
+      font-size: 14px;
+      font-weight: 700;
+      color: #059669;
+      background: #ecfdf5;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .product-status-open {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2563eb;
+      background: #eff6ff;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .product-status-soon {
+      font-size: 11px;
+      font-weight: 700;
+      color: #d97706;
+      background: #fefce8;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* Inquiry Box */
+    .inquiry-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      text-align: left;
+      margin-bottom: 24px;
+    }
+
     /* Task Cards */
     .task-card {
       background: white;
@@ -746,21 +914,71 @@
     <!-- Dynamic Home Announcement Banner -->
     <div id="home-announcement-container"></div>
 
-    <!-- ปุ่มตรวจสอบข้อมูลการจองเสื้อ (เมนูคงที่) -->
-    <div class="task-card" style="border-left-color: #10b981; margin-bottom: 24px; background: #f0fdf4; text-align: left;">
-      <div class="task-title">
-        <span style="display:flex; align-items:center; gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> ตรวจสอบข้อมูลการจองเสื้อช็อป</span>
-        <span class="task-type-tag" style="background:#dcfce7; color:#15803d;">ข้อมูลส่วนตัว</span>
+    <!-- Quick Navigation Hub (Shop, Forms, Activities, Orders) -->
+    <div class="quick-nav-grid">
+      <div class="quick-nav-card" onclick="goToSection('shop-section')">
+        <div>
+          <div class="quick-nav-icon" style="background:#eff6ff; color:#2563eb;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          </div>
+          <div class="quick-nav-title">ร้านค้า & สั่งซื้อ</div>
+          <div class="quick-nav-sub">เสื้อช็อปและสินค้าสาขา</div>
+        </div>
+        <div style="font-size:11px; font-weight:700; color:#2563eb; margin-top:8px;">เข้าชมร้านค้า →</div>
       </div>
-      <div class="task-desc" style="color: #166534;">เช็คสถานะการชำระเงิน ไซส์เสื้อ และยอดเงินของคุณ</div>
-      <button class="task-btn btn-success" style="margin-top: 8px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);" onclick="viewMyBooking()">ตรวจสอบข้อมูลของฉัน →</button>
+
+      <div class="quick-nav-card" onclick="goToSection('forms-section')">
+        <div>
+          <div class="quick-nav-icon" style="background:#f0fdf4; color:#16a34a;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <div class="quick-nav-title">แบบฟอร์ม & สอบถาม</div>
+          <div class="quick-nav-sub">ส่งคำถามและตอบแบบประเมิน</div>
+        </div>
+        <div style="font-size:11px; font-weight:700; color:#16a34a; margin-top:8px;">เปิดแบบฟอร์ม →</div>
+      </div>
+
+      <div class="quick-nav-card" onclick="scrollToActivities()">
+        <div>
+          <div class="quick-nav-icon" style="background:#fefce8; color:#ca8a04;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
+          <div class="quick-nav-title">กิจกรรม & โพลล์</div>
+          <div class="quick-nav-sub">ร่วมโหวตและแสดงความเห็น</div>
+        </div>
+        <div style="font-size:11px; font-weight:700; color:#ca8a04; margin-top:8px;">ดูกิจกรรม →</div>
+      </div>
+
+      <div class="quick-nav-card" onclick="viewMyBooking()">
+        <div>
+          <div class="quick-nav-icon" style="background:#fdf2f8; color:#db2777;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <div class="quick-nav-title">ตรวจสอบข้อมูล</div>
+          <div class="quick-nav-sub">เช็คสถานะการจองและสลิป</div>
+        </div>
+        <div style="font-size:11px; font-weight:700; color:#db2777; margin-top:8px;">ตรวจสอบ →</div>
+      </div>
     </div>
 
-    <div style="text-align: left; margin-bottom: 16px;">
-      <h3 style="font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display:flex; align-items:center; justify-content:space-between;">
-        <span style="display:flex; align-items:center; gap:8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> กิจกรรมและงานทั้งหมด</span>
+    <div style="text-align: left; margin-bottom: 14px;" id="activitiesHeadingWrapper">
+      <h3 style="font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> 
+          กิจกรรมและงานทั้งหมด
+        </span>
         <span id="active-tasks-count" style="font-size:13px; color:var(--text-muted); font-weight:normal;"></span>
       </h3>
+
+      <!-- Activity Category Filter Tabs -->
+      <div class="activity-filter-tabs" id="activityFilterTabs">
+        <button class="filter-tab-btn active" onclick="setActivityFilter('all', this)">ทั้งหมด</button>
+        <button class="filter-tab-btn" onclick="setActivityFilter('poll', this)">โพลล์/โหวต</button>
+        <button class="filter-tab-btn" onclick="setActivityFilter('form', this)">แบบฟอร์ม</button>
+        <button class="filter-tab-btn" onclick="setActivityFilter('comment', this)">พูดคุย</button>
+        <button class="filter-tab-btn" onclick="setActivityFilter('booking', this)">สินค้า/สั่งจอง</button>
+        <button class="filter-tab-btn" onclick="setActivityFilter('announcement', this)">ประกาศ/งาน</button>
+      </div>
     </div>
     <div id="active-tasks-container">
       <div class="task-card-skeleton">
@@ -785,6 +1003,125 @@
     <div id="booking-details-content">
       <!-- ข้อมูลการจองจะโหลดมาที่นี่ -->
     </div>
+    <div class="nav-group" style="margin-top:25px; max-width: 400px; margin-left: auto; margin-right: auto;">
+      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
+    </div>
+  </div>
+
+  <!-- SHOP SECTION (Scaffolding like deshop) -->
+  <div id="shop-section" class="section">
+    <div class="header-badge" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe;">SHOP • DE 06</div>
+    <h2 style="color:var(--main-blue); margin-bottom: 6px;">ร้านค้าและของที่ระลึกสาขาวิชา</h2>
+    <p style="margin-bottom: 24px; color:var(--text-muted);">เลือกชมและสั่งจองเสื้อช็อป สินค้าสาขา และของที่ระลึกประจำรุ่น DE 06</p>
+
+    <div class="shop-grid" id="shopCatalogContainer">
+      <!-- Product 1: Official Workshop Shirt (Active Booking) -->
+      <div class="product-card">
+        <div>
+          <img src="Pre-order shirt de06 - 3.png" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox('07E47613-B049-450F-9185-E6C68EF5604E.jpeg')">
+          <div class="product-tag-row">
+            <span class="product-status-open">เปิดสั่งจอง</span>
+            <span class="product-price-tag">300 - 330 บาท</span>
+          </div>
+          <h3 style="font-size:16px; margin-bottom:6px; color:var(--main-blue);">เสื้อช็อปสาขาวิชา DE 06</h3>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">
+            เสื้อช็อปทางการประจำสาขาวิชา Digital Entrepreneur ผ้าคอมทวิวเนื้อดี สวมใส่สบาย ปักโลโก้คมชัด
+          </p>
+        </div>
+        <button class="btn-success" onclick="goToSection('booking-section')" style="width:100%; margin-top:8px;">
+          สั่งจองเสื้อช็อป →
+        </button>
+      </div>
+
+      <!-- Product 2: Activity T-Shirt (Scaffolding Template) -->
+      <div class="product-card">
+        <div>
+          <img src="IMG_3102.jpeg" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox('IMG_3102.jpeg')">
+          <div class="product-tag-row">
+            <span class="product-status-soon">เร็วๆ นี้</span>
+            <span class="product-price-tag">199 บาท</span>
+          </div>
+          <h3 style="font-size:16px; margin-bottom:6px; color:var(--main-blue);">เสื้อยืดกิจกรรมสาขา DE 06</h3>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">
+            เสื้อยืดคอกลมผ้า Cotton 100% สำหรับใส่ร่วมกิจกรรมโครงการ สัมมนา และค่ายสานสัมพันธ์สาขาวิชา
+          </p>
+        </div>
+        <button class="btn-secondary" disabled style="width:100%; margin-top:8px; opacity:0.75; cursor:not-allowed;">
+          เตรียมเปิดสั่งจองเร็วๆ นี้
+        </button>
+      </div>
+
+      <!-- Product 3: Souvenir & Pin (Scaffolding Template) -->
+      <div class="product-card">
+        <div>
+          <img src="755732903_3416811905158788_5651129749747833900_n.jpg" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox('755732903_3416811905158788_5651129749747833900_n.jpg')">
+          <div class="product-tag-row">
+            <span class="product-status-soon">เร็วๆ นี้</span>
+            <span class="product-price-tag">59 บาท</span>
+          </div>
+          <h3 style="font-size:16px; margin-bottom:6px; color:var(--main-blue);">ของที่ระลึก & เข็มกลัด DE 06</h3>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">
+            ของที่ระลึก พวงกุญแจอะคริลิค และเข็มกลัดโลหะเคลือบเงา ลายเอกลักษณ์ประจำรุ่น Digital Entrepreneur 06
+          </p>
+        </div>
+        <button class="btn-secondary" disabled style="width:100%; margin-top:8px; opacity:0.75; cursor:not-allowed;">
+          เตรียมเปิดสั่งจองเร็วๆ นี้
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-group" style="margin-top:25px; max-width: 400px; margin-left: auto; margin-right: auto;">
+      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
+    </div>
+  </div>
+
+  <!-- FORMS & INQUIRIES SECTION -->
+  <div id="forms-section" class="section">
+    <div class="header-badge" style="background:#f0fdf4; color:#15803d; border-color:#bbf7d0;">FORMS • DE 06</div>
+    <h2 style="color:var(--main-blue); margin-bottom: 6px;">แบบฟอร์มและการสอบถาม</h2>
+    <p style="margin-bottom: 24px; color:var(--text-muted);">ส่งคำถามหรือข้อสงสัยถึงสาขาวิชา และร่วมตอบแบบสอบถามต่างๆ ได้ที่นี่</p>
+
+    <!-- Part A: Direct Inquiry Form -->
+    <div class="inquiry-box">
+      <h3 style="margin-bottom: 14px; color:var(--main-blue); font-size: 17px; display:flex; align-items:center; gap:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        ส่งข้อความสอบถามสาขาวิชา
+      </h3>
+      <form id="inquiryForm" onsubmit="submitInquiry(event)">
+        <div class="form-group-dynamic">
+          <label>หัวข้อที่ต้องการสอบถาม <span style="color:#ef4444;">*</span></label>
+          <select id="inquiryTopic" required>
+            <option value="เสื้อช็อปและการชำระเงิน">สอบถามเรื่องการจองเสื้อช็อปและการชำระเงิน</option>
+            <option value="กิจกรรมและโพลล์">สอบถามเรื่องกิจกรรมและโพลล์สำรวจ</option>
+            <option value="ปัญหาการใช้งานระบบ">แจ้งปัญหาการใช้งานระบบเว็บไซต์</option>
+            <option value="ข้อเสนอแนะทั่วไป">ข้อเสนอแนะหรือเรื่องอื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-group-dynamic">
+          <label>รายละเอียดข้อความสอบถาม <span style="color:#ef4444;">*</span></label>
+          <textarea id="inquiryMessage" placeholder="พิมพ์ข้อความหรือคำถามของคุณที่นี่..." required style="min-height: 100px;"></textarea>
+        </div>
+        <div class="form-group-dynamic">
+          <label>เบอร์โทรศัพท์ หรือ Line ID สำหรับติดต่อกลับ <span style="color:#ef4444;">*</span></label>
+          <input type="text" id="inquiryContact" placeholder="เช่น 0812345678 หรือ Line ID" required>
+        </div>
+        <button type="submit" class="btn-success" id="btnSubmitInquiry" style="width: 100%; margin-top: 10px;">
+          ส่งข้อความสอบถาม →
+        </button>
+        <div id="inquiryMsg" style="margin-top: 12px; font-size: 13px; text-align: center;"></div>
+      </form>
+    </div>
+
+    <!-- Part B: Active Forms List -->
+    <div style="text-align: left; margin-bottom: 14px;">
+      <h3 style="font-size: 17px; color:var(--main-blue); border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+        แบบสอบถามที่เปิดรับคำตอบ
+      </h3>
+    </div>
+    <div id="active-forms-list-container">
+      <div style="text-align:center; padding:30px; color:#94a3b8; background:white; border-radius:18px; border:1px dashed #cbd5e1;">ไม่มีแบบสอบถามที่เปิดรับคำตอบในขณะนี้</div>
+    </div>
+
     <div class="nav-group" style="margin-top:25px; max-width: 400px; margin-left: auto; margin-right: auto;">
       <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
     </div>
@@ -1065,6 +1402,8 @@
         applyConfigToUI();
         renderAnnouncementBanner();
         renderDynamicSections();
+        renderShopSection();
+        renderFormsSection();
 
         if (isCacheFresh) {
           if (loadingScreen) {
@@ -1106,6 +1445,8 @@
 
       renderAnnouncementBanner();
       renderDynamicSections();
+      renderShopSection();
+      renderFormsSection();
       
       if (loadingScreen) {
         loadingScreen.style.opacity = '0';
@@ -1406,35 +1747,56 @@
   }
 
   // =============================================
-  //  Navigation (Optimized Clean Unsubscribe)
+  //  Navigation & Scaffolding Controls
   // =============================================
+  var currentActivityFilter = 'all';
+
+  function scrollToActivities() {
+    var el = document.getElementById('activitiesHeadingWrapper');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function setActivityFilter(type, btn) {
+    currentActivityFilter = type;
+    document.querySelectorAll('.filter-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    renderHomeTasks();
+  }
+
   function goToSection(sectionId) { switchSection(sectionId); }
 
   function switchSection(sectionId) {
+    document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+    var target = document.getElementById(sectionId);
+    if (target) { target.classList.add('active'); }
+    else { document.getElementById('home-section').classList.add('active'); sectionId = 'home-section'; }
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
-  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-  var target = document.getElementById(sectionId);
-  if (target) { target.classList.add('active'); }
-  else { document.getElementById('home-section').classList.add('active'); sectionId = 'home-section'; }
-  window.scrollTo({ top: 0, behavior: 'instant' });
+    if (sectionId === 'home-section') {
+      document.getElementById('fabMenuBtn').style.display = 'flex';
+      renderHomeTasks();
+      renderMenu();
+    } else if (sectionId === 'shop-section') {
+      document.getElementById('fabMenuBtn').style.display = 'flex';
+      renderShopSection();
+      renderMenu();
+    } else if (sectionId === 'forms-section') {
+      document.getElementById('fabMenuBtn').style.display = 'flex';
+      renderFormsSection();
+      renderMenu();
+    } else {
+      document.getElementById('fabMenuBtn').style.display = 'none';
 
-  if (sectionId === 'home-section') {
-    document.getElementById('fabMenuBtn').style.display = 'flex';
-    renderHomeTasks();
-    renderMenu();
-  } else {
-    document.getElementById('fabMenuBtn').style.display = 'none';
-
-    if (sectionId.startsWith('dynamic-')) {
-      var actId = sectionId.replace('dynamic-', '');
-      var task = allTasks.find(function(t) { return t.id === actId; });
-      if (task) {
-        if (task.type === 'poll') initPollSection(task);
-        if (task.type === 'comment') initCommentSection(task);
+      if (sectionId.startsWith('dynamic-')) {
+        var actId = sectionId.replace('dynamic-', '');
+        var task = allTasks.find(function(t) { return t.id === actId; });
+        if (task) {
+          if (task.type === 'poll') initPollSection(task);
+          if (task.type === 'comment') initCommentSection(task);
+        }
       }
     }
   }
-}
 
   function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
   function closeMenuModal(e) { if (!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
@@ -1455,7 +1817,22 @@
   function renderMenu() {
     var list = document.getElementById('menu-list-container');
     list.innerHTML = '';
-    
+
+    list.innerHTML += '<div class="menu-item" onclick="switchSection(\'home-section\'); closeMenuModal();">' +
+      '<div class="menu-item-icon">' + Icons.info + '</div><div>' +
+      '<div class="menu-item-title">หน้าแรก</div>' +
+      '<div class="menu-item-desc">หน้าหลักและภาพรวมกิจกรรม</div></div></div>';
+
+    list.innerHTML += '<div class="menu-item" onclick="switchSection(\'shop-section\'); closeMenuModal();">' +
+      '<div class="menu-item-icon">' + Icons.shirt + '</div><div>' +
+      '<div class="menu-item-title">ร้านค้าและสินค้า</div>' +
+      '<div class="menu-item-desc">สั่งจองเสื้อช็อปและสินค้าสาขา</div></div></div>';
+
+    list.innerHTML += '<div class="menu-item" onclick="switchSection(\'forms-section\'); closeMenuModal();">' +
+      '<div class="menu-item-icon">' + Icons.file + '</div><div>' +
+      '<div class="menu-item-title">แบบฟอร์มและการสอบถาม</div>' +
+      '<div class="menu-item-desc">ส่งคำถามและตอบแบบประเมิน</div></div></div>';
+
     list.innerHTML += '<div class="menu-item" onclick="viewMyBooking(); closeMenuModal();">' +
       '<div class="menu-item-icon">' + Icons.search + '</div><div>' +
       '<div class="menu-item-title">ตรวจสอบข้อมูลการจองเสื้อ</div>' +
@@ -1479,10 +1856,17 @@
     var activeTasks = allTasks.filter(function(t) { return parseSafeDate(t.endDate).getTime() > now; });
     activeTasks.sort(function(a, b) { return parseSafeDate(a.endDate).getTime() - parseSafeDate(b.endDate).getTime(); });
 
+    // Filter by Category
+    if (currentActivityFilter !== 'all') {
+      activeTasks = activeTasks.filter(function(t) {
+        return t.type === currentActivityFilter;
+      });
+    }
+
     document.getElementById('active-tasks-count').innerText = activeTasks.length + ' รายการ';
 
     if (activeTasks.length === 0) {
-      container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:35px 20px; color:#94a3b8; background:white; border-radius:18px; border:1px dashed #cbd5e1;">ไม่มีกิจกรรมที่กำลังดำเนินการในขณะนี้</div>';
+      container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:35px 20px; color:#94a3b8; background:white; border-radius:18px; border:1px dashed #cbd5e1;">ไม่มีกิจกรรมในหมวดหมู่นี้ในขณะนี้</div>';
       timerRegistry = [];
       return;
     }
@@ -1532,6 +1916,171 @@
     });
 
     updateTimersFast();
+  }
+
+  // =============================================
+  //  Shop Catalog Renderer
+  // =============================================
+  function renderShopSection() {
+    var container = document.getElementById('shopCatalogContainer');
+    if (!container) return;
+
+    var customProducts = allTasks.filter(function(t) { return t.type === 'booking' || t.type === 'product'; });
+
+    var baseHtml = `
+      <!-- Product 1: Official Workshop Shirt (Active Booking) -->
+      <div class="product-card">
+        <div>
+          <img src="Pre-order shirt de06 - 3.png" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox('07E47613-B049-450F-9185-E6C68EF5604E.jpeg')">
+          <div class="product-tag-row">
+            <span class="product-status-open">เปิดสั่งจอง</span>
+            <span class="product-price-tag">300 - 330 บาท</span>
+          </div>
+          <h3 style="font-size:16px; margin-bottom:6px; color:var(--main-blue);">เสื้อช็อปสาขาวิชา DE 06</h3>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">
+            เสื้อช็อปทางการประจำสาขาวิชา Digital Entrepreneur ผ้าคอมทวิวเนื้อดี สวมใส่สบาย ปักโลโก้คมชัด
+          </p>
+        </div>
+        <button class="btn-success" onclick="goToSection('booking-section')" style="width:100%; margin-top:8px;">
+          สั่งจองเสื้อช็อป →
+        </button>
+      </div>
+
+      <!-- Product 2: Activity T-Shirt (Scaffolding Template) -->
+      <div class="product-card">
+        <div>
+          <img src="IMG_3102.jpeg" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox('IMG_3102.jpeg')">
+          <div class="product-tag-row">
+            <span class="product-status-soon">เร็วๆ นี้</span>
+            <span class="product-price-tag">199 บาท</span>
+          </div>
+          <h3 style="font-size:16px; margin-bottom:6px; color:var(--main-blue);">เสื้อยืดกิจกรรมสาขา DE 06</h3>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">
+            เสื้อยืดคอกลมผ้า Cotton 100% สำหรับใส่ร่วมกิจกรรมโครงการ สัมมนา และค่ายสานสัมพันธ์สาขาวิชา
+          </p>
+        </div>
+        <button class="btn-secondary" disabled style="width:100%; margin-top:8px; opacity:0.75; cursor:not-allowed;">
+          เตรียมเปิดสั่งจองเร็วๆ นี้
+        </button>
+      </div>
+
+      <!-- Product 3: Souvenir & Pin (Scaffolding Template) -->
+      <div class="product-card">
+        <div>
+          <img src="755732903_3416811905158788_5651129749747833900_n.jpg" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox('755732903_3416811905158788_5651129749747833900_n.jpg')">
+          <div class="product-tag-row">
+            <span class="product-status-soon">เร็วๆ นี้</span>
+            <span class="product-price-tag">59 บาท</span>
+          </div>
+          <h3 style="font-size:16px; margin-bottom:6px; color:var(--main-blue);">ของที่ระลึก & เข็มกลัด DE 06</h3>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">
+            ของที่ระลึก พวงกุญแจอะคริลิค และเข็มกลัดโลหะเคลือบเงา ลายเอกลักษณ์ประจำรุ่น Digital Entrepreneur 06
+          </p>
+        </div>
+        <button class="btn-secondary" disabled style="width:100%; margin-top:8px; opacity:0.75; cursor:not-allowed;">
+          เตรียมเปิดสั่งจองเร็วๆ นี้
+        </button>
+      </div>
+    `;
+
+    var customHtml = customProducts.map(function(item) {
+      var img = item.imageUrl || 'Pre-order shirt de06 - 3.png';
+      var actionStr = (item.type === 'booking') ? "goToSection('booking-section')" : "goToSection('dynamic-" + item.id + "')";
+      return `
+        <div class="product-card">
+          <div>
+            <img src="${img}" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox('${img}')">
+            <div class="product-tag-row">
+              <span class="product-status-open">เปิดจำหน่าย</span>
+              <span class="product-price-tag">${escapeHtml(item.price || 'ราคาพิเศษ')}</span>
+            </div>
+            <h3 style="font-size:16px; margin-bottom:6px; color:var(--main-blue);">${escapeHtml(item.title)}</h3>
+            <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">
+              ${escapeHtml(item.desc || '')}
+            </p>
+          </div>
+          <button class="btn-success" onclick="${actionStr}" style="width:100%; margin-top:8px;">
+            สั่งจองสินค้า →
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = baseHtml + customHtml;
+  }
+
+  // =============================================
+  //  Forms Section Renderer & Inquiry Submission
+  // =============================================
+  function renderFormsSection() {
+    var container = document.getElementById('active-forms-list-container');
+    if (!container) return;
+
+    var formTasks = allTasks.filter(function(t) { return t.type === 'form'; });
+    if (formTasks.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:25px; color:#94a3b8; background:white; border-radius:18px; border:1px dashed #cbd5e1;">ไม่มีแบบสอบถามกิจกรรมที่เปิดรับคำตอบในขณะนี้</div>';
+      return;
+    }
+
+    container.innerHTML = formTasks.map(function(f) {
+      return `
+        <div class="task-card" style="border-left-color: #10b981; margin-bottom: 12px;">
+          <div>
+            <div class="task-title">
+              <span style="display:flex; align-items:center; gap:6px;">
+                ${Icons.file} ${escapeHtml(stripEmojis(f.title))}
+              </span>
+              <span class="task-type-tag" style="background:#ecfdf5; color:#059669;">แบบสอบถาม</span>
+            </div>
+            <div class="task-desc">${escapeHtml(f.desc || '')}</div>
+          </div>
+          <button class="task-btn btn-success" onclick="goToSection('dynamic-${f.id}')" style="margin-top:8px;">
+            เปิดทำแบบสอบถามนี้ →
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function submitInquiry(e) {
+    if (e) e.preventDefault();
+    var topic = document.getElementById('inquiryTopic').value;
+    var msg = document.getElementById('inquiryMessage').value.trim();
+    var contact = document.getElementById('inquiryContact').value.trim();
+    var btn = document.getElementById('btnSubmitInquiry');
+    var feedbackEl = document.getElementById('inquiryMsg');
+
+    if (!msg || !contact) {
+      feedbackEl.innerHTML = '<span style="color:#ef4444;">กรุณากรอกรายละเอียดและช่องทางติดต่อกลับให้ครบถ้วน</span>';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'กำลังส่งข้อความ...';
+    feedbackEl.innerHTML = '';
+
+    try {
+      await db.collection('inquiries').add({
+        studentId: currentStudentId || 'Guest',
+        studentName: currentStudentName || '',
+        topic: topic,
+        message: msg,
+        contact: contact,
+        status: 'pending',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAtStr: new Date().toLocaleString('th-TH')
+      });
+
+      feedbackEl.innerHTML = '<span style="color:#10b981; font-weight:700;">ส่งข้อความสอบถามเรียบร้อยแล้ว เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</span>';
+      document.getElementById('inquiryMessage').value = '';
+      document.getElementById('inquiryContact').value = '';
+    } catch(err) {
+      console.error('Submit inquiry error:', err);
+      feedbackEl.innerHTML = '<span style="color:#ef4444;">ส่งข้อความไม่สำเร็จ: ' + escapeHtml(err.message) + '</span>';
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'ส่งข้อความสอบถาม →';
+    }
   }
 
   function updateTimersFast() {
