@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. System Config & Admin Logs
+    match /config/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 2. Activities & Tasks
+    match /activities/{document=**} {
+      allow read, write: if true;
+    }
+    match /tasks/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 3. Students Master Data
+    match /students/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 4. Bookings & Orders
+    match /bookings/{document=**} {
+      allow read, write: if true;
+    }
+    match /orders_shirts/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 5. Dynamic Submissions & Form Answers
+    match /dynamic_submissions/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 6. Direct Inquiries
+    match /inquiries/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 7. Poll Voting Results
+    match /votes/{document=**} {
+      allow read, write: if true;
+    }
+    match /polls/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 8. Comment Board
+    match /comments/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // 9. Admin Logs
+    match /admin_logs/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

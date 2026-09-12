@@ -1111,7 +1111,7 @@
       return;
     }
 
-    msgEl.innerHTML = '<div class="msg-box msg-loading">⏳ กำลังตรวจสอบรหัสผ่าน...</div>';
+    msgEl.innerHTML = '<div class="msg-box msg-loading">กำลังตรวจสอบรหัสผ่าน...</div>';
 
     try {
       const configDoc = await db.collection('config').doc('main').get();
@@ -1158,7 +1158,7 @@
   // =============================================
   async function loadInitialData() {
     if (!isAdminAuthenticated) return;
-    showGlobalToast('⏳ กำลังโหลดข้อมูล...', 'loading');
+    showGlobalToast('กำลังโหลดข้อมูล...', 'loading');
     try {
       document.getElementById('cfg_promptpay').value = appConfig.PROMPTPAY_NUMBER || '';
       document.getElementById('cfg_accountName').value = appConfig.ACCOUNT_NAME || '';
@@ -1562,11 +1562,11 @@
   function handleActivityImageUpload(actIdx, input) {
     const file = input.files[0];
     if (!file) return;
-    showGlobalToast('⏳ กำลังประมวลผลรูปภาพ...', 'loading');
+    showGlobalToast('กำลังประมวลผลรูปภาพ...', 'loading');
     compressImageFile(file, 1000, 0.8, function(dataUrl) {
       appActivities[actIdx].imageUrl = dataUrl;
       renderActivitiesList();
-      showGlobalToast(' อัปโหลดรูปภาพหน้าปกเรียบร้อย', 'success');
+      showGlobalToast('อัปโหลดรูปภาพหน้าปกเรียบร้อย', 'success');
     });
   }
 
@@ -1578,12 +1578,12 @@
   function handlePollOptionImageUpload(actIdx, optIdx, input) {
     const file = input.files[0];
     if (!file) return;
-    showGlobalToast('⏳ กำลังประมวลผลรูปภาพตัวเลือก...', 'loading');
+    showGlobalToast('กำลังประมวลผลรูปภาพตัวเลือก...', 'loading');
     compressImageFile(file, 600, 0.8, function(dataUrl) {
       if (!appActivities[actIdx].pollOptionImages) appActivities[actIdx].pollOptionImages = [];
       appActivities[actIdx].pollOptionImages[optIdx] = dataUrl;
       renderActivitiesList();
-      showGlobalToast(' อัปโหลดรูปตัวเลือกที่ ' + (optIdx + 1) + ' เรียบร้อย', 'success');
+      showGlobalToast('อัปโหลดรูปตัวเลือกที่ ' + (optIdx + 1) + ' เรียบร้อย', 'success');
     });
   }
 
@@ -1768,14 +1768,29 @@
     const activity = appActivities.find(a => a.id === actId);
     if (!activity) return;
 
-    content.innerHTML = '<div style="text-align:center; padding:30px;"><div class="msg-box msg-loading" style="display:inline-block;">⏳ กำลังโหลดข้อมูลผลตอบรับ...</div></div>';
+    content.innerHTML = '<div style="text-align:center; padding:30px;"><div class="msg-box msg-loading" style="display:inline-block;">กำลังโหลดข้อมูลผลตอบรับ...</div></div>';
 
     try {
       // 1. POLL RESPONSES
       if (activity.type === 'poll') {
-        const votesSnap = await db.collection('votes').where('activityId', '==', actId).get();
         const votes = [];
-        votesSnap.forEach(doc => votes.push(doc.data()));
+        try {
+          const votesSnap = await db.collection('votes').where('activityId', '==', actId).get();
+          votesSnap.forEach(doc => votes.push(doc.data()));
+        } catch (errV) {
+          console.warn('Poll votes collection read notice:', errV.message);
+        }
+        try {
+          const fbSnap = await db.collection('dynamic_submissions').where('activityId', '==', actId).get();
+          fbSnap.forEach(doc => {
+            const d = doc.data();
+            if ((d.formType === 'vote' || d.type === 'poll') && !votes.some(v => v.studentId === d.studentId && v.optionIndex === d.optionIndex)) {
+              votes.push(d);
+            }
+          });
+        } catch (errFb) {
+          console.warn('Poll dynamic_submissions notice:', errFb.message);
+        }
 
         const counts = {};
         (activity.pollOptions || []).forEach((_, idx) => counts[idx] = 0);
@@ -1793,13 +1808,13 @@
 
         content.innerHTML = `
           <div class="export-actions-bar">
-            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()"> ส่งออกผลโหวตเป็น CSV</button>
-            <button class="btn-secondary btn-sm" onclick="copyCurrentResponsesToClipboard()"> คัดลอกไป Google Sheets</button>
+            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()">ส่งออกผลโหวตเป็น CSV</button>
+            <button class="btn-secondary btn-sm" onclick="copyCurrentResponsesToClipboard()">คัดลอกไป Google Sheets</button>
           </div>
 
           <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:20px; margin-bottom:20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-              <h3 style="margin:0; color:var(--main-blue); font-size:18px;"> ผลโหวต: ${escapeHtml(activity.title)}</h3>
+              <h3 style="margin:0; color:var(--main-blue); font-size:18px;">ผลโหวต: ${escapeHtml(activity.title)}</h3>
               <span style="background:#e0f2fe; color:#0369a1; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:700;">
                 โหวตทั้งหมด ${totalVotes} คน
               </span>
@@ -1848,9 +1863,24 @@
       } 
       // 2. COMMENT RESPONSES
       else if (activity.type === 'comment') {
-        const commentsSnap = await db.collection('comments').where('activityId', '==', actId).orderBy('createdAt', 'desc').get();
         const comments = [];
-        commentsSnap.forEach(doc => comments.push({ docId: doc.id, ...doc.data() }));
+        try {
+          const commentsSnap = await db.collection('comments').where('activityId', '==', actId).orderBy('createdAt', 'desc').get();
+          commentsSnap.forEach(doc => comments.push({ docId: doc.id, sourceColl: 'comments', ...doc.data() }));
+        } catch (errC) {
+          console.warn('Comments collection read notice:', errC.message);
+        }
+        try {
+          const fbSnap = await db.collection('dynamic_submissions').where('activityId', '==', actId).get();
+          fbSnap.forEach(doc => {
+            const d = doc.data();
+            if ((d.formType === 'comment' || d.type === 'comment') && !comments.some(c => c.docId === doc.id)) {
+              comments.push({ docId: doc.id, sourceColl: 'dynamic_submissions', ...d });
+            }
+          });
+        } catch (errFb) {
+          console.warn('Comments dynamic_submissions notice:', errFb.message);
+        }
 
         currentLoadedResponses = {
           type: 'comment',
@@ -1861,12 +1891,12 @@
 
         content.innerHTML = `
           <div class="export-actions-bar">
-            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()"> ส่งออกความคิดเห็นเป็น CSV</button>
-            <button class="btn-secondary btn-sm" onclick="copyCurrentResponsesToClipboard()"> คัดลอกไป Google Sheets</button>
+            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()">ส่งออกความคิดเห็นเป็น CSV</button>
+            <button class="btn-secondary btn-sm" onclick="copyCurrentResponsesToClipboard()">คัดลอกไป Google Sheets</button>
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0; color:var(--main-blue); font-size:18px;"> ความคิดเห็นทั้งหมด (${comments.length} ข้อความ)</h3>
+            <h3 style="margin:0; color:var(--main-blue); font-size:18px;">ความคิดเห็นทั้งหมด (${comments.length} ข้อความ)</h3>
           </div>
 
           <div style="display:flex; flex-direction:column; gap:12px;">
@@ -1920,12 +1950,12 @@
 
         content.innerHTML = `
           <div class="export-actions-bar">
-            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()"> ส่งออกคำตอบแบบฟอร์มเป็น CSV</button>
-            <button class="btn-secondary btn-sm" onclick="copyCurrentResponsesToClipboard()"> คัดลอกไป Google Sheets</button>
+            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()">ส่งออกคำตอบแบบฟอร์มเป็น CSV</button>
+            <button class="btn-secondary btn-sm" onclick="copyCurrentResponsesToClipboard()">คัดลอกไป Google Sheets</button>
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0; color:var(--main-blue); font-size:18px;"> การตอบรับแบบฟอร์ม (${subs.length} รายการ)</h3>
+            <h3 style="margin:0; color:var(--main-blue); font-size:18px;">การตอบรับแบบฟอร์ม (${subs.length} รายการ)</h3>
           </div>
 
           <div class="data-table-container">
@@ -1956,7 +1986,7 @@
       }
     } catch(err) {
       console.error(err);
-      content.innerHTML = '<div class="msg-box msg-error"> เกิดข้อผิดพลาดในการโหลดผล: ' + err.message + '</div>';
+      content.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการโหลดผล: ' + err.message + '</div>';
     }
   }
 
@@ -1964,7 +1994,11 @@
     if (!isAdminAuthenticated) return alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
     if (!confirm('ยืนยันที่จะลบความคิดเห็นนี้ใช่หรือไม่?')) return;
     try {
-      await db.collection('comments').doc(docId).delete();
+      try {
+        await db.collection('comments').doc(docId).delete();
+      } catch (errComm) {
+        await db.collection('dynamic_submissions').doc(docId).delete();
+      }
       alert('ลบความคิดเห็นสำเร็จ');
       displaySelectedActivityResponses();
     } catch(e) {
@@ -2147,7 +2181,7 @@
   async function loadBookingsData() {
     if (!isAdminAuthenticated) return;
     const tableBody = document.getElementById('bookingsTableBody');
-    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">⏳ กำลังโหลดข้อมูลการจอง...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">กำลังโหลดข้อมูลการจอง...</td></tr>';
 
     try {
       const snap = await db.collection('bookings').limit(300).get();
@@ -2447,12 +2481,12 @@
     tableBody.innerHTML = filtered.map(b => {
       const isPaid = b.status === 'paid';
       const statusBadge = isPaid ?
-        '<span style="color:#16a34a; background:#dcfce7; padding:4px 8px; border-radius:6px; font-weight:700; font-size:11px;"> ชำระแล้ว</span>' :
-        '<span style="color:#d97706; background:#fef3c7; padding:4px 8px; border-radius:6px; font-weight:700; font-size:11px;">⏳ รอชำระ</span>';
+        '<span style="color:#16a34a; background:#dcfce7; padding:4px 8px; border-radius:6px; font-weight:700; font-size:11px;">ชำระแล้ว</span>' :
+        '<span style="color:#d97706; background:#fef3c7; padding:4px 8px; border-radius:6px; font-weight:700; font-size:11px;">รอชำระ</span>';
 
       let slipBtn = '<span style="color:#94a3b8; font-size:12px;">ไม่มีสลิป</span>';
       if (b.slipUrls && b.slipUrls.length === 1) {
-        slipBtn = `<button class="btn-secondary btn-sm" onclick="openSlipModal('${b.studentId}')"> ดูสลิป</button>`;
+        slipBtn = `<button class="btn-secondary btn-sm" onclick="openSlipModal('${b.studentId}')">ดูสลิป</button>`;
       } else if (b.slipUrls && b.slipUrls.length > 1) {
         slipBtn = `<button class="btn-secondary btn-sm" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-weight:600;" onclick="openSlipModal('${b.studentId}')"> ดูสลิป (${b.slipUrls.length} ใบ)</button>`;
       } else if (b.slipUrl) {
@@ -2580,12 +2614,12 @@
   // =============================================
   async function saveAllChanges() {
     if (!isAdminAuthenticated) {
-      alert('️ เซสชันของคุณหมดอายุหรือยังไม่ได้เข้าสู่ระบบ กรุณาล็อกอินใหม่อีกครั้ง');
+      alert('เซสชันของคุณหมดอายุหรือยังไม่ได้เข้าสู่ระบบ กรุณาล็อกอินใหม่อีกครั้ง');
       logoutAdmin();
       return;
     }
 
-    showGlobalToast('⏳ กำลังบันทึกข้อมูลทั้งหมดไปที่ Firebase...', 'loading');
+    showGlobalToast('กำลังบันทึกข้อมูลทั้งหมดไปที่ Firebase...', 'loading');
 
     try {
       const newConfig = {
@@ -2807,11 +2841,36 @@
     container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b;"><div class="loading-spinner" style="margin:0 auto 10px auto; width:28px; height:28px; border-width:3px;"></div>กำลังโหลดข้อความสอบถาม...</div>';
 
     try {
-      const snap = await db.collection('inquiries').orderBy('createdAt', 'desc').limit(100).get();
-      allInquiriesList = [];
-      snap.forEach(doc => {
-        allInquiriesList.push({ id: doc.id, ...doc.data() });
+      let inqList = [];
+      try {
+        const snap = await db.collection('inquiries').orderBy('createdAt', 'desc').limit(100).get();
+        snap.forEach(doc => {
+          inqList.push({ id: doc.id, sourceColl: 'inquiries', ...doc.data() });
+        });
+      } catch (errInq) {
+        console.warn('Inquiries direct collection notice:', errInq.message);
+      }
+
+      // Fallback read from dynamic_submissions (activityId == 'inquiries')
+      try {
+        const fbSnap = await db.collection('dynamic_submissions').where('activityId', '==', 'inquiries').get();
+        fbSnap.forEach(doc => {
+          if (!inqList.some(item => item.id === doc.id)) {
+            inqList.push({ id: doc.id, sourceColl: 'dynamic_submissions', ...doc.data() });
+          }
+        });
+      } catch (errFb) {
+        console.warn('Inquiries dynamic_submissions notice:', errFb.message);
+      }
+
+      // Sort by createdAt descending
+      inqList.sort((a, b) => {
+        const timeA = a.createdAtMs || (a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0);
+        const timeB = b.createdAtMs || (b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0);
+        return timeB - timeA;
       });
+
+      allInquiriesList = inqList;
 
       if (allInquiriesList.length === 0) {
         container.innerHTML = '<div style="text-align:center; padding:36px; color:#64748b; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">ยังไม่มีข้อความสอบถามจากนักศึกษา</div>';
@@ -2881,10 +2940,20 @@
   async function setInquiryStatus(docId, newStatus) {
     if (!isAdminAuthenticated) return alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
     try {
-      await db.collection('inquiries').doc(docId).update({
-        status: newStatus,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      const inq = allInquiriesList.find(x => x.id === docId);
+      const collName = (inq && inq.sourceColl) ? inq.sourceColl : 'inquiries';
+      try {
+        await db.collection(collName).doc(docId).update({
+          status: newStatus,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch (errUp) {
+        const altColl = collName === 'inquiries' ? 'dynamic_submissions' : 'inquiries';
+        await db.collection(altColl).doc(docId).update({
+          status: newStatus,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
       showGlobalToast('อัปเดตสถานะข้อความเรียบร้อย', 'success');
       loadInquiriesData();
     } catch(e) {
@@ -2896,7 +2965,14 @@
     if (!isAdminAuthenticated) return alert('กรุณาเข้าสู่ระบบก่อนทำรายการ');
     if (!confirm('ยืนยันที่จะลบข้อความสอบถามนี้ใช่หรือไม่?')) return;
     try {
-      await db.collection('inquiries').doc(docId).delete();
+      const inq = allInquiriesList.find(x => x.id === docId);
+      const collName = (inq && inq.sourceColl) ? inq.sourceColl : 'inquiries';
+      try {
+        await db.collection(collName).doc(docId).delete();
+      } catch (errDel) {
+        const altColl = collName === 'inquiries' ? 'dynamic_submissions' : 'inquiries';
+        await db.collection(altColl).doc(docId).delete();
+      }
       showGlobalToast('ลบข้อความสอบถามเรียบร้อย', 'success');
       loadInquiriesData();
     } catch(e) {
@@ -2992,9 +3068,9 @@
         <thead>
           <tr style="background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0;">
             <th style="padding: 12px 14px; text-align: center; width: 50px;">ลำดับ</th>
-            <th style="padding: 12px 14px; width: 180px;">⏰ วัน-เวลา</th>
-            <th style="padding: 12px 14px; width: 150px;"> IP Address</th>
-            <th style="padding: 12px 14px;"> ชื่อรุ่น / ชื่อเครื่อง / อุปกรณ์</th>
+            <th style="padding: 12px 14px; width: 180px;">วัน-เวลา</th>
+            <th style="padding: 12px 14px; width: 150px;">IP Address</th>
+            <th style="padding: 12px 14px;">ชื่อรุ่น / ชื่อเครื่อง / อุปกรณ์</th>
             <th style="padding: 12px 14px; text-align: center; width: 130px;">สถานะ</th>
           </tr>
         </thead>
