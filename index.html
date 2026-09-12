@@ -1592,7 +1592,7 @@
                   <button type="button" class="comment-del-btn" onclick="clearCommentImage('${task.id}')"><span style="display:inline-flex; align-items:center; gap:2px;">${Icons.x} ยกเลิกรูป</span></button>
                 </div>
 
-                <button class="btn-success" style="padding:12px 18px; margin-top:0; font-size:15px;" onclick="postComment('${task.id}')">
+                <button id="btn-post-comment-${task.id}" class="btn-success" style="padding:12px 18px; margin-top:0; font-size:15px;" onclick="postComment('${task.id}')">
                   <span style="display:inline-flex; align-items:center; gap:6px;">${Icons.send} ส่งความคิดเห็น</span>
                 </button>
                 <div id="comment-msg-${task.id}" style="font-size:13px; margin-top:6px; text-align:center;"></div>
@@ -1688,7 +1688,7 @@
             <div>
               <form id="custom-form-${task.id}" onsubmit="handleDynamicFormSubmit(event, '${task.id}')" style="background:white; border:1px solid #e2e8f0; border-radius:18px; padding:22px; text-align:left;">
                 ${questionsHtml}
-                <button type="submit" class="btn-success" style="margin-top:10px;">
+                <button id="btn-submit-form-${task.id}" type="submit" class="btn-success" style="margin-top:10px;">
                   <span style="display:inline-flex; align-items:center; gap:6px;">${Icons.send} ส่งข้อมูลแบบฟอร์ม</span>
                 </button>
                 <div id="form-msg-${task.id}" style="margin-top:10px; font-size:13px; text-align:center;"></div>
@@ -2408,6 +2408,8 @@
 
     if (!text && !attachedImg) return alert('กรุณาพิมพ์ข้อความหรือแนบรูปภาพก่อนกดส่งครับ');
 
+    var btn = document.getElementById('btn-post-comment-' + actId);
+    if (btn) btn.disabled = true;
     var msgEl = document.getElementById('comment-msg-' + actId);
     msgEl.innerText = 'กำลังส่งความคิดเห็น...';
     msgEl.style.color = '#d97706';
@@ -2442,6 +2444,8 @@
     } catch(err) {
       msgEl.innerText = 'เกิดข้อผิดพลาด: ' + err.message;
       msgEl.style.color = '#dc2626';
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 
@@ -2492,8 +2496,10 @@
       answers[q.label || ('คำถามที่ ' + (idx + 1))] = val || '-';
     });
 
+    var btn = document.getElementById('btn-submit-form-' + actId);
+    if (btn) { btn.disabled = true; btn.innerText = 'กำลังบันทึกข้อมูล...'; }
     var msgEl = document.getElementById('form-msg-' + actId);
-    msgEl.innerHTML = '<span style="color:#d97706;">⏳ กำลังบันทึกคำตอบของคุณ...</span>';
+    msgEl.innerHTML = '<span style="color:#d97706;">กำลังบันทึกคำตอบของคุณ...</span>';
 
     try {
       await db.collection('dynamic_submissions').add({
@@ -2512,6 +2518,7 @@
       }, 1800);
     } catch(err) {
       msgEl.innerHTML = '<span style="color:#dc2626;">เกิดข้อผิดพลาด: ' + err.message + '</span>';
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;">' + Icons.send + ' ส่งข้อมูลแบบฟอร์ม</span>'; }
     }
   }
 
@@ -2562,16 +2569,31 @@
   }
 
   // =============================================
-  //  Shirt Booking Logic (Preserved 100%)
+  //  Shirt Booking Logic (Preserved 100% & Hardened)
   // =============================================
+  function getSafeQuantity(id) {
+    var el = document.getElementById(id);
+    if (!el) return 0;
+    var val = parseInt(el.value, 10);
+    if (isNaN(val) || val < 0) {
+      el.value = 0;
+      return 0;
+    }
+    if (val > 999) {
+      el.value = 999;
+      return 999;
+    }
+    return val;
+  }
+
   function calculateTotal() {
-    var xs = (parseInt(document.getElementById('qty-xs').value) || 0);
-    var s = (parseInt(document.getElementById('qty-s').value) || 0);
-    var m = (parseInt(document.getElementById('qty-m').value) || 0);
-    var l = (parseInt(document.getElementById('qty-l').value) || 0);
-    var xl = (parseInt(document.getElementById('qty-xl').value) || 0);
-    var xxl = (parseInt(document.getElementById('qty-xxl').value) || 0);
-    var otherQty = (parseInt(document.getElementById('qty-other-num').value) || 0);
+    var xs = getSafeQuantity('qty-xs');
+    var s = getSafeQuantity('qty-s');
+    var m = getSafeQuantity('qty-m');
+    var l = getSafeQuantity('qty-l');
+    var xl = getSafeQuantity('qty-xl');
+    var xxl = getSafeQuantity('qty-xxl');
+    var otherQty = getSafeQuantity('qty-other-num');
     var totalQty = xs + s + m + l + xl + xxl + otherQty;
     var normalQty = xs + s + m + l + xl + xxl;
     var totalPrice = (normalQty * PRICE_PER_SHIRT) + (otherQty * (PRICE_PER_SHIRT + EXTRA_PRICE));
@@ -2584,18 +2606,20 @@
   }
 
   async function submitOrder() {
-    if ((parseInt(document.getElementById('total-qty').innerText) || 0) === 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
+    calculateTotal();
+    var currentTotal = parseInt(document.getElementById('total-qty').innerText, 10) || 0;
+    if (currentTotal <= 0) return alert('กรุณาเลือกเสื้ออย่างน้อย 1 ตัวครับ');
 
     var btn = document.getElementById('btnBook');
     btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
 
-    var otherNum = parseInt(document.getElementById('qty-other-num').value) || 0;
-    var xs = parseInt(document.getElementById('qty-xs').value) || 0;
-    var s = parseInt(document.getElementById('qty-s').value) || 0;
-    var m = parseInt(document.getElementById('qty-m').value) || 0;
-    var l = parseInt(document.getElementById('qty-l').value) || 0;
-    var xl = parseInt(document.getElementById('qty-xl').value) || 0;
-    var xxl = parseInt(document.getElementById('qty-xxl').value) || 0;
+    var otherNum = getSafeQuantity('qty-other-num');
+    var xs = getSafeQuantity('qty-xs');
+    var s = getSafeQuantity('qty-s');
+    var m = getSafeQuantity('qty-m');
+    var l = getSafeQuantity('qty-l');
+    var xl = getSafeQuantity('qty-xl');
+    var xxl = getSafeQuantity('qty-xxl');
     var otherText = otherNum > 0 ? (document.getElementById('qty-other-text').value.trim() || 'ไซส์อื่นๆ') + ' (' + otherNum + ' ตัว)' : '';
 
     var summary = [];
