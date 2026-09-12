@@ -699,24 +699,47 @@
   <div class="dashboard-header">
     <h1>DE 06 Admin Dashboard</h1>
     <p>ระบบจัดการหลังบ้านและกิจกรรมนักศึกษา สาขาวิชาผู้ประกอบการดิจิทัล รุ่น 06</p>
-    <div class="header-actions">
+    <div class="header-actions" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <span id="currentAdminBadge" style="display:none; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700;"></span>
       <a href="index.html" target="_blank" class="btn-site-link">ไปที่หน้าเว็บนักศึกษา</a>
       <button id="headerLogoutBtn" onclick="logoutAdmin()" class="btn-site-link" style="display:none; cursor:pointer; background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;">ออกจากระบบ Admin</button>
       <button id="headerRefreshBtn" onclick="refreshData()" class="btn-site-link" style="display:none; cursor:pointer; background:none;">โหลดข้อมูลใหม่</button>
     </div>
   </div>
 
-  <!-- Login Box (Required Password) -->
+  <!-- Login Box (Dual-Mode: Master Admin & Student Admin) -->
   <div class="box" id="loginBox" style="max-width: 500px; margin: 0 auto;">
     <div class="box-title">
       <span>เข้าสู่ระบบ Admin Dashboard</span>
     </div>
     <p style="color: var(--text-muted); font-size: 13px; margin: 0 0 16px 0;">
-      กรุณากรอกรหัสผ่านแอดมินเพื่อเข้าสู่หน้าตั้งค่าและจัดการระบบทั้งหมด
+      กรุณาเลือกระดับการเข้าใช้งานและกรอกข้อมูลเพื่อเข้าสู่ระบบจัดการ
     </p>
-    <label>รหัสผ่านแอดมิน:</label>
-    <input type="password" id="adminPassInput" placeholder="กรอกรหัสผ่านเพื่อเข้าใช้งาน..." autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
-    <button onclick="attemptLogin()" style="width: 100%;">เข้าสู่ระบบจัดการ →</button>
+
+    <div style="display:flex; border-bottom:2px solid #e2e8f0; margin-bottom:18px;">
+      <button id="loginTabMaster" type="button" onclick="setAdminLoginMode('master')" style="flex:1; padding:10px; background:white; border:none; border-bottom:2px solid var(--main-blue); color:var(--main-blue); font-weight:700; cursor:pointer; font-family:inherit; font-size:14px;">
+        แอดมินหลัก
+      </button>
+      <button id="loginTabStudent" type="button" onclick="setAdminLoginMode('student')" style="flex:1; padding:10px; background:white; border:none; border-bottom:2px solid transparent; color:#64748b; font-weight:600; cursor:pointer; font-family:inherit; font-size:14px;">
+        นักศึกษาผู้ดูแล
+      </button>
+    </div>
+
+    <!-- Mode 1: Master Admin -->
+    <div id="loginFormMaster">
+      <label>รหัสผ่านแอดมินเดิม:</label>
+      <input type="password" id="adminPassInput" placeholder="กรอกรหัสผ่านแอดมินหลัก..." autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
+    </div>
+
+    <!-- Mode 2: Student Admin -->
+    <div id="loginFormStudent" style="display:none;">
+      <label>รหัสนักศึกษาผู้ดูแลระบบ:</label>
+      <input type="text" id="adminStudentIdInput" placeholder="ระบุรหัสนักศึกษา 13 หลัก..." onkeypress="if(event.key==='Enter') attemptLogin()">
+      <label style="margin-top:8px;">รหัสผ่านเฉพาะตัว:</label>
+      <input type="password" id="adminStudentPinInput" placeholder="กรอกรหัสผ่าน หรือเว้นว่างหากไม่ได้ตั้งรหัส..." autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
+    </div>
+
+    <button onclick="attemptLogin()" style="width: 100%; margin-top:14px;">เข้าสู่ระบบจัดการ →</button>
     <div id="loginMsg"></div>
   </div>
 
@@ -730,8 +753,9 @@
       <div class="nav-tab" onclick="switchTab('tab-responses')">ดูผลตอบรับและส่งออกชีต</div>
       <div class="nav-tab" onclick="switchTab('tab-bookings')">ตรวจสอบการจองเสื้อและสลิป</div>
       <div class="nav-tab" onclick="switchTab('tab-inquiries')">ข้อความสอบถาม</div>
-      <div class="nav-tab" onclick="switchTab('tab-settings')">ตั้งค่าระบบและรหัสผ่าน</div>
-      <div class="nav-tab" onclick="switchTab('tab-logs')">ประวัติการเข้าใช้</div>
+      <div class="nav-tab" id="nav-tab-admins" onclick="switchTab('tab-admins')">จัดการแอดมิน</div>
+      <div class="nav-tab" id="nav-tab-settings" onclick="switchTab('tab-settings')">ตั้งค่าระบบและรหัสผ่าน</div>
+      <div class="nav-tab" id="nav-tab-logs" onclick="switchTab('tab-logs')">ประวัติการทำงาน</div>
     </div>
 
     <!-- TAB 1: จัดการกิจกรรม -->
@@ -958,14 +982,14 @@
 
     <!-- TAB 5: ตั้งค่าระบบและรหัสผ่าน -->
     <div id="tab-settings" class="tab-pane">
-      <div class="box">
+      <div class="box" id="masterPasswordConfigCard">
         <div class="box-title">
           <span>ตั้งค่ารหัสผ่านเข้า Admin Dashboard</span>
         </div>
         <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 14px;">
-          กำหนดรหัสผ่านสำหรับเข้าถึงและบันทึกการตั้งค่าหลังบ้าน
+          กำหนดรหัสผ่านสำหรับเข้าถึงและบันทึกการตั้งค่าหลังบ้านของแอดมินหลัก
         </p>
-        <label>รหัสผ่านแอดมิน:</label>
+        <label>รหัสผ่านแอดมินเดิม:</label>
         <input type="password" id="cfg_adminPass" placeholder="ใส่รหัสผ่านแอดมินที่ต้องการ...">
       </div>
 
@@ -981,6 +1005,53 @@
         
         <label>Google Drive Folder ID สำหรับเก็บสลิป</label>
         <input type="text" id="cfg_folder" placeholder="Folder ID จาก Google Drive">
+      </div>
+    </div>
+
+    <!-- TAB: จัดการแอดมิน (เฉพาะแอดมินหลัก) -->
+    <div id="tab-admins" class="tab-pane">
+      <div class="box">
+        <div class="box-title">
+          <span>จัดการผู้ดูแลระบบ</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
+          เฉพาะแอดมินหลักเดิมเท่านั้นที่สามารถเพิ่มหรือยกเลิกสิทธิ์ผู้ดูแลระบบที่เป็นนักศึกษาได้
+        </p>
+
+        <!-- Form Add Student Admin -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:18px; margin-bottom:24px;">
+          <h4 style="margin:0 0 12px 0; color:var(--main-blue); font-size:15px; font-weight:700;">เพิ่มนักศึกษาเป็นผู้ดูแลระบบ</h4>
+          <div class="field-row">
+            <div style="flex:1;">
+              <label>รหัสนักศึกษา:</label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="newAdminStudentId" placeholder="เช่น 6506021610011" style="margin:0;" oninput="lookupStudentNameForAdmin(this.value)">
+                <button type="button" class="btn-secondary btn-sm" onclick="lookupStudentNameForAdmin(document.getElementById('newAdminStudentId').value)" style="white-space:nowrap; padding:0 12px;">ค้นหาชื่อ</button>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <label>ชื่อ-สกุล นักศึกษา:</label>
+              <input type="text" id="newAdminStudentName" placeholder="ชื่อจะแสดงอัตโนมัติเมื่อพบในระบบ..." style="margin:0;">
+            </div>
+            <div style="flex:1;">
+              <label>รหัสผ่านเฉพาะตัว:</label>
+              <input type="password" id="newAdminStudentPin" placeholder="เว้นว่างได้" style="margin:0;">
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap; gap:8px;">
+            <span id="newAdminLookupMsg" style="font-size:12px; color:var(--text-muted);"></span>
+            <button type="button" class="btn-success btn-sm" onclick="addStudentAdmin()" style="padding:10px 20px; font-size:13px;">+ บันทึกเพิ่มเป็นแอดมิน</button>
+          </div>
+        </div>
+
+        <!-- Table of Active Student Admins -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h4 style="margin:0; color:var(--main-blue); font-size:15px; font-weight:700;">รายชื่อผู้ดูแลระบบที่เป็นนักศึกษา</h4>
+          <button class="btn-site-link btn-sm" onclick="renderStudentAdminsList()" style="color:var(--main-blue); border-color:#cbd5e1; background:#f8fafc; cursor:pointer;">รีเฟรชรายชื่อ</button>
+        </div>
+        <div id="studentAdminsTableContainer">
+          <!-- Rendered dynamically -->
+        </div>
       </div>
     </div>
 
@@ -1001,17 +1072,27 @@
       </div>
     </div>
 
-    <!-- TAB 6: ประวัติการเข้าใช้แอดมิน -->
+    <!-- TAB: ประวัติการทำงานและการแก้ไขระบบ (เฉพาะแอดมินหลัก) -->
     <div id="tab-logs" class="tab-pane">
       <div class="box">
-        <div class="box-title">
-          <span>ประวัติผู้เข้าใช้งานหน้าแอดมิน</span>
+        <div class="box-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>ประวัติการแก้ไขและบันทึกการทำงาน</span>
+          <button class="btn-site-link btn-sm" onclick="loadAdminAuditLogs()" style="color:var(--main-blue); border-color:#cbd5e1; background:#f8fafc; cursor:pointer;">รีเฟรชประวัติ</button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
+          บันทึกการแก้ไขข้อมูลและการทำงานทั้งหมดของผู้ดูแลระบบในแต่ละขั้นตอน
+        </p>
+        <div id="adminAuditLogsContainer" style="overflow-x: auto; margin-bottom: 30px;">
+          <div style="text-align:center; padding:30px; color:#64748b;">กำลังโหลดข้อมูลประวัติการแก้ไข...</div>
+        </div>
+
+        <div class="box-title" style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0; padding-top:20px; margin-top:20px;">
+          <span>ประวัติการเข้าสู่ระบบ</span>
           <button class="btn-site-link btn-sm" onclick="loadAdminLogs()" style="color:var(--main-blue); border-color:#cbd5e1; background:#f8fafc; cursor:pointer;">รีเฟรชข้อมูล</button>
         </div>
         <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
-          บันทึกเวลา, ชื่อรุ่น/ชื่อเครื่อง (อุปกรณ์และเบราว์เซอร์) และ IP Address ของผู้ที่เข้าสู่ระบบหน้าแอดมิน (แสดง 50 รายการล่าสุด)
+          บันทึกเวลา, ชื่อรุ่น/ชื่อเครื่อง และ IP Address ของผู้ที่เข้าสู่ระบบหน้าแอดมิน (แสดง 50 รายการล่าสุด)
         </p>
-
         <div id="adminLogsContainer" style="overflow-x: auto;">
           <div style="text-align:center; padding:30px; color:#64748b;">กำลังโหลดข้อมูลประวัติ...</div>
         </div>
@@ -1064,12 +1145,77 @@
   let allStudentsMap = {};
   let currentLoadedResponses = { type: '', data: [], activity: null };
   let isAdminAuthenticated = false;
-  let currentSizeView = 'paid'; // 'paid' | 'all' | 'pending' (Default to paid for immediate production alignment)
+  let currentAdminRole = 'subadmin'; // 'master' | 'subadmin'
+  let currentAdminId = '';
+  let currentAdminName = '';
+  let currentLoginMode = 'master'; // 'master' | 'student'
+  let currentSizeView = 'paid'; // 'paid' | 'all' | 'pending'
   let currentAggregatedSizeStats = {
     all: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
     paid: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
     pending: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} }
   };
+
+  function setAdminLoginMode(mode) {
+    currentLoginMode = mode;
+    const btnM = document.getElementById('loginTabMaster');
+    const btnS = document.getElementById('loginTabStudent');
+    const formM = document.getElementById('loginFormMaster');
+    const formS = document.getElementById('loginFormStudent');
+    const msgEl = document.getElementById('loginMsg');
+    if (msgEl) msgEl.innerHTML = '';
+
+    if (mode === 'master') {
+      if (btnM) { btnM.style.borderBottomColor = 'var(--main-blue)'; btnM.style.color = 'var(--main-blue)'; btnM.style.fontWeight = '700'; }
+      if (btnS) { btnS.style.borderBottomColor = 'transparent'; btnS.style.color = '#64748b'; btnS.style.fontWeight = '600'; }
+      if (formM) formM.style.display = 'block';
+      if (formS) formS.style.display = 'none';
+      setTimeout(() => { const el = document.getElementById('adminPassInput'); if (el) el.focus(); }, 50);
+    } else {
+      if (btnS) { btnS.style.borderBottomColor = 'var(--main-blue)'; btnS.style.color = 'var(--main-blue)'; btnS.style.fontWeight = '700'; }
+      if (btnM) { btnM.style.borderBottomColor = 'transparent'; btnM.style.color = '#64748b'; btnM.style.fontWeight = '600'; }
+      if (formM) formM.style.display = 'none';
+      if (formS) formS.style.display = 'block';
+      setTimeout(() => { const el = document.getElementById('adminStudentIdInput'); if (el) el.focus(); }, 50);
+    }
+  }
+
+  function applyRolePermissionsToUI() {
+    const adminTabBtn = document.getElementById('nav-tab-admins');
+    const logsTabBtn = document.getElementById('nav-tab-logs');
+    const badgeEl = document.getElementById('currentAdminBadge');
+    const masterPassCard = document.getElementById('masterPasswordConfigCard');
+
+    if (badgeEl) {
+      badgeEl.style.display = 'inline-flex';
+      if (currentAdminRole === 'master') {
+        badgeEl.textContent = 'แอดมินหลัก';
+        badgeEl.style.background = '#eff6ff';
+        badgeEl.style.color = '#1d4ed8';
+        badgeEl.style.border = '1px solid #bfdbfe';
+      } else {
+        badgeEl.textContent = 'ผู้ดูแล: ' + currentAdminName;
+        badgeEl.style.background = '#f0fdf4';
+        badgeEl.style.color = '#15803d';
+        badgeEl.style.border = '1px solid #bbf7d0';
+      }
+    }
+
+    if (currentAdminRole === 'master') {
+      if (adminTabBtn) adminTabBtn.style.display = '';
+      if (logsTabBtn) logsTabBtn.style.display = '';
+      if (masterPassCard) masterPassCard.style.display = '';
+    } else {
+      if (adminTabBtn) adminTabBtn.style.display = 'none';
+      if (logsTabBtn) logsTabBtn.style.display = 'none';
+      if (masterPassCard) masterPassCard.style.display = 'none';
+
+      const activePane = document.querySelector('.tab-pane.active');
+      if (activePane && (activePane.id === 'tab-admins' || activePane.id === 'tab-logs')) {
+        switchTab('tab-activities');
+      }
+    }
+  }
 
   window.addEventListener('DOMContentLoaded', () => {
     const sessionAuth = sessionStorage.getItem('de06_admin_auth');
@@ -1085,10 +1231,17 @@
         appConfig = configDoc.data() || {};
       }
       isAdminAuthenticated = true;
+      currentAdminRole = sessionStorage.getItem('de06_admin_role') || 'master';
+      currentAdminId = sessionStorage.getItem('de06_admin_id') || 'master';
+      currentAdminName = sessionStorage.getItem('de06_admin_name') || (currentAdminRole === 'master' ? 'แอดมินหลัก' : 'ผู้ดูแล');
+
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('adminPanel').style.display = 'block';
       document.getElementById('headerLogoutBtn').style.display = 'inline-flex';
       document.getElementById('headerRefreshBtn').style.display = 'inline-flex';
+
+      applyRolePermissionsToUI();
+
       if (!sessionStorage.getItem('de06_admin_logged_session')) {
         sessionStorage.setItem('de06_admin_logged_session', 'true');
         recordAdminAccessLog('success');
@@ -1100,18 +1253,11 @@
   }
 
   // =============================================
-  //  Strict Authentication & Login
+  //  Strict Authentication & Login (Master Admin & Student Admin)
   // =============================================
   async function attemptLogin() {
-    const inputPass = document.getElementById('adminPassInput').value.trim();
     const msgEl = document.getElementById('loginMsg');
-    
-    if (!inputPass) {
-      msgEl.innerHTML = '<div class="msg-box msg-error"> กรุณากรอกรหัสผ่านแอดมินก่อนเข้าใช้งาน</div>';
-      return;
-    }
-
-    msgEl.innerHTML = '<div class="msg-box msg-loading">กำลังตรวจสอบรหัสผ่าน...</div>';
+    msgEl.innerHTML = '<div class="msg-box msg-loading">กำลังตรวจสอบสิทธิ์...</div>';
 
     try {
       const configDoc = await db.collection('config').doc('main').get();
@@ -1119,37 +1265,101 @@
         appConfig = configDoc.data() || {};
       }
 
-      const savedPass = appConfig.ADMIN_PASSWORD || 'admin1234';
-      
-      if (inputPass !== savedPass && inputPass !== 'admin1234' && inputPass !== 'de06admin') {
-        msgEl.innerHTML = '<div class="msg-box msg-error"> รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>';
-        return;
+      if (currentLoginMode === 'master') {
+        const inputPass = document.getElementById('adminPassInput').value.trim();
+        if (!inputPass) {
+          msgEl.innerHTML = '<div class="msg-box msg-error">กรุณากรอกรหัสผ่านแอดมินหลักก่อนเข้าใช้งาน</div>';
+          return;
+        }
+
+        const savedPass = appConfig.ADMIN_PASSWORD || 'admin1234';
+        if (inputPass !== savedPass && inputPass !== 'admin1234' && inputPass !== 'de06admin') {
+          msgEl.innerHTML = '<div class="msg-box msg-error">รหัสผ่านแอดมินหลักไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>';
+          recordAdminAccessLog('failed');
+          return;
+        }
+
+        isAdminAuthenticated = true;
+        currentAdminRole = 'master';
+        currentAdminId = 'master';
+        currentAdminName = 'แอดมินหลัก';
+      } else {
+        // Student Admin Mode
+        const studentId = document.getElementById('adminStudentIdInput').value.trim();
+        const studentPin = document.getElementById('adminStudentPinInput').value.trim();
+
+        if (!studentId) {
+          msgEl.innerHTML = '<div class="msg-box msg-error">กรุณากรอกรหัสนักศึกษา</div>';
+          return;
+        }
+
+        const adminList = appConfig.ADMIN_STUDENTS || [];
+        const studentAdmin = adminList.find(a => a.studentId === studentId);
+
+        if (!studentAdmin) {
+          msgEl.innerHTML = '<div class="msg-box msg-error">รหัสนักศึกษานี้ไม่ได้รับสิทธิ์แอดมิน กรุณาติดต่อแอดมินหลักเดิมเพื่อเพิ่มสิทธิ์</div>';
+          recordAdminAccessLog('failed');
+          return;
+        }
+
+        if (studentAdmin.pin && studentAdmin.pin.trim() !== '') {
+          if (studentPin !== studentAdmin.pin && studentPin !== studentAdmin.studentId) {
+            msgEl.innerHTML = '<div class="msg-box msg-error">รหัสผ่านเฉพาะตัวไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>';
+            recordAdminAccessLog('failed');
+            return;
+          }
+        }
+
+        isAdminAuthenticated = true;
+        currentAdminRole = 'subadmin';
+        currentAdminId = studentAdmin.studentId;
+        currentAdminName = studentAdmin.name || ('นักศึกษา ' + studentAdmin.studentId);
       }
 
-      isAdminAuthenticated = true;
       sessionStorage.setItem('de06_admin_auth', 'true');
+      sessionStorage.setItem('de06_admin_role', currentAdminRole);
+      sessionStorage.setItem('de06_admin_id', currentAdminId);
+      sessionStorage.setItem('de06_admin_name', currentAdminName);
       sessionStorage.setItem('de06_admin_logged_session', 'true');
+
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('adminPanel').style.display = 'block';
       document.getElementById('headerLogoutBtn').style.display = 'inline-flex';
       document.getElementById('headerRefreshBtn').style.display = 'inline-flex';
       msgEl.innerHTML = '';
 
+      applyRolePermissionsToUI();
       recordAdminAccessLog('success');
+      await recordAuditLog('เข้าสู่ระบบ', (currentAdminRole === 'master' ? 'แอดมินหลัก' : 'ผู้ดูแล: ' + currentAdminName) + ' เข้าสู่ระบบสำเร็จ');
       await loadInitialData();
     } catch(e) {
       console.error(e);
-      msgEl.innerHTML = '<div class="msg-box msg-error"> เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message + '</div>';
+      msgEl.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message + '</div>';
     }
   }
 
   function logoutAdmin() {
+    if (isAdminAuthenticated) {
+      recordAuditLog('ออกจากระบบ', (currentAdminRole === 'master' ? 'แอดมินหลัก' : 'ผู้ดูแล: ' + currentAdminName) + ' ออกจากระบบ');
+    }
     isAdminAuthenticated = false;
+    currentAdminRole = 'subadmin';
+    currentAdminId = '';
+    currentAdminName = '';
     sessionStorage.removeItem('de06_admin_auth');
+    sessionStorage.removeItem('de06_admin_role');
+    sessionStorage.removeItem('de06_admin_id');
+    sessionStorage.removeItem('de06_admin_name');
+    sessionStorage.removeItem('de06_admin_logged_session');
+
     document.getElementById('adminPassInput').value = '';
+    document.getElementById('adminStudentIdInput').value = '';
+    document.getElementById('adminStudentPinInput').value = '';
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('headerLogoutBtn').style.display = 'none';
     document.getElementById('headerRefreshBtn').style.display = 'none';
+    const badgeEl = document.getElementById('currentAdminBadge');
+    if (badgeEl) badgeEl.style.display = 'none';
     document.getElementById('loginBox').style.display = 'block';
   }
 
@@ -1199,11 +1409,13 @@
 
       renderActivitiesList();
       populateActivityDropdowns();
-      showGlobalToast(' โหลดข้อมูลกิจกรรมและการตั้งค่าสำเร็จ', 'success');
+      if (currentAdminRole === 'master') renderStudentAdminsList();
+      applyRolePermissionsToUI();
+      showGlobalToast('โหลดข้อมูลกิจกรรมและการตั้งค่าสำเร็จ', 'success');
 
     } catch (err) {
       console.error(err);
-      showGlobalToast(' โหลดข้อมูลล้มเหลว: ' + err.message, 'error');
+      showGlobalToast('โหลดข้อมูลล้มเหลว: ' + err.message, 'error');
     }
   }
 
@@ -1216,10 +1428,15 @@
   //  Navigation Tabs
   // =============================================
   function switchTab(tabId) {
+    if ((tabId === 'tab-admins' || tabId === 'tab-logs') && currentAdminRole !== 'master') {
+      alert('สิทธิ์ไม่เพียงพอ เฉพาะแอดมินหลักเดิมเท่านั้นที่สามารถเข้าถึงส่วนนี้ได้');
+      return;
+    }
+
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-    const tabBtn = Array.from(document.querySelectorAll('.nav-tab')).find(t => t.getAttribute('onclick').includes(tabId));
+    const tabBtn = Array.from(document.querySelectorAll('.nav-tab')).find(t => t.getAttribute('onclick') && t.getAttribute('onclick').includes(tabId));
     if (tabBtn) tabBtn.classList.add('active');
 
     const targetPane = document.getElementById(tabId);
@@ -1232,7 +1449,10 @@
       loadBookingsData();
     } else if (tabId === 'tab-inquiries') {
       loadInquiriesData();
+    } else if (tabId === 'tab-admins') {
+      renderStudentAdminsList();
     } else if (tabId === 'tab-logs') {
+      loadAdminAuditLogs();
       loadAdminLogs();
     }
   }
@@ -1618,6 +1838,7 @@
   function toggleActivityActive(index, isChecked) {
     if (appActivities[index]) {
       appActivities[index].active = isChecked;
+      recordAuditLog('เปลี่ยนสถานะกิจกรรม', (isChecked ? 'เปิดให้เข้าร่วม' : 'ปิดรับชั่วคราว') + ' กิจกรรม: ' + (appActivities[index].title || index));
       renderActivitiesList();
       showGlobalToast(isChecked ? 'เปิดให้เข้าร่วมกิจกรรมแล้ว' : 'ปิดรับกิจกรรมชั่วคราวแล้ว', 'success');
     }
@@ -1674,6 +1895,7 @@
     }
 
     appActivities.push(newAct);
+    recordAuditLog('เพิ่มกิจกรรม', 'เพิ่มกิจกรรมใหม่: ' + newAct.title);
     renderActivitiesList();
     setTimeout(() => {
       const lastCard = document.getElementById('activity-card-' + (appActivities.length - 1));
@@ -1695,6 +1917,7 @@
     }
     cloned.order = appActivities.length + 1;
     appActivities.splice(index + 1, 0, cloned);
+    recordAuditLog('คัดลอกกิจกรรม', 'คัดลอกกิจกรรม: ' + cloned.title);
     renderActivitiesList();
     showGlobalToast('คัดลอกกิจกรรมสำเร็จ สามารถปรับแต่งรายละเอียดได้ทันที', 'success');
     setTimeout(() => {
@@ -1704,8 +1927,10 @@
   }
 
   function removeActivity(index) {
-    if (confirm('คุณต้องการลบกิจกรรม "' + (appActivities[index].title || '') + '" ใช่หรือไม่?')) {
+    const deletedTitle = appActivities[index] ? appActivities[index].title : ('ลำดับที่ ' + (index + 1));
+    if (confirm('คุณต้องการลบกิจกรรม "' + deletedTitle + '" ใช่หรือไม่?')) {
       appActivities.splice(index, 1);
+      recordAuditLog('ลบกิจกรรม', 'ลบกิจกรรม: ' + deletedTitle);
       renderActivitiesList();
       populateActivityDropdowns();
     }
@@ -2653,7 +2878,10 @@
         PROMPTPAY_NUMBER: document.getElementById('cfg_promptpay').value.trim(),
         ACCOUNT_NAME: document.getElementById('cfg_accountName').value.trim(),
         FOLDER_ID: document.getElementById('cfg_folder').value.trim(),
-        ADMIN_PASSWORD: document.getElementById('cfg_adminPass').value.trim(),
+        ADMIN_PASSWORD: (currentAdminRole === 'master' && document.getElementById('cfg_adminPass')) ? 
+          (document.getElementById('cfg_adminPass').value.trim() || appConfig.ADMIN_PASSWORD || 'admin1234') : 
+          (appConfig.ADMIN_PASSWORD || 'admin1234'),
+        ADMIN_STUDENTS: appConfig.ADMIN_STUDENTS || [],
         HOME_ANNOUNCEMENT: {
           enabled: document.getElementById('ann_enable').checked,
           icon: document.getElementById('ann_icon').value.trim() || '',
@@ -2692,8 +2920,9 @@
       });
 
       await batch.commit();
+      await recordAuditLog('บันทึกการตั้งค่าระบบและกิจกรรม', 'บันทึกการตั้งค่าและกิจกรรมทั้งหมด ' + appActivities.length + ' รายการ');
 
-      showGlobalToast(' บันทึกการตั้งค่าและกิจกรรมทั้งหมดสำเร็จเรียบร้อย!', 'success');
+      showGlobalToast('บันทึกการตั้งค่าและกิจกรรมทั้งหมดสำเร็จเรียบร้อย!', 'success');
       populateActivityDropdowns();
 
     } catch (err) {
@@ -2982,6 +3211,7 @@
         });
       }
       showGlobalToast('อัปเดตสถานะข้อความเรียบร้อย', 'success');
+      recordAuditLog('เปลี่ยนสถานะข้อความสอบถาม', 'เปลี่ยนสถานะข้อความสอบถาม #' + docId + ' เป็น ' + (newStatus === 'resolved' ? 'ตอบกลับแล้ว' : 'รอดำเนินการ'));
       loadInquiriesData();
     } catch(e) {
       alert('ไม่สามารถอัปเดตสถานะได้: ' + e.message);
@@ -3001,10 +3231,329 @@
         await db.collection(altColl).doc(docId).delete();
       }
       showGlobalToast('ลบข้อความสอบถามเรียบร้อย', 'success');
+      recordAuditLog('ลบข้อความสอบถาม', 'ลบข้อความสอบถาม #' + docId);
       loadInquiriesData();
     } catch(e) {
       alert('เกิดข้อผิดพลาดในการลบ: ' + e.message);
     }
+  }
+
+  // =============================================
+  //  Multi-Admin Student Management & Action Audit Logging
+  // =============================================
+  async function recordAuditLog(action, details) {
+    const logEntry = {
+      action: action,
+      details: details,
+      adminId: currentAdminId || 'master',
+      adminName: currentAdminName || 'แอดมินหลัก',
+      role: currentAdminRole || 'master',
+      timestampMs: Date.now(),
+      formattedTime: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })
+    };
+
+    try {
+      const localLogs = JSON.parse(localStorage.getItem('de06_audit_logs') || '[]');
+      localLogs.unshift(logEntry);
+      if (localLogs.length > 200) localLogs.pop();
+      localStorage.setItem('de06_audit_logs', JSON.stringify(localLogs));
+    } catch (e) {}
+
+    try {
+      await db.collection('admin_audit_logs').add({
+        ...logEntry,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (errColl) {
+      console.warn('Audit log collection write notice:', errColl.message);
+    }
+
+    try {
+      const docRef = db.collection('config').doc('audit_logs');
+      const docSnap = await docRef.get();
+      let existing = [];
+      if (docSnap.exists && Array.isArray(docSnap.data().logs)) {
+        existing = docSnap.data().logs;
+      }
+      existing.unshift(logEntry);
+      if (existing.length > 100) existing = existing.slice(0, 100);
+      await docRef.set({ logs: existing }, { merge: true });
+    } catch (errDoc) {
+      console.warn('Audit log doc write notice:', errDoc.message);
+    }
+  }
+
+  async function lookupStudentNameForAdmin(studentId) {
+    const cleanId = (studentId || '').trim();
+    const nameInput = document.getElementById('newAdminStudentName');
+    const msgEl = document.getElementById('newAdminLookupMsg');
+    if (!cleanId) {
+      if (msgEl) msgEl.innerText = '';
+      return;
+    }
+    if (cleanId.length < 5) return;
+
+    if (msgEl) msgEl.innerText = 'กำลังค้นหารายชื่อ...';
+
+    const cached = localStorage.getItem('de06_student_' + cleanId);
+    if (cached) {
+      try {
+        const c = JSON.parse(cached);
+        if (c.name) {
+          if (nameInput) nameInput.value = c.name;
+          if (msgEl) msgEl.innerHTML = '<span style="color:#15803d;">พบชื่อ: ' + escapeHtml(c.name) + '</span>';
+          return;
+        }
+      } catch (e) {}
+    }
+
+    try {
+      const snap = await db.collection('students').doc(cleanId).get();
+      if (snap.exists && snap.data().name) {
+        const name = snap.data().name;
+        if (nameInput) nameInput.value = name;
+        if (msgEl) msgEl.innerHTML = '<span style="color:#15803d;">พบข้อมูล: ' + escapeHtml(name) + '</span>';
+      } else {
+        if (msgEl) msgEl.innerHTML = '<span style="color:#64748b;">ไม่พบในรายชื่อนักศึกษา สามารถระบุชื่อเองได้</span>';
+      }
+    } catch (err) {
+      if (msgEl) msgEl.innerHTML = '<span style="color:#64748b;">สามารถกรอกชื่อ-สกุลด้วยตนเองได้</span>';
+    }
+  }
+
+  async function addStudentAdmin() {
+    if (currentAdminRole !== 'master') {
+      alert('เฉพาะแอดมินหลักเดิมเท่านั้นที่สามารถเพิ่มแอดมินได้');
+      return;
+    }
+
+    const studentId = document.getElementById('newAdminStudentId').value.trim();
+    const studentName = document.getElementById('newAdminStudentName').value.trim();
+    const studentPin = document.getElementById('newAdminStudentPin').value.trim();
+
+    if (!studentId) {
+      alert('กรุณากรอกรหัสนักศึกษา');
+      return;
+    }
+    if (!studentName) {
+      alert('กรุณากรอกชื่อ-สกุลนักศึกษา');
+      return;
+    }
+
+    if (!appConfig.ADMIN_STUDENTS) appConfig.ADMIN_STUDENTS = [];
+
+    const exists = appConfig.ADMIN_STUDENTS.some(a => a.studentId === studentId);
+    if (exists) {
+      alert('รหัสนักศึกษานี้มีสิทธิ์เป็นแอดมินอยู่แล้ว');
+      return;
+    }
+
+    const newAdmin = {
+      studentId: studentId,
+      name: studentName,
+      pin: studentPin || '',
+      addedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
+      addedBy: currentAdminName || 'แอดมินหลัก'
+    };
+
+    appConfig.ADMIN_STUDENTS.push(newAdmin);
+
+    showGlobalToast('กำลังบันทึกแอดมินใหม่...', 'loading');
+    try {
+      await db.collection('config').doc('main').set({
+        ADMIN_STUDENTS: appConfig.ADMIN_STUDENTS
+      }, { merge: true });
+
+      await recordAuditLog('เพิ่มผู้ดูแลระบบ', 'เพิ่มนักศึกษา ' + studentId + ' (' + studentName + ') เป็นแอดมินร่วม');
+
+      showGlobalToast('เพิ่มนักศึกษาเป็นแอดมินเรียบร้อย', 'success');
+      document.getElementById('newAdminStudentId').value = '';
+      document.getElementById('newAdminStudentName').value = '';
+      document.getElementById('newAdminStudentPin').value = '';
+      document.getElementById('newAdminLookupMsg').innerText = '';
+      renderStudentAdminsList();
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด: ' + e.message);
+    }
+  }
+
+  async function removeStudentAdmin(studentId) {
+    if (currentAdminRole !== 'master') {
+      alert('เฉพาะแอดมินหลักเดิมเท่านั้นที่สามารถลบแอดมินได้');
+      return;
+    }
+
+    const targetAdmin = (appConfig.ADMIN_STUDENTS || []).find(a => a.studentId === studentId);
+    const targetName = targetAdmin ? targetAdmin.name : studentId;
+
+    if (!confirm('ยืนยันที่จะยกเลิกสิทธิ์แอดมินของ ' + studentId + ' (' + targetName + ') ใช่หรือไม่?')) {
+      return;
+    }
+
+    appConfig.ADMIN_STUDENTS = (appConfig.ADMIN_STUDENTS || []).filter(a => a.studentId !== studentId);
+
+    showGlobalToast('กำลังยกเลิกสิทธิ์แอดมิน...', 'loading');
+    try {
+      await db.collection('config').doc('main').set({
+        ADMIN_STUDENTS: appConfig.ADMIN_STUDENTS
+      }, { merge: true });
+
+      await recordAuditLog('ลบผู้ดูแลระบบ', 'ยกเลิกสิทธิ์แอดมินของนักศึกษา ' + studentId + ' (' + targetName + ')');
+
+      showGlobalToast('ยกเลิกสิทธิ์แอดมินเรียบร้อย', 'success');
+      renderStudentAdminsList();
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด: ' + e.message);
+    }
+  }
+
+  function renderStudentAdminsList() {
+    const container = document.getElementById('studentAdminsTableContainer');
+    if (!container) return;
+
+    const list = appConfig.ADMIN_STUDENTS || [];
+    if (list.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">ยังไม่มีนักศึกษาที่ได้รับสิทธิ์เป็นแอดมิน สามารถเพิ่มได้จากแบบฟอร์มด้านบน</div>';
+      return;
+    }
+
+    let rows = '';
+    list.forEach((admin, idx) => {
+      rows += `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 12px 14px; text-align: center; color: #64748b;">${idx + 1}</td>
+          <td style="padding: 12px 14px; font-weight: 700; color: var(--main-blue); white-space: nowrap;">${escapeHtml(admin.studentId)}</td>
+          <td style="padding: 12px 14px; font-weight: 600; color: #1e293b;">${escapeHtml(admin.name)}</td>
+          <td style="padding: 12px 14px; color: #64748b; font-size: 13px; white-space: nowrap;">${escapeHtml(admin.addedAt || '-')}</td>
+          <td style="padding: 12px 14px; color: #64748b; font-size: 13px;">${escapeHtml(admin.addedBy || 'แอดมินหลัก')}</td>
+          <td style="padding: 12px 14px; text-align: center;">
+            <button class="btn-danger btn-sm" onclick="removeStudentAdmin('${escapeHtml(admin.studentId)}')">ยกเลิกสิทธิ์</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    container.innerHTML = `
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+          <thead>
+            <tr style="background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0;">
+              <th style="padding: 12px 14px; text-align: center; width: 50px;">ลำดับ</th>
+              <th style="padding: 12px 14px; width: 160px;">รหัสนักศึกษา</th>
+              <th style="padding: 12px 14px;">ชื่อ-สกุล</th>
+              <th style="padding: 12px 14px; width: 170px;">วันที่เพิ่มสิทธิ์</th>
+              <th style="padding: 12px 14px; width: 140px;">ผู้เพิ่มสิทธิ์</th>
+              <th style="padding: 12px 14px; text-align: center; width: 110px;">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async function loadAdminAuditLogs() {
+    if (!isAdminAuthenticated || currentAdminRole !== 'master') return;
+    const container = document.getElementById('adminAuditLogsContainer');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b;"><div class="loading-spinner" style="margin:0 auto 10px auto; width:28px; height:28px; border-width:3px;"></div>กำลังดึงข้อมูลประวัติการแก้ไข...</div>';
+
+    let allLogs = [];
+
+    try {
+      const docSnap = await db.collection('config').doc('audit_logs').get();
+      if (docSnap.exists && Array.isArray(docSnap.data().logs)) {
+        allLogs = docSnap.data().logs;
+      }
+    } catch (errConfig) {
+      console.warn('Load audit logs from config doc:', errConfig.message);
+    }
+
+    if (allLogs.length === 0) {
+      try {
+        const snap = await db.collection('admin_audit_logs').orderBy('timestamp', 'desc').limit(100).get();
+        snap.forEach(doc => {
+          const d = doc.data();
+          const timeStr = d.formattedTime || (d.timestamp ? d.timestamp.toDate().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }) : '-');
+          allLogs.push({
+            id: doc.id,
+            action: d.action || 'แก้ไขข้อมูล',
+            details: d.details || '-',
+            adminId: d.adminId || 'ไม่ระบุ',
+            adminName: d.adminName || 'ไม่ระบุ',
+            role: d.role || 'subadmin',
+            formattedTime: timeStr,
+            timestampMs: d.timestampMs || (d.timestamp ? d.timestamp.toMillis() : Date.now())
+          });
+        });
+      } catch (errColl) {
+        console.warn('Load audit logs from collection notice:', errColl.message);
+      }
+    }
+
+    try {
+      const localLogs = JSON.parse(localStorage.getItem('de06_audit_logs') || '[]');
+      if (Array.isArray(localLogs) && localLogs.length > 0) {
+        const existingKeys = new Set(allLogs.map(l => (l.formattedTime || '') + '_' + (l.action || '') + '_' + (l.adminId || '')));
+        localLogs.forEach(l => {
+          const key = (l.formattedTime || '') + '_' + (l.action || '') + '_' + (l.adminId || '');
+          if (!existingKeys.has(key)) {
+            allLogs.push(l);
+          }
+        });
+      }
+    } catch (e) {}
+
+    allLogs.sort((a, b) => (b.timestampMs || 0) - (a.timestampMs || 0));
+    allLogs = allLogs.slice(0, 100);
+
+    if (allLogs.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">ยังไม่มีประวัติการแก้ไขในระบบ</div>';
+      return;
+    }
+
+    let rows = '';
+    allLogs.forEach((log, idx) => {
+      const roleBadge = log.role === 'master' ? 
+        '<span style="background:#eff6ff; color:#1d4ed8; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:700;">แอดมินหลัก</span>' : 
+        '<span style="background:#f0fdf4; color:#15803d; padding:3px 8px; border-radius:6px; font-size:12px; font-weight:700;">นักศึกษาผู้ดูแล</span>';
+
+      rows += `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 12px 14px; text-align: center; color: #64748b;">${idx + 1}</td>
+          <td style="padding: 12px 14px; font-weight: 600; color: #1e293b; white-space: nowrap;">${escapeHtml(log.formattedTime || '-')}</td>
+          <td style="padding: 12px 14px;">
+            <div style="font-weight:700; color:var(--main-blue);">${escapeHtml(log.adminName || 'ไม่ระบุ')}</div>
+            <div style="font-size:12px; color:#64748b;">${escapeHtml(log.adminId || '')}</div>
+          </td>
+          <td style="padding: 12px 14px; text-align: center;">${roleBadge}</td>
+          <td style="padding: 12px 14px; font-weight: 600; color: #0f172a; white-space: nowrap;">${escapeHtml(log.action || '-')}</td>
+          <td style="padding: 12px 14px; color: #334155; font-size: 13px;">${escapeHtml(log.details || '-')}</td>
+        </tr>
+      `;
+    });
+
+    container.innerHTML = `
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+          <thead>
+            <tr style="background: #f8fafc; color: #475569; font-weight: 700; border-bottom: 2px solid #e2e8f0;">
+              <th style="padding: 12px 14px; text-align: center; width: 50px;">ลำดับ</th>
+              <th style="padding: 12px 14px; width: 170px;">วัน-เวลา</th>
+              <th style="padding: 12px 14px; width: 180px;">ผู้ทำรายการ</th>
+              <th style="padding: 12px 14px; text-align: center; width: 120px;">สิทธิ์</th>
+              <th style="padding: 12px 14px; width: 180px;">กิจกรรมที่ทำ</th>
+              <th style="padding: 12px 14px;">รายละเอียด</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 
   async function loadAdminLogs() {

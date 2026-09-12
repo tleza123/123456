@@ -1166,6 +1166,7 @@
       try { fetch(API_URL, { method: 'GET', mode: 'no-cors' }).catch(function() {}); } catch (e) { }
     }, 1000);
 
+    restoreStudentSession();
     loadConfigFromFirestore();
     setInterval(updateTimersFast, 1000);
   });
@@ -1192,6 +1193,7 @@
         renderDynamicSections();
         renderShopSection();
         renderFormsSection();
+        if (currentStudentId) renderHomeTasks();
 
         if (isCacheFresh) {
           if (loadingScreen) {
@@ -1235,6 +1237,7 @@
       renderDynamicSections();
       renderShopSection();
       renderFormsSection();
+      if (currentStudentId) renderHomeTasks();
       
       if (loadingScreen) {
         loadingScreen.style.opacity = '0';
@@ -1539,12 +1542,57 @@
   // =============================================
   function goToSection(sectionId) { switchSection(sectionId); }
 
+  function restoreStudentSession() {
+    try {
+      var raw = localStorage.getItem('de06_current_session') || sessionStorage.getItem('de06_student');
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && s.studentId && s.name) {
+          currentStudentId = s.studentId;
+          currentStudentName = s.name;
+          var homeNameEl = document.getElementById('homeStudentName');
+          if (homeNameEl) homeNameEl.innerText = s.name;
+          var bookNameEl = document.getElementById('studentName');
+          if (bookNameEl) bookNameEl.innerText = s.name;
+          var inputEl = document.getElementById('studentId');
+          if (inputEl) inputEl.value = s.studentId;
+
+          sessionStorage.setItem('de06_student', JSON.stringify({ studentId: s.studentId, name: s.name }));
+          localStorage.setItem('de06_current_session', JSON.stringify({
+            studentId: s.studentId,
+            name: s.name,
+            activeSection: s.activeSection || 'home-section'
+          }));
+
+          var targetSection = s.activeSection || 'home-section';
+          if (targetSection === 'login-section') targetSection = 'home-section';
+          var targetEl = document.getElementById(targetSection);
+          switchSection(targetEl ? targetSection : 'home-section');
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn('Session restore notice:', e);
+    }
+    return false;
+  }
+
   function switchSection(sectionId) {
     document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
     var target = document.getElementById(sectionId);
     if (target) { target.classList.add('active'); }
     else { document.getElementById('home-section').classList.add('active'); sectionId = 'home-section'; }
     window.scrollTo({ top: 0, behavior: 'instant' });
+
+    if (currentStudentId && sectionId !== 'login-section') {
+      try {
+        localStorage.setItem('de06_current_session', JSON.stringify({
+          studentId: currentStudentId,
+          name: currentStudentName,
+          activeSection: sectionId
+        }));
+      } catch (e) {}
+    }
 
     if (sectionId === 'home-section') {
       renderHomeTasks();
@@ -1566,8 +1614,10 @@
 
   function logout() {
     currentStudentId = ''; currentStudentName = '';
-    document.getElementById('studentId').value = '';
+    var inputEl = document.getElementById('studentId');
+    if (inputEl) inputEl.value = '';
     sessionStorage.removeItem('de06_student');
+    localStorage.removeItem('de06_current_session');
     pollDataCache = {};
     commentDataCache = {};
     switchSection('login-section');
@@ -2345,6 +2395,7 @@
           document.getElementById('homeStudentName').innerText = c.name;
           document.getElementById('studentName').innerText = c.name;
           sessionStorage.setItem('de06_student', JSON.stringify({ studentId: id, name: c.name }));
+          localStorage.setItem('de06_current_session', JSON.stringify({ studentId: id, name: c.name, activeSection: 'home-section' }));
           switchSection('home-section');
           return;
         }
@@ -2361,6 +2412,7 @@
         document.getElementById('studentName').innerText = name;
         localStorage.setItem('de06_student_' + id, JSON.stringify({ studentId: id, name: name }));
         sessionStorage.setItem('de06_student', JSON.stringify({ studentId: id, name: name }));
+        localStorage.setItem('de06_current_session', JSON.stringify({ studentId: id, name: name, activeSection: 'home-section' }));
         switchSection('home-section');
       } else {
         errorEl.innerText = 'ไม่พบรหัสนักศึกษานี้ในระบบ';
