@@ -102,8 +102,8 @@
 ## 4. มาตรฐานประสิทธิภาพและส่วนต่อประสาน (UI/UX Performance Standards)
 1. **Typography & Anti-GPU-Blur**:
    - ใช้ฟอนต์ **Ekkamai New** ทั่วทั้งระบบ โดยไม่มีการใช้ `translateZ(0)` หรือ `will-change: transform` บนองค์ประกอบข้อความ เพื่อให้ตัวอักษรคมชัดสูงสุด 100%
-2. **Universal 1:1 Square Product Preview**:
-   - ภาพตัวอย่างสินค้าและเสื้อช็อปต้องคงสัดส่วน `1 / 1` เสมอ (`aspect-ratio: 1 / 1; object-fit: cover`)
+2. **Natural Aspect Ratio Image Preview**:
+   - แสดงผลภาพตัวอย่างสินค้า เสื้อช็อป กิจกรรม สลิป และรูปภาพแนบตามสัดส่วนและขนาดจริงของรูปที่อัปโหลด (Natural Aspect Ratio) โดยไม่บังคับครอบตัด 1:1 เพื่อให้เห็นภาพจริงครบถ้วนสมบูรณ์ (`height: auto; max-width: 100%; object-fit: contain;`)
 3. **Responsive Scaling & Ergonomics**:
    - กำหนดสเกลราก `html { font-size: 15px; }` (<640px), 15.5px (tablet), 16px (desktop), 16.5px (large), 17.5px (2k/4k)
    - ป้องกัน iOS Safari Auto-Zoom ด้วย `font-size: 16px` บน `input, select, textarea`
