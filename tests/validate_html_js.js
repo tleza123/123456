@@ -6,7 +6,7 @@ function testHtmlScripts(filename) {
   let match;
   let scriptIdx = 0;
   while ((match = scriptRegex.exec(html)) !== null) {
-    if (/src=["']/i.test(match[0])) continue;
+    if (/\bsrc\s*=/i.test(match[0].slice(0, match[0].indexOf('>')))) continue;
     const code = match[1];
     scriptIdx++;
     try {

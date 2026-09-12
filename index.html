@@ -706,6 +706,21 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       border: 3px solid white;
     }
+    .history-list { display: grid; gap: 1rem; list-style: none; padding: 0; margin: 1rem 0; text-align: left; }
+    .history-card { min-width: 0; padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 1rem; background: #fff; overflow-wrap: anywhere; line-height: 1.6; font-weight: 400; }
+    .history-card h3 { margin: 0 0 .75rem; font-size: 1.125rem; line-height: 1.3; font-weight: 700; }
+    .history-card p { margin: .5rem 0; text-align: left; font-size: 1rem; font-weight: 400; line-height: 1.6; }
+    .history-card .history-time { color: var(--text-muted); }
+    .history-answer { white-space: pre-wrap; border-top: 1px solid #e2e8f0; margin-top: .75rem; padding-top: .5rem; }
+    .history-card img { display: block; width: auto; height: auto; max-width: 100%; margin: .75rem auto; border-radius: .5rem; }
+    .history-card details { margin-top: 1rem; }
+    .history-card summary, .history-card a { min-height: 3rem; padding: .75rem; box-sizing: border-box; cursor: pointer; touch-action: manipulation; }
+    .history-card a { display: inline-flex; align-items: center; }
+    .history-card summary:focus-visible, .history-card a:focus-visible { outline: .1875rem solid var(--main-blue); outline-offset: .125rem; }
+    .history-refresh { width: auto; min-height: 3rem; padding: .75rem 1rem; }
+    .history-attachment { border-top: 1px solid #e2e8f0; padding-top: .75rem; }
+    .history-card .skeleton-line { height: 1.5rem; margin-bottom: 1rem; }
+    .history-card .skeleton-line:last-child { width: 65%; }
   </style>
 </head>
 <body>
@@ -748,7 +763,7 @@
       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
         <button class="btn-secondary" onclick="viewMyBooking()" style="width: auto; padding: 8px 16px; font-size: 13px; margin: 0; display: inline-flex; align-items: center; gap: 6px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          ตรวจสอบข้อมูลการจอง
+          ประวัติการใช้งาน
         </button>
         <button class="btn-secondary" onclick="logout()" style="width: auto; padding: 8px 14px; font-size: 13px; margin: 0; color: #dc2626 !important; border-color: #fecaca !important; background: #fef2f2 !important; display: inline-flex; align-items: center; gap: 4px;">
           ออกจากระบบ
@@ -786,8 +801,10 @@
 
   <!-- 3. CHECK BOOKING SECTION -->
   <div id="check-booking-section" class="section">
-    <div class="header-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลการจองของคุณ</div>
-    <h2 style="margin-bottom: 20px;">รายละเอียดการจองเสื้อช็อป</h2>
+    <div class="header-badge" style="background:#fef3c7; color:#d97706; border-color:#fde68a;">ข้อมูลของคุณ</div>
+    <h2 style="margin-bottom: 20px;">ประวัติการใช้งาน</h2>
+    <p id="history-status" role="status" aria-live="polite"></p>
+    <button class="btn-secondary history-refresh" onclick="loadUsageHistory()">รีเฟรชประวัติ</button>
     <div id="booking-details-content">
       <!-- ข้อมูลการจองจะโหลดมาที่นี่ -->
     </div>
@@ -1594,7 +1611,9 @@
       } catch (e) {}
     }
 
-    if (sectionId === 'home-section') {
+    if (sectionId === 'check-booking-section') {
+      loadUsageHistory();
+    } else if (sectionId === 'home-section') {
       renderHomeTasks();
     } else if (sectionId === 'shop-section') {
       renderShopSection();
@@ -1613,6 +1632,10 @@
   }
 
   function logout() {
+    usageHistory.request++;
+    usageHistory.rows = [];
+    document.getElementById('booking-details-content').innerHTML = '';
+    document.getElementById('history-status').textContent = '';
     currentStudentId = ''; currentStudentName = '';
     var inputEl = document.getElementById('studentId');
     if (inputEl) inputEl.value = '';
@@ -2064,6 +2087,7 @@
         activityId: actId,
         studentId: currentStudentId,
         studentName: currentStudentName,
+        activityTitle: task.title || '',
         optionIndex: optIdx,
         optionText: optText,
         votedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
@@ -2258,6 +2282,7 @@
         activityId: actId,
         studentId: currentStudentId,
         studentName: currentStudentName,
+        activityTitle: (allTasks.find(function(t) { return t.id === actId; }) || {}).title || '',
         message: text,
         imageUrl: attachedImg,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -2360,6 +2385,8 @@
         activityId: actId,
         studentId: currentStudentId,
         studentName: currentStudentName,
+        activityTitle: (task && task.title) || '',
+        formType: 'form',
         formData: answers,
         submittedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -2501,6 +2528,7 @@
         summary: summary.join(', '),
         totalPrice: totalPrice,
         status: 'pending',
+        bookedAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
 
@@ -2925,125 +2953,141 @@
   // =============================================
   //  View Booking Details (Multi-Slip Supported)
   // =============================================
-  async function viewMyBooking() {
-    switchSection('check-booking-section');
-    var container = document.getElementById('booking-details-content');
-    container.innerHTML = '<div style="text-align:center; padding:40px;"><div class="loading-spinner" style="margin:0 auto 15px auto;"></div><p style="color:var(--text-muted);">กำลังดึงข้อมูลจากฐานข้อมูล...</p></div>';
-    
-    try {
-      var snap = await db.collection('bookings').doc(currentStudentId).get();
-      if (snap.exists && snap.data().summary) {
-        var data = snap.data();
-        var isPaid = data.status === 'paid' || data.slipImageUrl || (Array.isArray(data.slips) && data.slips.length > 0) || (Array.isArray(data.slipUrls) && data.slipUrls.length > 0);
-        var statusHtml = isPaid ? 
-          '<span class="badge-status-paid">' + Icons.check + ' ชำระเงินแล้ว</span>' : 
-          '<span class="badge-status-pending">' + Icons.clock + ' รอชำระเงิน</span>';
+  var usageHistory = { request: 0, rows: [], visible: 20 };
 
-        // Backward-compatible slips extraction
-        var slips = [];
-        if (Array.isArray(data.slips) && data.slips.length > 0) {
-          slips = data.slips;
-        } else if (Array.isArray(data.slipUrls) && data.slipUrls.length > 0) {
-          slips = data.slipUrls.map(function(u, i) { return { imageUrl: u, fileUrl: u, fileName: 'สลิป ' + (i + 1), transferDateTime: data.transferDateTime || '-' }; });
-        } else if (data.slipImageUrl || data.slipFileUrl) {
-          slips = [{ imageUrl: data.slipImageUrl || data.slipFileUrl, fileUrl: data.slipFileUrl || data.slipImageUrl, fileName: 'สลิปชำระเงิน', transferDateTime: data.transferDateTime || '-' }];
-        }
-
-        var slipsHtml = '';
-        if (slips.length === 0) {
-          slipsHtml = '<p style="margin-top:10px; font-size:13px; color:#ef4444;">ยังไม่พบรูปสลิปในระบบ</p>';
-        } else if (slips.length === 1) {
-          var singleSlip = slips[0];
-          var mainUrl = singleSlip.fileUrl || singleSlip.imageUrl;
-          var singleTime = singleSlip.transferDateTime || data.transferDateTime || '-';
-          slipsHtml = `
-            <div style="margin-top:10px; font-size:14px; color:var(--text-muted);">
-              <b>วัน-เวลาที่โอน:</b> <span style="color:var(--text-main); font-weight:600;">${escapeHtml(singleTime).replace(/\n/g, '<br>')}</span>
-            </div>
-            <div style="margin-top:12px; text-align:center;">
-              <img src="${singleSlip.imageUrl || mainUrl}" style="max-width:100%; max-height:260px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${mainUrl}')">
-              <div style="margin-top:8px;">
-                <a href="${mainUrl}" target="_blank" style="background:#f1f5f9; display:inline-block; padding:8px 14px; border-radius:8px; color:#2563eb; text-decoration:none; font-size:13px; font-weight:600; border:1px solid #e2e8f0;">
-                  <span style="display:inline-flex; align-items:center; gap:6px;">${Icons.file} เปิดดูไฟล์สลิปต้นฉบับ</span>
-                </a>
-              </div>
-            </div>
-          `;
-        } else {
-          slipsHtml = `
-            <div style="margin-top:10px;">
-              <div style="font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:8px;">สลิปที่แนบไว้ (${slips.length} ใบ):</div>
-              <div style="display:flex; flex-direction:column; gap:12px;">
-                ${slips.map(function(s, idx) {
-                  var targetUrl = s.fileUrl || s.imageUrl;
-                  var sTime = s.transferDateTime || data.transferDateTime || '-';
-                  return `
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; display:flex; gap:12px; align-items:center;">
-                      <img src="${s.imageUrl || targetUrl}" style="width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;" loading="lazy" onclick="openLightbox('${targetUrl}')" title="คลิกเพื่อขยาย">
-                      <div style="flex:1; min-width:0;">
-                        <div style="font-size:13px; font-weight:700; color:var(--main-blue);">สลิปที่ ${idx + 1}</div>
-                        <div style="font-size:12px; color:#475569; margin-top:2px;"><b>วัน-เวลาโอน:</b> <span style="color:#0f172a; font-weight:600;">${escapeHtml(sTime).replace(/\n/g, '<br>')}</span></div>
-                        <div style="margin-top:6px;">
-                          <a href="${targetUrl}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:3px;">
-                            ${Icons.file} ดูต้นฉบับ ↗
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }
-          
-        container.innerHTML = `
-          <div class="responsive-two-col">
-            <!-- Left Column: Student Info & Shirt Summary -->
-            <div>
-              <div class="contact-box" style="margin-top:0; border-top: 4px solid var(--main-blue);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:6px;">
-                  <h3 style="margin:0; font-size:16px; color:var(--main-blue);">ข้อมูลผู้จอง</h3>
-                  ${statusHtml}
-                </div>
-                <p style="margin:6px 0; color:var(--text-main); font-size:15px;"><b>ชื่อ-สกุล:</b> ${escapeHtml(currentStudentName)}</p>
-                <p style="margin:6px 0; color:var(--text-main); font-size:15px;"><b>รหัสนักศึกษา:</b> ${escapeHtml(currentStudentId)}</p>
-              </div>
-
-              <div class="price-box" style="margin:16px 0; text-align:left; background:white; border:1px solid #e2e8f0; border-top: 4px solid #10b981; padding: 22px;">
-                <h3 style="margin:0 0 12px 0; font-size:16px; color:#15803d; display:flex; align-items:center; gap:8px;">
-                  <span style="display:flex; align-items:center; gap:6px;">${Icons.shirt} รายการเสื้อที่จอง</span>
-                </h3>
-                <p style="margin:6px 0; font-size:16px; font-weight:600; color:var(--text-main); line-height:1.6;">${escapeHtml(data.summary)}</p>
-                <hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">
-                ${(function(){ 
-                  var q = (parseInt(data.xs)||0) + (parseInt(data.s)||0) + (parseInt(data.m)||0) + (parseInt(data.l)||0) + (parseInt(data.xl)||0) + (parseInt(data.xxl)||0) + (parseInt(data.otherNum)||0);
-                  return q > 0 ? `<p style="margin:6px 0; font-size:15px; color:var(--text-muted);"><b>จำนวนรวม:</b> <span style="color:var(--text-main); font-weight:600;">${q} ตัว</span></p>` : '';
-                })()}
-                <p style="margin:6px 0; font-size:22px; color:var(--text-main);"><b>ยอดชำระ:</b> <span style="color:#dc2626; font-weight:700;">${(data.totalPrice || 0).toLocaleString()} บาท</span></p>
-              </div>
-            </div>
-
-            <!-- Right Column: Slip & Payment Info -->
-            <div>
-              <div class="contact-box" style="margin-top:0; border-top: 4px solid #f59e0b;">
-                <h3 style="margin:0 0 12px 0; font-size:16px; color:var(--text-main);">หลักฐานการโอนเงิน</h3>
-                ${slipsHtml}
-                <button class="btn-secondary btn-sm" style="margin-top:14px; width:100%; display:flex; align-items:center; justify-content:center; gap:6px; color:#2563eb; border-color:#93c5fd; background:#f0f9ff; font-weight:600; padding:10px 14px; border-radius:10px;" onclick="goToReuploadSlips()">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                  ${slips.length > 0 ? 'แนบสลิปใหม่ / เพิ่มสลิป (บันทึกทับข้อมูลเดิม)' : 'แนบรูปภาพสลิปชำระเงิน'}
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      } else {
-        container.innerHTML = '<div style="text-align:center; padding:50px 20px; background:#f8fafc; border-radius:18px; border:2px dashed #cbd5e1;"><div style="margin-bottom:15px; display:flex; justify-content:center;">' + Icons.shirtLarge + '</div><div style="color:var(--text-muted); font-size:16px; font-weight:500;">คุณยังไม่มีประวัติการจองเสื้อช็อปครับ</div><button class="btn-success" style="margin-top:20px; width:auto; padding:12px 28px;" onclick="switchSection(\'booking-section\')">ไปจองเสื้อกันเลย →</button></div>';
-      }
-    } catch (e) {
-      container.innerHTML = '<div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px; margin-top:10px;"><b>เกิดข้อผิดพลาด:</b><br>' + e.message + '</div>';
-    }
+  function historyText(value) {
+    return escapeHtml(stripEmojis(value == null ? '' : String(value)));
   }
+
+  function historyDate(value) {
+    if (!value) return 0;
+    if (typeof value.toMillis === 'function') return value.toMillis();
+    if (typeof value === 'object' && typeof value.seconds === 'number') return value.seconds * 1000;
+    if (typeof value === 'string') {
+      var thai = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[\s,]+(?:เวลา\s*)?(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+      if (thai) {
+        var year = Number(thai[3]);
+        if (year > 2400) year -= 543;
+        return Date.parse(year + '-' + thai[2].padStart(2, '0') + '-' + thai[1].padStart(2, '0') + 'T' + (thai[4] || '00').padStart(2, '0') + ':' + (thai[5] || '00') + ':' + (thai[6] || '00') + '+07:00') || 0;
+      }
+    }
+    return new Date(value).getTime() || 0;
+  }
+
+  function historyTime(value) {
+    var time = historyDate(value);
+    return time ? new Date(time).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' }) + ' น.' : 'ไม่ระบุวันเวลา';
+  }
+
+  function historyUrl(value) {
+    if (typeof value !== 'string') return '';
+    if (/^data:image\/(?:jpeg|png|webp|gif);base64,[a-z0-9+/=]+$/i.test(value)) return value;
+    try { var url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch (e) { return ''; }
+  }
+
+  function historyAttachment(slip, index, fallbackTime) {
+    if (!slip) return '';
+    if (typeof slip === 'string') slip = { url: slip };
+    var image = historyUrl(slip.imageUrl || slip.url);
+    var file = historyUrl(slip.fileUrl || slip.url || slip.imageUrl);
+    var label = 'สลิปที่ ' + (index + 1);
+    return '<div class="history-attachment"><p>' + label + ' · โอน ' + historyText(slip.transferDateTime || slip.transferTime || fallbackTime || 'ไม่ระบุวันเวลา') + '</p>' +
+      (image ? '<img loading="lazy" decoding="async" src="' + escapeHtml(image) + '" alt="' + label + '">' : '') +
+      (file && !file.startsWith('data:') ? '<a href="' + escapeHtml(file) + '" target="_blank" rel="noopener noreferrer">เปิดไฟล์สลิป</a>' : '') + '</div>';
+  }
+
+  function historyBooking(data, source) {
+    var slips = Array.isArray(data.slips) && data.slips.length ? data.slips :
+      Array.isArray(data.slipUrls) && data.slipUrls.length ? data.slipUrls :
+      (data.slipImageUrl || data.slipFileUrl || data.slipUrl ? [{ imageUrl: data.slipImageUrl || data.slipUrl, fileUrl: data.slipFileUrl || data.slipImageUrl || data.slipUrl }] : []);
+    var sizes = data.details || data;
+    var summary = data.summary || ['xs', 's', 'm', 'l', 'xl', 'xxl', 'custom', 'otherNum'].filter(function(key) { return Number(sizes[key]) > 0; }).map(function(key) {
+      var label = { xxl: '2XL', custom: sizes.customText || 'ไซส์พิเศษ', otherNum: data.other || 'ไซส์พิเศษ' }[key] || key.toUpperCase();
+      return label + ' ' + sizes[key] + ' ตัว';
+    }).join(', ') || 'ไม่ระบุไซส์';
+    var paid = data.paymentStatus === 'paid' || data.status === 'paid';
+    var money = function(value) { return value !== null && value !== '' && Number.isFinite(Number(value)) ? Number(value).toLocaleString('th-TH') + ' บาท' : 'ไม่ระบุยอด'; };
+    var body = '<p>ไซส์ที่จอง: ' + historyText(summary) + '</p><p>ยอดสั่งซื้อ: ' + money(data.totalPrice) + '</p>' +
+      '<p>สถานะ: ' + (paid ? 'ชำระเงินแล้ว' : 'รอชำระเงิน') + '</p><p>ยอดเงินที่บันทึกการชำระ: ' + money(data.paidAmount) + '</p>';
+    if (data.updatedAt) body += '<p>ปรับปรุงล่าสุด: ' + historyText(historyTime(data.updatedAt)) + '</p>';
+    body += slips.length ? '<details><summary>สลิปที่แนบ ' + slips.length + ' ใบ</summary>' + slips.map(function(s, i) { return historyAttachment(s, i, data.transferDateTime || data.transferTime); }).join('') + '</details>' : '<p>ยังไม่มีสลิปแนบ</p>';
+    if (source === 'bookings') body += '<button class="btn-secondary" onclick="goToReuploadSlips()">' + (slips.length ? 'จัดการสลิปชำระเงิน' : 'แนบสลิปชำระเงิน') + '</button>';
+    return { type: 'booking', title: 'จองเสื้อช็อป', time: historyDate(data.bookedAt || data.createdAt || data.updatedAt), timeLabel: data.bookedAt || data.createdAt ? 'จองเมื่อ' : 'บันทึกล่าสุด', body: body };
+  }
+
+  function historySubmission(data, source) {
+    var type = data.formType || ({ votes: 'vote', comments: 'comment', inquiries: 'inquiry' }[source]) || 'form';
+    var task = allTasks.find(function(t) { return t.id === data.activityId; });
+    var title = data.activityTitle || (task && task.title) || data.topic || 'กิจกรรมเดิม';
+    var body = '';
+    if (type === 'vote') body = '<p>ตัวเลือกที่โหวต: ' + historyText(data.optionText == null ? 'ไม่ระบุตัวเลือก' : data.optionText) + '</p>';
+    else if (type === 'comment' || type === 'inquiry') {
+      body = '<p class="history-answer">' + historyText(data.message) + '</p>';
+      var image = historyUrl(data.imageUrl);
+      if (image) body += '<details><summary>รูปภาพที่แนบ</summary><img loading="lazy" decoding="async" src="' + escapeHtml(image) + '" alt="รูปภาพประกอบความคิดเห็น"></details>';
+    } else {
+      var answers = data.formData && typeof data.formData === 'object' ? data.formData : {};
+      body = Object.keys(answers).map(function(q) { return '<div class="history-answer"><p>' + historyText(q) + '</p><p>คำตอบ: ' + historyText(Array.isArray(answers[q]) ? answers[q].join(', ') : answers[q]) + '</p></div>'; }).join('') || '<p>ไม่มีรายละเอียดคำตอบที่บันทึกไว้</p>';
+    }
+    return { type: type, title: ({ vote: 'โหวต', comment: 'แสดงความคิดเห็น', inquiry: 'ส่งคำสอบถาม', form: 'ตอบแบบสอบถาม' }[type] || 'ส่งข้อมูล') + ' · ' + title, time: historyDate(data.timestamp || data.createdAt || data.votedAt || data.submittedAt || data.formattedTime || data.createdAtStr), timeLabel: 'บันทึกเมื่อ', body: body };
+  }
+
+  function renderUsageHistory() {
+    var container = document.getElementById('booking-details-content');
+    var rows = usageHistory.rows;
+    container.innerHTML = rows.length ? '<ol class="history-list">' + rows.slice(0, usageHistory.visible).map(function(row) {
+      return '<li class="history-card"><h3>' + historyText(row.title) + '</h3><p class="history-time">' + row.timeLabel + ' ' + historyText(historyTime(row.time)) + '</p>' + row.body + '</li>';
+    }).join('') + '</ol>' : '<p>ยังไม่มีประวัติการใช้งาน</p>';
+    if (rows.length > usageHistory.visible) container.innerHTML += '<button class="btn-secondary" onclick="usageHistory.visible += 20; renderUsageHistory()">แสดงรายการเพิ่มเติม</button>';
+  }
+
+  async function viewMyBooking() {
+    if (!currentStudentId) return;
+    switchSection('check-booking-section');
+  }
+
+  async function loadUsageHistory() {
+    if (!currentStudentId) return;
+    var studentId = currentStudentId;
+    var request = ++usageHistory.request;
+    usageHistory.rows = [];
+    usageHistory.visible = 20;
+    var container = document.getElementById('booking-details-content');
+    var status = document.getElementById('history-status');
+    status.textContent = 'กำลังโหลดประวัติการใช้งาน';
+    container.setAttribute('aria-busy', 'true');
+    container.innerHTML = '<div class="history-list" aria-hidden="true">' + Array.from({ length: 3 }, function() { return '<div class="history-card"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>'; }).join('') + '</div>';
+    var sources = ['bookings', 'orders_shirts', 'votes', 'comments', 'dynamic_submissions', 'inquiries'];
+    var results = await Promise.allSettled(sources.map(function(source) {
+      return source === 'bookings' ? db.collection(source).doc(studentId).get() : db.collection(source).where('studentId', '==', studentId).get();
+    }));
+    if (request !== usageHistory.request || currentStudentId !== studentId) return;
+    var rows = [];
+    var votes = new Map();
+    var failures = [];
+    results.forEach(function(result, index) {
+      var source = sources[index];
+      if (result.status !== 'fulfilled') { failures.push(source); return; }
+      function collect(doc) {
+        var data = doc.data();
+        if (data.studentId && data.studentId !== studentId) return;
+        var row = source === 'bookings' || source === 'orders_shirts' ? historyBooking(data, source) : historySubmission(data, source);
+        if (row.type === 'vote') {
+          var key = data.activityId || doc.id;
+          if (!votes.has(key) || votes.get(key).time < row.time) votes.set(key, row);
+        } else rows.push(row);
+      }
+      if (source === 'bookings') { if (result.value.exists) collect(result.value); }
+      else result.value.forEach(collect);
+    });
+    votes.forEach(function(row) { rows.push(row); });
+    usageHistory.rows = rows.sort(function(a, b) { return b.time - a.time; });
+    container.setAttribute('aria-busy', 'false');
+    renderUsageHistory();
+    status.textContent = failures.length ? 'โหลดประวัติบางส่วนไม่สำเร็จ กรุณาลองใหม่' : 'ประวัติ ' + rows.length + ' รายการ';
+    if (failures.length && !rows.length) container.innerHTML = '';
+  }
+
 
   async function goToReuploadSlips() {
     try {

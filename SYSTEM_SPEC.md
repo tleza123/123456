@@ -6,6 +6,16 @@
 
 ## 1. Executive Architecture Summary
 
+### ประวัติการใช้งานนักศึกษา
+- เมนูประวัติการใช้งานรวมข้อมูลของรหัสนักศึกษาปัจจุบันจาก `bookings`, `orders_shirts`, `votes`, `comments`, `dynamic_submissions` และ `inquiries` โดยเรียงวันเวลาใหม่ไปเก่าและแสดงครั้งละ 20 รายการ
+- การจองแสดงไซส์ ยอดสั่งซื้อ สถานะ ยอดชำระที่มีการบันทึกจริง และสลิปเดี่ยวหรือหลายใบพร้อมเวลาโอน ไม่อนุมานยอดชำระจากยอดสั่งซื้อเมื่อไม่มี `paidAmount`
+- โหวตแสดงตัวเลือกปัจจุบันที่บันทึกไว้ แบบสอบถามแสดงคำถามและคำตอบ ความคิดเห็นแสดงข้อความและรูปแนบ การอ่านข้อมูลหลักและ fallback ทำพร้อมกันและเลือกโหวตล่าสุดต่อกิจกรรม
+- รายการใหม่บันทึก `activityTitle` เพิ่มเติมสำหรับโหวต ความคิดเห็น และแบบสอบถาม การจองบันทึก `bookedAt` แยกจากเวลาแก้ไขสลิป โดยไม่เปลี่ยนฟิลด์เดิม
+- หน้านี้เป็นสรุปข้อมูลที่ยังอยู่ในระบบ ไม่ใช่บันทึกทุกเวอร์ชันของการแก้ไขหรือลบ ข้อมูลเก่าที่มีเฉพาะ `updatedAt` จะแสดงเป็นเวลาบันทึกล่าสุด
+- โหลดเมื่อเปิดหน้าหรือรีเฟรช ใช้ Firestore persistence ที่มีอยู่ แสดง skeleton ระหว่างโหลด และแจ้งเมื่อโหลดได้เพียงบางส่วน ไม่เพิ่ม listener หรือ interval สำหรับหน้าประวัติ การอ่านแต่ละครั้งครอบคลุมข้อมูลของนักศึกษาคนนั้นทั้งหมดก่อนแบ่งการแสดงผล
+- ทดสอบด้วย `node tests/usage_history.js` และ `node tests/usage_history_browser.cjs` โดยชุด browser ต้องมี Playwright และ Edge หรือกำหนด `BROWSER_CHANNEL` ใช้ฐานข้อมูลจำลอง ไม่เขียนข้อมูลจริง ครอบคลุมแปดขนาดจอและสถานะโหลดผ่านเครือข่ายจำลอง 2 Mbps
+- ข้อจำกัดความปลอดภัยเดิม: `firestore.rules` ยังเปิด read/write สาธารณะ และการเข้าสู่ระบบนักศึกษายังไม่ได้ใช้ Firebase Authentication การกรอง studentId ในหน้าประวัติไม่ใช่การควบคุมสิทธิ์ระดับฐานข้อมูล ต้องออกแบบ identity และย้ายกฎสิทธิ์ร่วมกันก่อนรับรองความเป็นส่วนตัวระดับฐานข้อมูล
+
 ### 1.1 เทคโนโลยีหลัก (Tech Stack & Core Runtime)
 - **Frontend Architecture**: Single Page Web Application (Vanilla HTML5, Vanilla CSS3, Vanilla JavaScript ES6+) ทำงานได้โดยไม่ต้องผ่าน Bundler หรือ Node.js Runtime ขณะเปิดใช้งานจริง
 - **Styling Architecture**: Vanilla CSS Custom Properties (CSS Variables Design Tokens) รองรับการแสดงผลแบบ Fluid Responsive และ Dark Theme สำหรับหลังบ้าน
@@ -177,4 +187,3 @@
 | **โพสต์กระดานพูดคุย (Live Comments)** | **10,000** | **600,000** | **1,000,000** | Firestore Write Throughput | Auto-ID Document writes + Canvas compression |
 | **ส่งแบบฟอร์ม & สอบถามสด (Inquiries)** | **10,000** | **600,000** | **1,000,000** | Firestore Write Throughput | Auto-ID Document writes |
 | **อัปโหลดสลิป & ยืนยันผ่าน Google Apps Script** | **30 – 50** | **1,800 – 3,000** | **1,000,000** | Google Apps Script Concurrent Executions | Exponential Backoff Retry (2 รอบ) + บันทึก Firestore สำรองทันที |
-
