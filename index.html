@@ -86,7 +86,7 @@
       overflow-x: hidden;
     }
 
-    button, input, select, textarea, .task-card, .menu-item, .poll-option-card, .fab-menu {
+    button, input, select, textarea, .task-card, .poll-option-card {
       touch-action: manipulation;
     }
 
@@ -234,88 +234,6 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .banner-btn:hover { background: #f8fafc; border-color: var(--main-blue); }
-
-    /* Quick Navigation Hub */
-    .quick-nav-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    @media (min-width: 640px) {
-      .quick-nav-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-      }
-    }
-    .quick-nav-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 14px;
-      text-align: left;
-      cursor: pointer;
-      transition: transform 0.2s var(--ease-spring), box-shadow 0.2s;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .quick-nav-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 53, 102, 0.08);
-      border-color: #93c5fd;
-    }
-    .quick-nav-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-    .quick-nav-title {
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--main-blue);
-      margin-bottom: 4px;
-    }
-    .quick-nav-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-
-    /* Activity Filter Tabs */
-    .activity-filter-tabs {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 14px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .activity-filter-tabs::-webkit-scrollbar {
-      display: none;
-    }
-    .filter-tab-btn {
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 9999px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: var(--text-muted);
-      white-space: nowrap;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-    .filter-tab-btn.active {
-      background: var(--main-blue);
-      color: #ffffff;
-      border-color: var(--main-blue);
-    }
 
     /* Shop Catalog Grid */
     .shop-grid {
@@ -704,79 +622,6 @@
       margin-bottom: 5px;
     }
 
-    /* Menu & Navigation */
-    .fab-menu {
-      position: fixed;
-      bottom: 25px;
-      left: 25px;
-      background: var(--main-blue);
-      color: white;
-      border-radius: 50px;
-      padding: 12px 22px;
-      font-weight: 700;
-      font-size: 15px;
-      box-shadow: 0 8px 22px rgba(0, 35, 102, 0.4);
-      cursor: pointer;
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      border: 2px solid white;
-      transition: transform 0.2s var(--ease-spring);
-    }
-    .fab-menu:hover { transform: translateY(-2px); }
-
-    .menu-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.7);
-      z-index: 1001;
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-    }
-    .menu-content {
-      background: white;
-      width: 100%;
-      max-width: 540px;
-      border-radius: 24px 24px 0 0;
-      padding: 30px 25px;
-      animation: slideUpSmooth 0.25s var(--ease-spring);
-      max-height: 85vh;
-      overflow-y: auto;
-    }
-    @keyframes slideUpSmooth { from { transform: translate3d(0, 100%, 0); } to { transform: translate3d(0, 0, 0); } }
-    .menu-item {
-      display: flex;
-      align-items: center;
-      padding: 14px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.15s ease;
-    }
-    .menu-item-icon { 
-      margin-right: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: #e0f2fe;
-      color: var(--main-blue);
-      flex-shrink: 0;
-    }
-    .menu-item-icon svg {
-      width: 20px;
-      height: 20px;
-    }
-    .menu-item-title { font-weight: 700; font-size: 15px; color: var(--main-blue); }
-    .menu-item-desc { font-size: 12px; color: var(--text-muted); }
-
     input, select, textarea {
       width: 100%;
       padding: 12px 16px;
@@ -872,19 +717,6 @@
   <div class="loading-status" id="loading-status">กำลังเชื่อมต่อ Firebase...</div>
 </div>
 
-<div id="fabMenuBtn" class="fab-menu" onclick="openMenuModal()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> เมนูหลัก</div>
-
-<div id="menuOverlay" class="menu-overlay" onclick="closeMenuModal(event)">
-  <div class="menu-content" onclick="event.stopPropagation()">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h3 style="margin:0;">เมนูบริการทั้งหมด</h3>
-      <button style="width: auto; padding: 6px 12px; margin: 0; background: #f1f5f9; color: #333; display: inline-flex; align-items: center; gap: 4px;" onclick="closeMenuModal()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> ปิด</button>
-    </div>
-    <div id="menu-list-container"></div>
-    <button class="btn-secondary" style="margin-top: 15px;" onclick="logout()">← ออกจากระบบ</button>
-  </div>
-</div>
-
 <!-- Image Lightbox Modal -->
 <div id="lightboxOverlay" class="lightbox-overlay" onclick="closeLightbox()">
   <img id="lightboxImage" class="lightbox-content" src="" alt="Full view" loading="lazy" onclick="event.stopPropagation()">
@@ -907,78 +739,34 @@
 
   <!-- 2. HOME SECTION -->
   <div id="home-section" class="section">
-    <div class="header-badge">HOME • DE 06</div>
-    <h3 style="margin-bottom: 4px; color: var(--text-main); font-size:18px;">ยินดีต้อนรับ,</h3>
-    <h2 style="color:var(--main-blue); margin-bottom: 22px; font-size: 22px;"><span id="homeStudentName"></span></h2>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+      <div style="text-align: left;">
+        <div class="header-badge" style="margin-bottom: 8px;">DIGITAL ENTREPRENEUR 06</div>
+        <h2 style="color: var(--main-blue); margin: 0; font-size: 22px;">ยินดีต้อนรับ, <span id="homeStudentName"></span></h2>
+        <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-muted);">ระบบสารสนเทศและกิจกรรมสาขาวิชา</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <button class="btn-secondary" onclick="viewMyBooking()" style="width: auto; padding: 8px 16px; font-size: 13px; margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          ตรวจสอบข้อมูลการจอง
+        </button>
+        <button class="btn-secondary" onclick="logout()" style="width: auto; padding: 8px 14px; font-size: 13px; margin: 0; color: #dc2626 !important; border-color: #fecaca !important; background: #fef2f2 !important; display: inline-flex; align-items: center; gap: 4px;">
+          ออกจากระบบ
+        </button>
+      </div>
+    </div>
 
     <!-- Dynamic Home Announcement Banner -->
     <div id="home-announcement-container"></div>
 
-    <!-- Quick Navigation Hub (Shop, Forms, Activities, Orders) -->
-    <div class="quick-nav-grid">
-      <div class="quick-nav-card" onclick="goToSection('shop-section')">
-        <div>
-          <div class="quick-nav-icon" style="background:#eff6ff; color:#2563eb;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-          </div>
-          <div class="quick-nav-title">ร้านค้า & สั่งซื้อ</div>
-          <div class="quick-nav-sub">เสื้อช็อปและสินค้าสาขา</div>
-        </div>
-        <div style="font-size:11px; font-weight:700; color:#2563eb; margin-top:8px;">เข้าชมร้านค้า →</div>
-      </div>
-
-      <div class="quick-nav-card" onclick="goToSection('forms-section')">
-        <div>
-          <div class="quick-nav-icon" style="background:#f0fdf4; color:#16a34a;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-          </div>
-          <div class="quick-nav-title">แบบฟอร์ม & สอบถาม</div>
-          <div class="quick-nav-sub">ส่งคำถามและตอบแบบประเมิน</div>
-        </div>
-        <div style="font-size:11px; font-weight:700; color:#16a34a; margin-top:8px;">เปิดแบบฟอร์ม →</div>
-      </div>
-
-      <div class="quick-nav-card" onclick="scrollToActivities()">
-        <div>
-          <div class="quick-nav-icon" style="background:#fefce8; color:#ca8a04;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-          </div>
-          <div class="quick-nav-title">กิจกรรม & โพลล์</div>
-          <div class="quick-nav-sub">ร่วมโหวตและแสดงความเห็น</div>
-        </div>
-        <div style="font-size:11px; font-weight:700; color:#ca8a04; margin-top:8px;">ดูกิจกรรม →</div>
-      </div>
-
-      <div class="quick-nav-card" onclick="viewMyBooking()">
-        <div>
-          <div class="quick-nav-icon" style="background:#fdf2f8; color:#db2777;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          </div>
-          <div class="quick-nav-title">ตรวจสอบข้อมูล</div>
-          <div class="quick-nav-sub">เช็คสถานะการจองและสลิป</div>
-        </div>
-        <div style="font-size:11px; font-weight:700; color:#db2777; margin-top:8px;">ตรวจสอบ →</div>
-      </div>
-    </div>
-
-    <div style="text-align: left; margin-bottom: 14px;" id="activitiesHeadingWrapper">
-      <h3 style="font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-        <span style="display:flex; align-items:center; gap:8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> 
-          กิจกรรมและงานทั้งหมด
+    <div style="text-align: left; margin-bottom: 16px;" id="activitiesHeadingWrapper">
+      <h3 style="font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display: flex; align-items: center; justify-content: space-between; margin: 0;">
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          กิจกรรมที่เปิดดำเนินการ
         </span>
-        <span id="active-tasks-count" style="font-size:13px; color:var(--text-muted); font-weight:normal;"></span>
+        <span id="active-tasks-count" style="font-size: 13px; color: var(--text-muted); font-weight: normal;"></span>
       </h3>
-
-      <!-- Activity Category Filter Tabs -->
-      <div class="activity-filter-tabs" id="activityFilterTabs">
-        <button class="filter-tab-btn active" onclick="setActivityFilter('all', this)">ทั้งหมด</button>
-        <button class="filter-tab-btn" onclick="setActivityFilter('poll', this)">โพลล์/โหวต</button>
-        <button class="filter-tab-btn" onclick="setActivityFilter('form', this)">แบบฟอร์ม</button>
-        <button class="filter-tab-btn" onclick="setActivityFilter('comment', this)">พูดคุย</button>
-        <button class="filter-tab-btn" onclick="setActivityFilter('booking', this)">สินค้า/สั่งจอง</button>
-        <button class="filter-tab-btn" onclick="setActivityFilter('announcement', this)">ประกาศ/งาน</button>
-      </div>
     </div>
     <div id="active-tasks-container">
       <div class="task-card-skeleton">
@@ -1004,7 +792,7 @@
       <!-- ข้อมูลการจองจะโหลดมาที่นี่ -->
     </div>
     <div class="nav-group" style="margin-top:25px; max-width: 400px; margin-left: auto; margin-right: auto;">
-      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
+      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าหลัก</button>
     </div>
   </div>
 
@@ -1071,7 +859,7 @@
     </div>
 
     <div class="nav-group" style="margin-top:25px; max-width: 400px; margin-left: auto; margin-right: auto;">
-      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
+      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าหลัก</button>
     </div>
   </div>
 
@@ -1123,7 +911,7 @@
     </div>
 
     <div class="nav-group" style="margin-top:25px; max-width: 400px; margin-left: auto; margin-right: auto;">
-      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
+      <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าหลัก</button>
     </div>
   </div>
 
@@ -1173,7 +961,7 @@
         </div>
 
         <div class="nav-group">
-          <button class="btn-secondary" onclick="switchSection('home-section')">← กลับหน้าโฮม</button>
+          <button class="btn-secondary" onclick="switchSection('home-section')">← กลับหน้าหลัก</button>
           <button id="btnBook" onclick="submitOrder()">ถัดไป →</button>
         </div>
       </div>
@@ -1725,7 +1513,7 @@
 
       var bottomNavHtml = `
         <div class="nav-group" style="margin-top:30px; max-width: 400px; margin-left: auto; margin-right: auto;">
-          <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าโฮม</button>
+          <button class="btn-secondary" onclick="switchSection('home-section')" style="width:100%;">← กลับหน้าหลัก</button>
         </div>
       `;
 
@@ -1747,22 +1535,8 @@
   }
 
   // =============================================
-  //  Navigation & Scaffolding Controls
+  //  Navigation & Section Controls
   // =============================================
-  var currentActivityFilter = 'all';
-
-  function scrollToActivities() {
-    var el = document.getElementById('activitiesHeadingWrapper');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  function setActivityFilter(type, btn) {
-    currentActivityFilter = type;
-    document.querySelectorAll('.filter-tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    if (btn) btn.classList.add('active');
-    renderHomeTasks();
-  }
-
   function goToSection(sectionId) { switchSection(sectionId); }
 
   function switchSection(sectionId) {
@@ -1773,20 +1547,12 @@
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     if (sectionId === 'home-section') {
-      document.getElementById('fabMenuBtn').style.display = 'flex';
       renderHomeTasks();
-      renderMenu();
     } else if (sectionId === 'shop-section') {
-      document.getElementById('fabMenuBtn').style.display = 'flex';
       renderShopSection();
-      renderMenu();
     } else if (sectionId === 'forms-section') {
-      document.getElementById('fabMenuBtn').style.display = 'flex';
       renderFormsSection();
-      renderMenu();
     } else {
-      document.getElementById('fabMenuBtn').style.display = 'none';
-
       if (sectionId.startsWith('dynamic-')) {
         var actId = sectionId.replace('dynamic-', '');
         var task = allTasks.find(function(t) { return t.id === actId; });
@@ -1798,75 +1564,39 @@
     }
   }
 
-  function openMenuModal() { document.getElementById('menuOverlay').style.display = 'flex'; }
-  function closeMenuModal(e) { if (!e || e.target.id === 'menuOverlay') document.getElementById('menuOverlay').style.display = 'none'; }
-  
   function logout() {
     currentStudentId = ''; currentStudentName = '';
     document.getElementById('studentId').value = '';
     sessionStorage.removeItem('de06_student');
     pollDataCache = {};
     commentDataCache = {};
-    closeMenuModal();
     switchSection('login-section');
   }
 
   // =============================================
-  //  Menu & Home Tasks (Cached Rendering)
+  //  Active Activities Engine (Only shows ongoing activities)
   // =============================================
-  function renderMenu() {
-    var list = document.getElementById('menu-list-container');
-    list.innerHTML = '';
-
-    list.innerHTML += '<div class="menu-item" onclick="switchSection(\'home-section\'); closeMenuModal();">' +
-      '<div class="menu-item-icon">' + Icons.info + '</div><div>' +
-      '<div class="menu-item-title">หน้าแรก</div>' +
-      '<div class="menu-item-desc">หน้าหลักและภาพรวมกิจกรรม</div></div></div>';
-
-    list.innerHTML += '<div class="menu-item" onclick="switchSection(\'shop-section\'); closeMenuModal();">' +
-      '<div class="menu-item-icon">' + Icons.shirt + '</div><div>' +
-      '<div class="menu-item-title">ร้านค้าและสินค้า</div>' +
-      '<div class="menu-item-desc">สั่งจองเสื้อช็อปและสินค้าสาขา</div></div></div>';
-
-    list.innerHTML += '<div class="menu-item" onclick="switchSection(\'forms-section\'); closeMenuModal();">' +
-      '<div class="menu-item-icon">' + Icons.file + '</div><div>' +
-      '<div class="menu-item-title">แบบฟอร์มและการสอบถาม</div>' +
-      '<div class="menu-item-desc">ส่งคำถามและตอบแบบประเมิน</div></div></div>';
-
-    list.innerHTML += '<div class="menu-item" onclick="viewMyBooking(); closeMenuModal();">' +
-      '<div class="menu-item-icon">' + Icons.search + '</div><div>' +
-      '<div class="menu-item-title">ตรวจสอบข้อมูลการจองเสื้อ</div>' +
-      '<div class="menu-item-desc">เช็คสถานะและรายละเอียดการจอง</div></div></div>';
-
-    allTasks.forEach(function(t) {
-      var actionStr = (t.type === 'booking') ? "goToSection('booking-section')" :
-                      (t.type === 'link' && t.targetUrl) ? "window.open('" + t.targetUrl + "', '" + (t.openNewTab !== false ? "_blank" : "_self") + "')" :
-                      "goToSection('dynamic-" + t.id + "')";
-
-      list.innerHTML += '<div class="menu-item" onclick="' + actionStr + '; closeMenuModal();">' +
-        '<div class="menu-item-icon">' + getTaskIcon(t.type) + '</div><div>' +
-        '<div class="menu-item-title">' + escapeHtml(t.title) + '</div>' +
-        '<div class="menu-item-desc">' + escapeHtml(t.desc || '') + '</div></div></div>';
-    });
-  }
-
   function renderHomeTasks() {
     var container = document.getElementById('active-tasks-container');
+    if (!container) return;
     var now = Date.now();
-    var activeTasks = allTasks.filter(function(t) { return parseSafeDate(t.endDate).getTime() > now; });
-    activeTasks.sort(function(a, b) { return parseSafeDate(a.endDate).getTime() - parseSafeDate(b.endDate).getTime(); });
+    var activeTasks = allTasks.filter(function(t) {
+      if (t.active === false) return false;
+      if (t.endDate && parseSafeDate(t.endDate).getTime() <= now) return false;
+      return true;
+    });
 
-    // Filter by Category
-    if (currentActivityFilter !== 'all') {
-      activeTasks = activeTasks.filter(function(t) {
-        return t.type === currentActivityFilter;
-      });
-    }
+    activeTasks.sort(function(a, b) {
+      var timeA = a.endDate ? parseSafeDate(a.endDate).getTime() : Infinity;
+      var timeB = b.endDate ? parseSafeDate(b.endDate).getTime() : Infinity;
+      return timeA - timeB;
+    });
 
-    document.getElementById('active-tasks-count').innerText = activeTasks.length + ' รายการ';
+    var countEl = document.getElementById('active-tasks-count');
+    if (countEl) countEl.innerText = activeTasks.length + ' รายการ';
 
     if (activeTasks.length === 0) {
-      container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:35px 20px; color:#94a3b8; background:white; border-radius:18px; border:1px dashed #cbd5e1;">ไม่มีกิจกรรมในหมวดหมู่นี้ในขณะนี้</div>';
+      container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:45px 20px; color:#64748b; background:white; border-radius:18px; border:1px dashed #cbd5e1;"><div style="font-weight:700; font-size:16px; color:var(--main-blue); margin-bottom:6px;">ขณะนี้ยังไม่มีกิจกรรมที่เปิดดำเนินการ</div><div style="font-size:13px; color:var(--text-muted);">เมื่อมีกิจกรรมใหม่หรือเปิดระบบ จะแสดงขึ้นที่นี่โดยอัตโนมัติ</div></div>';
       timerRegistry = [];
       return;
     }
@@ -1876,17 +1606,29 @@
       comment: 'พูดคุย',
       announcement: 'ประกาศ',
       form: 'แบบฟอร์ม',
-      booking: 'จองเสื้อ',
+      inquiry: 'สอบถาม',
+      booking: 'จองเสื้อช็อป',
+      shop: 'สินค้า',
       link: 'ลิงก์',
       html: 'พิเศษ'
     };
 
     container.innerHTML = activeTasks.map(function(task) {
       var actionStr = (task.type === 'booking') ? "goToSection('booking-section')" :
+                      (task.type === 'inquiry') ? "goToSection('forms-section')" :
+                      (task.type === 'shop') ? "goToSection('shop-section')" :
                       (task.type === 'link' && task.targetUrl) ? "window.open('" + task.targetUrl + "', '" + (task.openNewTab !== false ? "_blank" : "_self") + "')" :
                       "goToSection('dynamic-" + task.id + "')";
 
+      var btnText = (task.type === 'booking') ? "สั่งจองเสื้อช็อป →" :
+                    (task.type === 'poll') ? "ร่วมลงคะแนนโหวต →" :
+                    (task.type === 'comment') ? "เปิดกระดานพูดคุย →" :
+                    (task.type === 'form') ? "เปิดแบบฟอร์ม →" :
+                    (task.type === 'inquiry') ? "ส่งข้อความสอบถาม →" :
+                    "เข้าสู่กิจกรรม →";
+
       var tag = typeTagNames[task.type] || 'กิจกรรม';
+      var timerHtml = task.endDate ? `<div class="task-timer" id="timer-el-${task.id}" data-end="${task.endDate}">กำลังคำนวณ...</div>` : `<div class="task-timer" style="color:#16a34a; background:#dcfce7; border-color:#bbf7d0;">เปิดให้เข้าร่วม</div>`;
 
       return `
         <div class="task-card">
@@ -1900,15 +1642,15 @@
             <div class="task-desc">${escapeHtml(task.desc || '')}</div>
           </div>
           <div>
-            <div class="task-timer" id="timer-el-${task.id}" data-end="${task.endDate}">กำลังคำนวณ...</div>
-            <button class="task-btn" onclick="${actionStr}">เข้าสู่กิจกรรม →</button>
+            ${timerHtml}
+            <button class="task-btn" onclick="${actionStr}">${btnText}</button>
           </div>
         </div>
       `;
     }).join('');
 
     // Pre-cache DOM elements for zero-overhead timer loop
-    timerRegistry = activeTasks.map(function(t) {
+    timerRegistry = activeTasks.filter(function(t) { return !!t.endDate; }).map(function(t) {
       return {
         el: document.getElementById('timer-el-' + t.id),
         endTime: parseSafeDate(t.endDate).getTime()

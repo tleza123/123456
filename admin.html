@@ -1255,13 +1255,13 @@
       card.id = 'activity-card-' + index;
 
       const typeLabels = {
-        poll: ' โพลล์ / โหวต',
-        comment: ' กระดานความคิดเห็น',
-        announcement: ' ประกาศ / แจ้งเตือนงาน',
-        form: ' แบบสอบถาม / ส่งคำตอบ',
-        booking: ' ระบบจองเสื้อช็อป',
-        link: ' ลิงก์ภายนอก / เว็บไซต์',
-        html: ' โค้ด HTML กำหนดเอง'
+        poll: 'โพลล์ / โหวต',
+        comment: 'กระดานความคิดเห็น',
+        announcement: 'ประกาศ / แจ้งเตือนงาน',
+        form: 'แบบสอบถาม',
+        booking: 'ระบบจองเสื้อช็อป',
+        link: 'ลิงก์ภายนอก',
+        html: 'โค้ด HTML กำหนดเอง'
       };
 
       const currentType = act.type || 'announcement';
@@ -1272,6 +1272,9 @@
             <span style="font-size: 20px;">${act.icon || ''}</span>
             <span>กิจกรรมที่ ${index + 1}: ${escapeHtml(act.title || 'ไม่มีชื่อ')}</span>
             <span class="task-type-badge">${typeLabels[currentType] || currentType}</span>
+            <span class="task-type-badge" style="background:${act.active !== false ? '#dcfce7' : '#f1f5f9'}; color:${act.active !== false ? '#15803d' : '#64748b'}; border:1px solid ${act.active !== false ? '#bbf7d0' : '#cbd5e1'};">
+              ${act.active !== false ? 'เปิดดำเนินการ' : 'ปิดรับชั่วคราว'}
+            </span>
           </div>
           <div style="display:flex; gap:6px; align-items:center;">
             <button class="btn-secondary btn-sm" onclick="duplicateActivity(${index})" title="คัดลอกกิจกรรมนี้">คัดลอก</button>
@@ -1279,6 +1282,21 @@
             <button class="btn-secondary btn-sm" onclick="moveActivity(${index}, 1)" ${index === appActivities.length - 1 ? 'disabled' : ''} title="เลื่อนลง"></button>
             <button class="btn-danger btn-sm" onclick="removeActivity(${index})">ลบ</button>
           </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; background:${act.active !== false ? '#f0fdf4' : '#f8fafc'}; padding:10px 14px; border-radius:10px; margin-bottom:14px; border:1px solid ${act.active !== false ? '#bbf7d0' : '#e2e8f0'};">
+          <div>
+            <span style="font-weight:700; font-size:14px; color:${act.active !== false ? '#15803d' : '#64748b'};">
+              สถานะ: ${act.active !== false ? 'เปิดดำเนินการ แสดงที่หน้าหลัก' : 'ปิดรับชั่วคราว ซ่อนจากหน้าหลัก'}
+            </span>
+            <div style="font-size:12px; color:#64748b; margin-top:2px;">
+              ${act.active !== false ? 'กิจกรรมนี้กำลังแสดงที่หน้าแรก ให้นักศึกษาเข้าร่วมได้' : 'ซ่อนกิจกรรมนี้จากหน้าแรกชั่วคราว ข้อมูลและการตั้งค่าทั้งหมดยังคงอยู่'}
+            </div>
+          </div>
+          <label style="display:inline-flex; align-items:center; cursor:pointer; gap:8px; margin:0; font-weight:700; font-size:13px; color:${act.active !== false ? '#15803d' : '#64748b'};">
+            <input type="checkbox" ${act.active !== false ? 'checked' : ''} onchange="toggleActivityActive(${index}, this.checked)" style="width:18px; height:18px; cursor:pointer; accent-color:#16a34a;">
+            ${act.active !== false ? 'เปิดให้เข้าร่วม' : 'ปิดชั่วคราว'}
+          </label>
         </div>
 
         <div class="field-row">
@@ -1292,27 +1310,27 @@
           </div>
         </div>
 
-        <label>คำอธิบายโดยย่อ (แสดงบนการ์ดหน้าแรก)</label>
+        <label>คำอธิบายโดยย่อ</label>
         <input type="text" value="${escapeHtml(act.desc || '')}" oninput="appActivities[${index}].desc=this.value" placeholder="รายละเอียดสั้นๆ...">
 
         <!-- Direct Image Upload for Activity Banner -->
-        <label>️ รูปภาพหน้าปก / แบนเนอร์กิจกรรม (เลือกรูปจากเครื่องได้เลย):</label>
+        <label>รูปภาพหน้าปกหรือแบนเนอร์กิจกรรม:</label>
         <div style="display:flex; gap:12px; align-items:center; margin-bottom:14px; background:#f8fafc; padding:10px 14px; border-radius:12px; border:1.5px dashed #cbd5e1; flex-wrap:wrap;">
           <label class="upload-btn-label">
-            <span> อัปโหลดรูปภาพจากเครื่อง</span>
+            <span>อัปโหลดรูปภาพ</span>
             <input type="file" accept="image/*" style="display:none;" onchange="handleActivityImageUpload(${index}, this)">
           </label>
           ${act.imageUrl ? `
             <div style="display:flex; align-items:center; gap:8px;">
               <img src="${act.imageUrl}" class="img-preview-thumb" loading="lazy" style="width:48px; height:48px;" onclick="openImageModal('${act.imageUrl}', '${escapeHtml(act.title)}')">
-              <button type="button" class="btn-danger btn-sm" onclick="removeActivityImage(${index})" style="padding:4px 8px; font-size:11px;"> ลบรูป</button>
+              <button type="button" class="btn-danger btn-sm" onclick="removeActivityImage(${index})" style="padding:4px 8px; font-size:11px;">ลบรูป</button>
             </div>
-          ` : '<span style="font-size:12px; color:#94a3b8;">ยังไม่ได้แนบรูปภาพ (เว้นว่างได้)</span>'}
+          ` : '<span style="font-size:12px; color:#94a3b8;">ยังไม่ได้แนบรูปภาพ</span>'}
         </div>
 
         <div class="field-row">
           <div>
-            <label>ID กิจกรรม (ภาษาอังกฤษ/ตัวเลข)</label>
+            <label>ID กิจกรรม</label>
             <input type="text" value="${act.id || ''}" oninput="appActivities[${index}].id=this.value">
           </div>
           <div>
@@ -1322,16 +1340,16 @@
         </div>
 
         <label style="color: var(--main-blue); margin-top: 6px; font-weight: 700;">
-          รูปแบบกิจกรรม (Activity Type):
+          รูปแบบกิจกรรม:
         </label>
         <select onchange="changeActivityType(${index}, this.value)">
-          <option value="poll" ${currentType === 'poll' ? 'selected' : ''}> ระบบโหวต / โพลล์ (Poll & Voting)</option>
-          <option value="comment" ${currentType === 'comment' ? 'selected' : ''}> กระดานความคิดเห็น / เสนอแนะ (Comments)</option>
-          <option value="announcement" ${currentType === 'announcement' ? 'selected' : ''}> ประกาศ / แจ้งเตือนงาน & กำหนดส่ง (Notice & Task)</option>
-          <option value="form" ${currentType === 'form' ? 'selected' : ''}> แบบสอบถาม / คำถามตอบรับ (Form Survey)</option>
-          <option value="booking" ${currentType === 'booking' ? 'selected' : ''}> ลิงก์ไประบบจองเสื้อช็อปเดิม</option>
-          <option value="link" ${currentType === 'link' ? 'selected' : ''}> ลิงก์ภายนอก / Google Form</option>
-          <option value="html" ${currentType === 'html' ? 'selected' : ''}> กำหนดเองด้วยโค้ด HTML (Custom Code)</option>
+          <option value="poll" ${currentType === 'poll' ? 'selected' : ''}>ระบบโหวต</option>
+          <option value="comment" ${currentType === 'comment' ? 'selected' : ''}>กระดานความคิดเห็น</option>
+          <option value="announcement" ${currentType === 'announcement' ? 'selected' : ''}>ประกาศและแจ้งเตือนงาน</option>
+          <option value="form" ${currentType === 'form' ? 'selected' : ''}>แบบสอบถาม</option>
+          <option value="booking" ${currentType === 'booking' ? 'selected' : ''}>ระบบจองเสื้อช็อป</option>
+          <option value="link" ${currentType === 'link' ? 'selected' : ''}>ลิงก์ภายนอก</option>
+          <option value="html" ${currentType === 'html' ? 'selected' : ''}>กำหนดเองด้วยโค้ด HTML</option>
         </select>
 
         <div id="type-config-${index}">
@@ -1597,6 +1615,14 @@
   // =============================================
   //  Activity Modifiers
   // =============================================
+  function toggleActivityActive(index, isChecked) {
+    if (appActivities[index]) {
+      appActivities[index].active = isChecked;
+      renderActivitiesList();
+      showGlobalToast(isChecked ? 'เปิดให้เข้าร่วมกิจกรรมแล้ว' : 'ปิดรับกิจกรรมชั่วคราวแล้ว', 'success');
+    }
+  }
+
   function changeActivityType(index, newType) {
     appActivities[index].type = newType;
     if (newType === 'booking') {
@@ -1617,6 +1643,7 @@
       desc: 'รายละเอียดกิจกรรม',
       imageUrl: '',
       endDate: '2026-12-31T23:59',
+      active: true,
       type: actType,
       action: actType === 'booking' ? "goToSection('booking-section')" : "goToSection('dynamic-" + newId + "')",
       order: appActivities.length + 1
