@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Admin Dashboard • DE 06 Management System</title>
   
   <!-- Resource Hints for Fast Assets Fetching -->
@@ -11,6 +11,11 @@
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://firestore.googleapis.com">
   
+  <!-- Local WOFF2 Ekkamai New Font Preload -->
+  <link rel="preload" href="fonts/EkkamaiNew-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/EkkamaiNew-Bold.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Google Fonts with swap display (Fallback) -->
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Firebase SDK (compat CDN) -->
@@ -18,6 +23,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <style>
+    @font-face {
+      font-family: 'Ekkamai New';
+      src: url('fonts/EkkamaiNew-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Ekkamai New';
+      src: url('fonts/EkkamaiNew-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
       --main-blue: #003566;
       --main-blue-light: #004e98;
@@ -39,21 +59,28 @@
 
     *, *::before, *::after {
       box-sizing: border-box;
-      font-family: 'Prompt', sans-serif;
+      font-family: 'Ekkamai New', 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
     
     html {
+      font-size: 15px; /* Mobile < 640px default */
+      letter-spacing: normal;
+      scrollbar-gutter: stable;
       scroll-behavior: smooth;
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
     }
+    @media (min-width: 640px) { html { font-size: 15.5px; } }
+    @media (min-width: 1024px) { html { font-size: 16px; } }
+    @media (min-width: 1440px) { html { font-size: 16.5px; } }
+    @media (min-width: 1920px) { html { font-size: 17.5px; } }
 
     body {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
       min-height: 100vh;
       margin: 0;
-      padding: 20px 10px 60px;
+      padding: 20px 10px calc(60px + env(safe-area-inset-bottom, 0px));
       color: var(--text-main);
     }
 
@@ -64,7 +91,6 @@
     .dashboard-container {
       max-width: 1080px;
       margin: 0 auto;
-      transform: translateZ(0);
     }
 
     /* Header */
@@ -114,7 +140,7 @@
       color: white;
     }
 
-    /* Cards / Boxes with GPU acceleration */
+    /* Cards / Boxes */
     .box {
       background: var(--bg-card);
       border-radius: 20px;
@@ -122,7 +148,6 @@
       box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
       margin-bottom: 20px;
       border: 1px solid rgba(255, 255, 255, 0.8);
-      transform: translateZ(0);
       contain: layout style;
     }
     .box-title {
@@ -204,7 +229,7 @@
       margin: 0 0 14px;
       border: 1.5px solid #cbd5e1;
       border-radius: 12px;
-      font-size: 14px;
+      font-size: 16px !important; /* Prevent iOS Safari auto-zoom */
       background: #f8fafc;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
@@ -241,7 +266,6 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transform: translateZ(0);
     }
     button:hover {
       opacity: 0.95;
@@ -275,7 +299,6 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: box-shadow 0.2s ease, transform 0.2s var(--ease-spring);
       contain: content;
-      transform: translateZ(0);
     }
     .task-card-admin:hover {
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
@@ -336,10 +359,8 @@
     .floating-save-bar {
       position: sticky;
       bottom: 20px;
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #0f172a;
+      border: 1px solid #334155;
       border-radius: 16px;
       padding: 14px 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
@@ -349,7 +370,6 @@
       gap: 15px;
       z-index: 999;
       margin-top: 25px;
-      transform: translateZ(0);
     }
     .floating-save-bar span {
       color: white;
@@ -412,9 +432,7 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.85);
       z-index: 1000;
       display: none;
       align-items: center;
@@ -679,24 +697,24 @@
   
   <!-- Header -->
   <div class="dashboard-header">
-    <h1>️ DE 06 Admin Dashboard</h1>
+    <h1>DE 06 Admin Dashboard</h1>
     <p>ระบบจัดการหลังบ้านและกิจกรรมนักศึกษา สาขาวิชาผู้ประกอบการดิจิทัล รุ่น 06</p>
     <div class="header-actions">
-      <a href="index.html" target="_blank" class="btn-site-link"> ไปที่หน้าเว็บนักศึกษา (Home) ↗</a>
-      <button id="headerLogoutBtn" onclick="logoutAdmin()" class="btn-site-link" style="display:none; cursor:pointer; background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;"> ออกจากระบบ Admin</button>
-      <button id="headerRefreshBtn" onclick="refreshData()" class="btn-site-link" style="display:none; cursor:pointer; background:none;"> โหลดข้อมูลใหม่</button>
+      <a href="index.html" target="_blank" class="btn-site-link">ไปที่หน้าเว็บนักศึกษา</a>
+      <button id="headerLogoutBtn" onclick="logoutAdmin()" class="btn-site-link" style="display:none; cursor:pointer; background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;">ออกจากระบบ Admin</button>
+      <button id="headerRefreshBtn" onclick="refreshData()" class="btn-site-link" style="display:none; cursor:pointer; background:none;">โหลดข้อมูลใหม่</button>
     </div>
   </div>
 
   <!-- Login Box (Required Password) -->
   <div class="box" id="loginBox" style="max-width: 500px; margin: 0 auto;">
     <div class="box-title">
-      <span> เข้าสู่ระบบ Admin Dashboard</span>
+      <span>เข้าสู่ระบบ Admin Dashboard</span>
     </div>
     <p style="color: var(--text-muted); font-size: 13px; margin: 0 0 16px 0;">
       กรุณากรอกรหัสผ่านแอดมินเพื่อเข้าสู่หน้าตั้งค่าและจัดการระบบทั้งหมด
     </p>
-    <label>รหัสผ่านแอดมิน (Admin Password):</label>
+    <label>รหัสผ่านแอดมิน:</label>
     <input type="password" id="adminPassInput" placeholder="กรอกรหัสผ่านเพื่อเข้าใช้งาน..." autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
     <button onclick="attemptLogin()" style="width: 100%;">เข้าสู่ระบบจัดการ →</button>
     <div id="loginMsg"></div>
@@ -707,12 +725,12 @@
 
     <!-- Navigation Tabs -->
     <div class="nav-tabs">
-      <div class="nav-tab active" onclick="switchTab('tab-activities')"> จัดการกิจกรรม (Activities)</div>
-      <div class="nav-tab" onclick="switchTab('tab-announcement')"> ประกาศด่วนหน้าหลัก (Home Banner)</div>
-      <div class="nav-tab" onclick="switchTab('tab-responses')"> ดูผลตอบรับ & ส่งออก Sheets</div>
-      <div class="nav-tab" onclick="switchTab('tab-bookings')"> ตรวจสอบการจองเสื้อ & สลิป</div>
-      <div class="nav-tab" onclick="switchTab('tab-settings')">️ ตั้งค่าระบบ & รหัสผ่าน (Settings)</div>
-      <div class="nav-tab" onclick="switchTab('tab-logs')">️ ประวัติการเข้าใช้ (Logs)</div>
+      <div class="nav-tab active" onclick="switchTab('tab-activities')">จัดการกิจกรรม</div>
+      <div class="nav-tab" onclick="switchTab('tab-announcement')">ประกาศด่วนหน้าหลัก</div>
+      <div class="nav-tab" onclick="switchTab('tab-responses')">ดูผลตอบรับและส่งออกชีต</div>
+      <div class="nav-tab" onclick="switchTab('tab-bookings')">ตรวจสอบการจองเสื้อและสลิป</div>
+      <div class="nav-tab" onclick="switchTab('tab-settings')">ตั้งค่าระบบและรหัสผ่าน</div>
+      <div class="nav-tab" onclick="switchTab('tab-logs')">ประวัติการเข้าใช้</div>
     </div>
 
     <!-- TAB 1:  จัดการกิจกรรม -->
@@ -736,11 +754,11 @@
       </div>
     </div>
 
-    <!-- TAB 2:  ประกาศด่วนหน้าหลัก -->
+    <!-- TAB 2: ประกาศด่วนหน้าหลัก -->
     <div id="tab-announcement" class="tab-pane">
       <div class="box">
         <div class="box-title">
-          <span> ตั้งค่าแถบแจ้งเตือนด่วนบนหน้าแรก (Home Alert Banner)</span>
+          <span>ตั้งค่าแถบแจ้งเตือนด่วนบนหน้าแรก</span>
         </div>
         <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
           เมื่อเปิดใช้งาน แถบแจ้งเตือนนี้จะปรากฏเด่นชัดอยู่บนสุดของหน้า Home ในเว็บนักศึกษา
@@ -775,17 +793,17 @@
           <div>
             <label>ระดับความสำคัญ</label>
             <select id="ann_type">
-              <option value="urgent"> งานด่วนมาก (สีแดง)</option>
-              <option value="important"> สำคัญ (สีเหลือง)</option>
-              <option value="info" selected> ประกาศทั่วไป (สีน้ำเงิน)</option>
-              <option value="success"> ข่าวดี / เสร็จสิ้น (สีเขียว)</option>
+              <option value="urgent">งานด่วนมาก</option>
+              <option value="important">สำคัญ</option>
+              <option value="info" selected>ประกาศทั่วไป</option>
+              <option value="success">ข่าวดีหรือเสร็จสิ้น</option>
             </select>
           </div>
           <div>
-            <label>ปุ่มลิงก์ไปยัง (Action Link)</label>
+            <label>ปุ่มลิงก์ไปยัง</label>
             <select id="ann_target_activity">
               <option value="">-- ไม่ต้องมีปุ่มลิงก์ --</option>
-              <option value="booking-section"> ไปที่หน้าระบบจองเสื้อช็อป</option>
+              <option value="booking-section">ไปที่หน้าระบบจองเสื้อช็อป</option>
             </select>
           </div>
         </div>
@@ -899,7 +917,7 @@
           <div style="flex: 1;">
             <select id="bookingStatusFilter" onchange="filterBookingsTable()" style="margin-bottom: 0;">
               <option value="all">สถานะทั้งหมด</option>
-              <option value="paid">ชำระแล้ว (มีสลิป)</option>
+              <option value="paid">ชำระแล้ว</option>
               <option value="pending">รอชำระเงิน</option>
             </select>
           </div>
@@ -931,40 +949,40 @@
       </div>
     </div>
 
-    <!-- TAB 5: ️ ตั้งค่าระบบ & รหัสผ่าน -->
+    <!-- TAB 5: ตั้งค่าระบบและรหัสผ่าน -->
     <div id="tab-settings" class="tab-pane">
       <div class="box">
         <div class="box-title">
-          <span> ตั้งค่ารหัสผ่านเข้า Admin Dashboard</span>
+          <span>ตั้งค่ารหัสผ่านเข้า Admin Dashboard</span>
         </div>
         <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 14px;">
-          กำหนดรหัสผ่านสำหรับเข้าถึงและบันทึกการตั้งค่าหลังบ้าน (เพื่อความปลอดภัย)
+          กำหนดรหัสผ่านสำหรับเข้าถึงและบันทึกการตั้งค่าหลังบ้าน
         </p>
-        <label>รหัสผ่านแอดมิน (Admin Password):</label>
+        <label>รหัสผ่านแอดมิน:</label>
         <input type="password" id="cfg_adminPass" placeholder="ใส่รหัสผ่านแอดมินที่ต้องการ...">
       </div>
 
       <div class="box">
         <div class="box-title">
-          <span> ตั้งค่าการรับชำระเงิน</span>
+          <span>ตั้งค่าการรับชำระเงิน</span>
         </div>
-        <label>เบอร์พร้อมเพย์ (รับเงินโอนค่าเสื้อ)</label>
+        <label>เบอร์พร้อมเพย์รับเงินโอนค่าเสื้อ</label>
         <input type="text" id="cfg_promptpay" placeholder="เช่น 0643040487">
         
         <label>ชื่อบัญชีผู้รับเงิน</label>
         <input type="text" id="cfg_accountName" placeholder="เช่น นายพิชยะ ประจิตต์">
         
-        <label>Google Drive Folder ID (สำหรับเก็บสลิป)</label>
+        <label>Google Drive Folder ID สำหรับเก็บสลิป</label>
         <input type="text" id="cfg_folder" placeholder="Folder ID จาก Google Drive">
       </div>
     </div>
 
-    <!-- TAB 6: ️ ประวัติการเข้าใช้แอดมิน (Admin Access Logs) -->
+    <!-- TAB 6: ประวัติการเข้าใช้แอดมิน -->
     <div id="tab-logs" class="tab-pane">
       <div class="box">
         <div class="box-title">
-          <span>️ ประวัติผู้เข้าใช้งานหน้า Admin (Access Logs)</span>
-          <button class="btn-site-link btn-sm" onclick="loadAdminLogs()" style="color:var(--main-blue); border-color:#cbd5e1; background:#f8fafc; cursor:pointer;"> รีเฟรชข้อมูล</button>
+          <span>ประวัติผู้เข้าใช้งานหน้าแอดมิน</span>
+          <button class="btn-site-link btn-sm" onclick="loadAdminLogs()" style="color:var(--main-blue); border-color:#cbd5e1; background:#f8fafc; cursor:pointer;">รีเฟรชข้อมูล</button>
         </div>
         <p style="color: var(--text-muted); font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
           บันทึกเวลา, ชื่อรุ่น/ชื่อเครื่อง (อุปกรณ์และเบราว์เซอร์) และ IP Address ของผู้ที่เข้าสู่ระบบหน้าแอดมิน (แสดง 50 รายการล่าสุด)
@@ -992,8 +1010,8 @@
 <div id="imagePreviewModal" class="modal-overlay" onclick="closeImageModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3 id="imageModalTitle" style="margin: 0; color: var(--main-blue);">️ ดูรูปภาพ</h3>
-      <button class="btn-secondary btn-sm" onclick="closeImageModal()"> ปิด</button>
+      <h3 id="imageModalTitle" style="margin: 0; color: var(--main-blue);">ดูรูปภาพ</h3>
+      <button class="btn-secondary btn-sm" onclick="closeImageModal()">ปิด</button>
     </div>
     <div id="imageModalBody" style="text-align: center;">
       <!-- Image loaded here -->

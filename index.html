@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ระบบนักศึกษา • DIGITAL ENTREPRENEUR 06</title>
   <meta name="description" content="ระบบจองเสื้อช็อปและกิจกรรมสาขาวิชาผู้ประกอบการดิจิทัล รุ่น 06">
   
@@ -13,7 +13,11 @@
   <link rel="dns-prefetch" href="https://firestore.googleapis.com">
   <link rel="dns-prefetch" href="https://script.google.com">
   
-  <!-- Google Fonts with swap display -->
+  <!-- Local WOFF2 Ekkamai New Font Preload -->
+  <link rel="preload" href="fonts/EkkamaiNew-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/EkkamaiNew-Bold.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Google Fonts with swap display (Fallback) -->
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Firebase SDK (compat CDN) -->
@@ -21,6 +25,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   
   <style>
+    @font-face {
+      font-family: 'Ekkamai New';
+      src: url('fonts/EkkamaiNew-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Ekkamai New';
+      src: url('fonts/EkkamaiNew-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
       --main-blue: #003566;
       --main-blue-light: #004e98;
@@ -37,22 +56,29 @@
     
     *, *::before, *::after {
       box-sizing: border-box;
-      font-family: 'Prompt', sans-serif;
+      font-family: 'Ekkamai New', 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     html {
+      font-size: 15px; /* Mobile < 640px default */
+      letter-spacing: normal;
+      scrollbar-gutter: stable;
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
+    @media (min-width: 640px) { html { font-size: 15.5px; } }
+    @media (min-width: 1024px) { html { font-size: 16px; } }
+    @media (min-width: 1440px) { html { font-size: 16.5px; } }
+    @media (min-width: 1920px) { html { font-size: 17.5px; } }
 
     body {
       background: var(--bg-gradient);
       min-height: 100vh;
       min-height: 100dvh;
       margin: 0;
-      padding: 20px 12px 70px;
+      padding: 20px 12px calc(70px + env(safe-area-inset-bottom, 0px));
       color: var(--text-main);
       display: flex;
       justify-content: center;
@@ -64,22 +90,19 @@
       touch-action: manipulation;
     }
 
-    /* Responsive Main Container with GPU Acceleration */
+    /* Responsive Main Container (Clean Opaque Surface & Anti-GPU-Blur) */
     .container {
       width: 100%;
       max-width: 520px;
-      background: rgba(255, 255, 255, 0.96);
+      background: #ffffff;
       padding: 26px 20px;
       border-radius: 24px;
-      box-shadow: 0 20px 45px rgba(0, 53, 102, 0.12);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 12px 36px rgba(0, 53, 102, 0.1);
+      border: 1px solid #e2e8f0;
       margin-top: 10px;
       margin-bottom: 80px;
       text-align: center;
       position: relative;
-      transform: translateZ(0);
       transition: max-width 0.3s var(--ease-spring), padding 0.3s ease;
     }
 
@@ -185,7 +208,6 @@
       text-align: left;
       border-left: 6px solid;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-      transform: translateZ(0);
     }
     .banner-urgent { background: #fef2f2; border-color: #ef4444; }
     .banner-urgent .banner-title { color: #dc2626; }
@@ -227,10 +249,33 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transform: translateZ(0);
       contain: content;
     }
-    .task-card:hover { transform: translate3d(0, -3px, 0); box-shadow: 0 10px 22px rgba(0,0,0,0.09); }
+    .task-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,0.09); }
+    
+    /* Loading Skeleton for Slow Networks (2 Mbps Resilience) */
+    .task-card-skeleton {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      border-left: 5px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .skeleton-line {
+      height: 14px;
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      border-radius: 6px;
+      animation: skeletonShimmer 1.5s infinite;
+    }
+    @keyframes skeletonShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
     .task-title { font-weight: 700; font-size: 16px; color: var(--main-blue); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .task-type-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #e0f2fe; color: #0284c7; white-space: nowrap; }
     .task-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; flex-grow: 1; }
@@ -342,7 +387,6 @@
       transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
       position: relative;
       overflow: hidden;
-      transform: translateZ(0);
     }
     .poll-option-card:hover {
       border-color: var(--main-blue-light);
@@ -511,20 +555,17 @@
       gap: 8px;
       border: 2px solid white;
       transition: transform 0.2s var(--ease-spring);
-      transform: translateZ(0);
     }
-    .fab-menu:hover { transform: scale(1.05); }
+    .fab-menu:hover { transform: translateY(-2px); }
 
     .menu-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.7);
       z-index: 1001;
       display: none;
       align-items: flex-end;
       justify-content: center;
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
     }
     .menu-content {
       background: white;
@@ -574,7 +615,7 @@
       margin: 6px 0 14px 0;
       border: 1.5px solid #cbd5e1;
       border-radius: 12px;
-      font-size: 14px;
+      font-size: 16px !important; /* Prevent iOS Safari auto-zoom */
       background: #f8fafc;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
@@ -596,10 +637,9 @@
       font-weight: 600;
       margin-top: 15px;
       transition: transform 0.15s var(--ease-spring), opacity 0.15s ease;
-      transform: translateZ(0);
     }
-    button:hover { opacity: 0.95; transform: translate3d(0, -1px, 0); }
-    button:active { transform: translate3d(0, 0, 0); }
+    button:hover { opacity: 0.95; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
     .nav-group { display: flex; gap: 12px; margin-top: 20px; }
     .nav-group button { margin-top: 0; width: 50%; }
     .btn-secondary { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; }
@@ -610,14 +650,14 @@
       width: 100%; 
       max-width: 260px; 
       height: auto;
-      aspect-ratio: 4 / 5;
+      aspect-ratio: 1 / 1; /* Universal 1:1 Square Product Preview */
       object-fit: cover;
       border-radius: 16px; 
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08); 
       border: 3px solid white; 
       transition: transform 0.2s var(--ease-spring); 
     }
-    .shirt-preview:hover { transform: scale(1.03); }
+    .shirt-preview:hover { transform: translateY(-2px); }
     .size-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: #f8fafc; padding: 8px 16px; border-radius: 12px; border: 1px solid #f1f5f9; }
     .size-row label { font-weight: 600; width: 60px; font-size: 16px; color: var(--main-blue); }
     .size-row input { margin: 0; text-align: center; width: 80px; }
@@ -637,13 +677,11 @@
 
     .dynamic-section { text-align: left; }
 
-    /* Lightbox Modal */
+    /* Lightbox Modal without decorative blur */
     .lightbox-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      background: rgba(15, 23, 42, 0.92);
       z-index: 2000;
       display: none;
       align-items: center;
@@ -726,7 +764,20 @@
         <span id="active-tasks-count" style="font-size:13px; color:var(--text-muted); font-weight:normal;"></span>
       </h3>
     </div>
-    <div id="active-tasks-container"></div>
+    <div id="active-tasks-container">
+      <div class="task-card-skeleton">
+        <div class="skeleton-line" style="width: 45%; height: 18px;"></div>
+        <div class="skeleton-line" style="width: 80%;"></div>
+        <div class="skeleton-line" style="width: 60%;"></div>
+        <div class="skeleton-line" style="width: 100%; height: 38px; margin-top: 6px; border-radius: 12px;"></div>
+      </div>
+      <div class="task-card-skeleton">
+        <div class="skeleton-line" style="width: 40%; height: 18px;"></div>
+        <div class="skeleton-line" style="width: 85%;"></div>
+        <div class="skeleton-line" style="width: 55%;"></div>
+        <div class="skeleton-line" style="width: 100%; height: 38px; margin-top: 6px; border-radius: 12px;"></div>
+      </div>
+    </div>
   </div>
 
   <!-- 3. CHECK BOOKING SECTION -->
@@ -756,7 +807,7 @@
         </div>
         <p style="text-align: center; margin: 0 0 15px; font-weight: 600; color: var(--main-blue);">
           ราคาตัวละ <span id="show-price" style="color:#d97706; font-size: 20px; font-weight: 700;">0</span> บาท 
-          <span style="font-size: 12px; color: #16a34a; font-weight: normal;">(จอง 2 ตัวขึ้นไป ลดทันที 10 บาท)</span>
+          <span style="font-size: 12px; color: #16a34a; font-weight: normal;">จอง 2 ตัวขึ้นไป ลดทันที 10 บาท</span>
         </p>
       </div>
 
@@ -773,7 +824,7 @@
 
         <div style="margin-top: 14px; text-align: left; background: #f8fafc; padding: 14px 18px; border-radius: 14px; border: 1px dashed #cbd5e1;">
           <label style="font-weight: 600; font-size: 13px; color: var(--main-blue); display: block; margin-bottom: 8px;">
-            ไซส์ 3XL ขึ้นไป (+บวกเพิ่ม 30 บาท/ตัว):
+            ไซส์ 3XL ขึ้นไป บวกเพิ่ม 30 บาทต่อตัว:
           </label>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="qty-other-text" placeholder="ระบุไซส์ เช่น 3XL, 4XL" style="flex: 2; margin: 0;">
@@ -815,7 +866,7 @@
       <!-- Right Column: Contact info & Slip Upload -->
       <div>
         <div class="contact-box" style="margin-top:0;">
-          <label>ข้อมูลติดต่อกลับ (สำหรับส่งใบเสร็จยืนยัน)</label>
+          <label>ข้อมูลติดต่อกลับ สำหรับส่งใบเสร็จยืนยัน</label>
           <input type="tel" id="contact-phone" placeholder="1. เบอร์โทรศัพท์มือถือ" autocomplete="tel">
           <input type="email" id="contact-email" placeholder="2. อีเมล" autocomplete="email">
           <!-- Fallback hidden elements for legacy script compatibility -->
@@ -829,7 +880,7 @@
             <label style="font-weight: 700; font-size: 14px; color: var(--text-main); margin:0;">แนบรูปภาพสลิปชำระเงิน:</label>
             <span style="font-size:12px; color:var(--text-muted); background:#f1f5f9; padding:2px 8px; border-radius:12px;">แนบได้หลายใบ</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 12px 0;">กรณีแบ่งโอนหรือมีหลายสลิป สามารถแนบและระบุวัน-เวลาโอนของแต่ละสลิปได้เลยครับ (หากมีสลิปเดิมอยู่แล้ว การยืนยันสลิปชุดใหม่นี้จะบันทึกทับข้อมูลเดิมทันที)</p>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 12px 0;">กรณีแบ่งโอนหรือมีหลายสลิป สามารถแนบและระบุวัน-เวลาโอนของแต่ละสลิปได้ทันที การยืนยันสลิปชุดใหม่จะบันทึกทับข้อมูลเดิม</p>
           
           <!-- Hidden multi-file input -->
           <input type="file" id="slipFileInput" accept="image/*" multiple style="display:none;" onchange="handleFilesSelected(this)">
@@ -838,7 +889,7 @@
           <div onclick="document.getElementById('slipFileInput').click()" style="border: 2px dashed #93c5fd; background: #f0f9ff; border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
             <div style="color: var(--main-blue); margin-bottom: 4px; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              คลิกเพื่อเลือกรูปสลิป (เลือกได้หลายรูป)
+              คลิกเพื่อเลือกรูปสลิป เลือกได้หลายรูป
             </div>
             <div style="font-size: 11px; color: #64748b;">รองรับไฟล์รูปภาพ JPG, PNG, WEBP หรือถ่ายรูปสลิป</div>
           </div>
@@ -865,7 +916,7 @@
     <h2 style="color: #16a34a;">ทำรายการเรียบร้อย!</h2>
     <p>ระบบได้รับข้อมูลการสั่งจองและสลิปชำระเงินของคุณแล้ว<br>ระบบได้ส่งใบเสร็จยืนยันไปที่อีเมลของคุณเรียบร้อยครับ</p>
     <div style="margin: 25px auto; width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; background: #dcfce7; border-radius: 50%; color: #16a34a;"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
-    <button class="btn-success" onclick="switchSection('home-section')">กลับสู่หน้าหลัก (Home)</button>
+    <button class="btn-success" onclick="switchSection('home-section')">กลับสู่หน้าหลัก</button>
   </div>
 
 </div>
@@ -2335,9 +2386,9 @@
 
     if (hasUploading) {
       btnUpload.disabled = true;
-      btnUpload.innerText = 'กำลังอัปโหลดสลิป... ⏳';
+      btnUpload.innerText = 'กำลังอัปโหลดสลิป...';
       if (uploadMsg) {
-        uploadMsg.innerHTML = '<span style="color:#d97706;">⏳ กำลังอัปโหลดสลิปชำระเงิน (' + doneCount + '/' + uploadedSlips.length + ')...</span>';
+        uploadMsg.innerHTML = '<span style="color:#d97706; display:inline-flex; align-items:center; gap:6px;">' + Icons.clock + ' กำลังอัปโหลดสลิปชำระเงิน ' + doneCount + '/' + uploadedSlips.length + '...</span>';
       }
     } else if (hasError) {
       btnUpload.disabled = true;
