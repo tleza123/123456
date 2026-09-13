@@ -1,502 +1,379 @@
-# พิมพ์เขียว DE TEAM — เช็คชื่อและสรุปค่าจ้าง
+# DE TEAM — Firebase · GitHub · Vercel
 
-ฉบับส่งต่อให้ Gemini • 14 กันยายน 2569 • ออกแบบสำหรับมือถือและผู้ดูแลคนเดียว
+แผนฉบับใหม่สำหรับ Gemini ใช้แทนแผน Apps Script / Google Sheets เดิม
 
-## 1. ผลลัพธ์ที่ต้องสร้าง
+## 1. เป้าหมายและขอบเขต
 
-เว็บภาษาไทย 3 แท็บ: **เช็คชื่อ / รายงาน / ตั้งค่า** ใช้ Google Apps Script เป็นเว็บและตัวประมวลผล ใช้ Google Sheets เป็นฐานข้อมูลเท่านั้น ไม่มี Firebase, Node server, ฐานข้อมูลภายนอก หรือโฮสต์เว็บเพิ่ม
+เว็บเช็คชื่อและสรุปค่าจ้างภาษาไทยสำหรับเจ้าของหนึ่งคน ใช้โทรศัพท์เป็นหลัก ผู้ใช้ Gen X ไม่ถนัดเทคโนโลยี มีเพียง **เช็คชื่อ / รายงาน / ตั้งค่า** ชื่อระบบ DE TEAM เปลี่ยนชื่อที่แสดงได้ ให้ความสำคัญกับยอดถูกต้อง อ่านง่าย กดง่าย และตอบสนองลื่น
 
-ผู้ใช้หลักคือเจ้าของหรือผู้ดูแลหนึ่งคน ใช้โทรศัพท์เป็นหลัก อ่านตัวใหญ่ กดด้วยนิ้วได้ ไม่ต้องเข้าใจ Google Sheets ไม่ต้องเปิดเมนูซ้อนหลายชั้น ใช้ชื่อแบรนด์ชั่วคราว DE TEAM เปลี่ยนได้ก่อนส่งมอบจริง
+ชุดนี้เป็นแผนสำหรับพัฒนา ไม่ใช่เว็บ Firebase ที่ deploy แล้ว `preview.html` เป็น UI จำลองในหน่วยความจำ โค้ดคำนวณปัจจุบันคือ `payroll-core.cjs` พร้อม `verify.cjs` เอกสารและโค้ดระบบเดิมอยู่ใน `legacy/apps-script/` เพื่ออ้างประวัติเท่านั้น ห้ามใช้เป็น runtime ใหม่
 
-สิ่งที่แนบในชุดนี้:
+กติกาที่เจ้าของยืนยัน: เต็มวัน 1 เท่า ครึ่งวัน 0.5 เท่า ไม่มา 0 บาท ยังไม่เช็คไม่ใช่ไม่มา เงินพิเศษหลายรายการเป็นยอดเต็มต่อเดือน ไม่เฉลี่ยตามวันทำงาน ผู้ดูแลหนึ่งคน
 
-| ไฟล์ | หน้าที่ | สถานะ |
-|---|---|---|
-| BLUEPRINT.md | ข้อกำหนดแต่ละหน้า ข้อมูล สูตร ระบบบันทึก และเกณฑ์ตรวจรับ | ข้อกำหนดฉบับเต็ม |
-| GEMINI_PROMPT.md | คำสั่งเริ่มต้นให้ Gemini สร้างงานตามพิมพ์เขียว | พร้อมส่งต่อ |
-| Payroll.gs | แกนคำนวณเงินและตรวจข้อมูล ใช้ใน Apps Script V8 | โค้ดอ้างอิงที่มี unit tests |
-| AttendanceService.gs | ตัวอย่างอ่านและบันทึกการเช็คชื่อแบบป้องกันข้อมูลทับและส่งซ้ำ | โค้ดอ้างอิง ต้องติดตั้งและทดสอบกับ Google จริง |
-| ClientBridge.html | ตัวอย่างเชื่อมหน้าเว็บกับ Apps Script และจัดการ timeout | โค้ดอ้างอิง |
-| appsscript.json | manifest สำหรับบริการ Google Sheets | ตัวอย่างตั้งค่า |
-| preview.html | หน้าจอจำลองที่ลองสลับแท็บ เช็คชื่อ ดูรายละเอียด และเพิ่มข้อมูลได้ | ข้อมูลสมมติ อยู่ในหน่วยความจำ ไม่เชื่อม Google |
-| verify.cjs | ตรวจสูตรและพฤติกรรม endpoint ด้วยบริการจำลอง | รันด้วย Node ในเครื่องนักพัฒนาเท่านั้น |
+ใช้เดือนปฏิทินและ Asia/Bangkok; วันทำงานเสนอจันทร์–เสาร์ให้เจ้าของตรวจครั้งแรก เพิ่มวันหยุด/วันทำงานพิเศษได้ ไม่มี OT หักเงิน ภาษี ประกันสังคม เบิกล่วงหน้า หรือวันลามีค่าจ้างอัตโนมัติ ใช้คำว่า “ยอดค่าจ้าง” ไม่ใช่ยอดสุทธิหลังหัก
 
-ชุดนี้เป็น **พิมพ์เขียวพร้อมโค้ดส่วนสำคัญและต้นแบบ** ไม่ใช่ระบบเงินเดือนที่ติดตั้งใช้งานจริงครบแล้ว Gemini ต้องทำ endpoint ส่วนที่เหลือ เชื่อมหน้าจอ ทดสอบบน Google และมือถือจริงก่อนส่งมอบ
+## 2. สถาปัตยกรรมที่เลือก
 
-## 2. กติกาที่ผู้ใช้ยืนยันแล้ว
+| ส่วน | เทคโนโลยี |
+|---|---|
+| หน้าเว็บ | Next.js App Router + TypeScript + React; Client Components เฉพาะส่วนโต้ตอบ |
+| CSS | CSS Modules + design tokens ไม่มี UI framework หนักหรือ CDN runtime |
+| เข้าสู่ระบบ | Firebase Authentication ผ่าน Google Account |
+| ฐานข้อมูล | Cloud Firestore |
+| รูปพนักงาน | Cloud Storage for Firebase แบบ private |
+| API/สูตรเงิน | Next.js Route Handlers บน Vercel Functions, Node.js runtime, firebase-admin |
+| เก็บโค้ดและ CI | GitHub + GitHub Actions |
+| โฮสต์และ release | Vercel เชื่อม GitHub แยก Preview/Production |
 
-1. เต็มวัน = ค่าจ้างรายวัน × 1
-2. ครึ่งวัน = ค่าจ้างรายวัน × 0.5
-3. ไม่มา = ค่าจ้างวันนั้น 0 บาท
-4. ยังไม่เช็ค = ยังไม่มีข้อสรุป ไม่ใช่ขาดงาน และไม่แสดงเป็น 0 บาทที่ยืนยันแล้ว
-5. เงินพิเศษใส่ชื่อรายการเองได้หลายรายการ และคิดเป็นยอดเต็มต่อเดือน ไม่เฉลี่ยตามวันทำงาน
-6. ผู้ดูแลคนเดียวใช้ Google Account ของตนเอง
+เส้นทาง: Browser → Firebase Auth → ID token → Vercel API ตรวจ owner UID → Firestore/Storage ผ่าน Admin SDK → ผลลัพธ์ที่ตรวจแล้ว → UI
 
-ข้อเสนอเริ่มต้นที่ยังปรับได้: รอบเดือนปฏิทิน วันที่ 1 ถึงวันสุดท้ายของเดือน; เลือกวันทำงานปกติ จันทร์–เสาร์ เป็นค่าเริ่มต้นและให้เจ้าของยืนยันครั้งแรก; ไม่หักเงิน ไม่คิด OT อัตโนมัติ ไม่โอนเงินจากเว็บ ไม่ส่งข้อความอัตโนมัติ
+Browser ใช้ Firebase Web SDK เฉพาะ Auth ข้อมูลธุรกิจทั้งอ่าน/เขียนผ่าน API same-origin ไม่ใช้ Firestore Web SDK อ่านเขียนโดยตรงในรุ่นแรก จึงไม่มี Firestore offline persistence หรือ client realtime listeners ในแผนนี้
 
-คำว่า **ยอดค่าจ้างเดือนนี้** หมายถึงค่าจ้างตามวันบวกเงินพิเศษตามที่กรอก ไม่ควรใช้คำว่าเงินสุทธิหลังหัก เพราะชุดนี้ยังไม่มีรายการหัก ภาษี ประกันสังคม หรือกติกาวันลามีค่าจ้าง หากต้องการให้พัฒนาแยกตามกติกาที่เจ้าของยืนยัน
+ไม่ใช้ Apps Script, Google Sheets เป็นฐานหลัก, Firebase Hosting, Cloud Functions หรือ server เพิ่มที่ไม่จำเป็น GitHub เก็บโค้ด ไม่ใช่ฐานข้อมูลพนักงาน
 
-## 3. ขอบเขตการใช้กฎจากโปรเจกต์เดิม
+เลือกเวอร์ชัน stable ที่เข้ากันได้ขณะเริ่มงาน ระบุใน package.json และ lockfile ไม่เดา import API หรือใช้เลขเวอร์ชันลอย ตรวจ [Next.js project structure](https://nextjs.org/docs/app/getting-started/project-structure) และ [Vercel Node runtime](https://vercel.com/docs/functions/runtimes/node-js)
 
-นำหลักพื้นทึบ น้ำเงินเข้ม–เหลือง ความเรียบง่าย ไม่มีอิโมจิ ไม่มี blur ภาพไม่ครอป REM-first การรองรับมือถือ ความปลอดภัย และการป้องกันข้อมูลเก่าผิดเพี้ยนมาใช้
+## 3. แยกโปรเจกต์และวางงบ
 
-ข้อยกเว้นตามคำสั่งเจ้าของ: ใช้ **Sarabun แบบมีหัว** แทน Ekkamai New; ตัวอักษรและปุ่มใหญ่ขึ้นสำหรับ Gen X; ใช้ Sheets แทน Firestore จึงไม่มี Firestore Persistence หรือระบบสั่งเสื้อ ไม่เพิ่มบริการเหล่านั้นเพียงเพื่อเลียนแบบกฎเดิม
+สร้าง Firebase project ใหม่ แยก dev/staging และ production คนละ project ไม่ใช้ project, collections, rules หรือ bucket ของเว็บสั่งเสื้อเดิม ควรมี GitHub repo แยก ถ้าอยู่ repo เดิมให้โฟลเดอร์ employee-attendance และ Vercel project/Root Directory แยก
 
-ไม่รับรอง “0 ms”, “Zero CLS ทุกสภาวะ”, หรือ “120 FPS ทุกเครื่อง” เป็นผลสำเร็จโดยไม่มีการวัด ให้แยกความเร็วการตอบสนองบนเครื่องออกจากเวลาบันทึกบน Google และรายงานตัวเลขจริง
+เลือก Firestore/Storage region ใกล้ไทย และ Vercel Function region ใกล้ฐานข้อมูลตามบริการที่รองรับ ตรวจค่าที่มีจริงก่อนสร้าง ไม่เลือก region แบบสุ่ม
+
+Cloud Storage for Firebase มีข้อกำหนดแผน Blaze ส่วน Vercel Hobby จำกัด personal/non-commercial จึงต้องเลือกแผนที่รองรับการใช้งานในกิจการนี้ ไม่รับรองว่าฟรีทั้งหมด และไม่เปิด billing ให้เจ้าของเอง [Storage billing](https://firebase.google.com/docs/storage/faqs-storage-changes-announced-sept-2024), [Vercel Hobby](https://vercel.com/docs/plans/hobby)
+
+ตั้ง budget alerts และติดตาม reads/writes/storage/egress/function usage; alerts ไม่ใช่ hard spending cap ตรวจราคาและ spend controls ก่อนเปิดจริง [Firebase pricing](https://firebase.google.com/pricing)
 
 ## 4. Design system
 
-### สี
-
-| Token | ค่า | ใช้งาน |
-|---|---|---|
-| --team-primary | #003566 | หัวเว็บ ปุ่มหลัก แท็บที่เลือก |
-| --team-primary-dark | #001D3D | ตัวเลขยอดสำคัญ |
-| --team-accent | #FFC300 | เส้นเน้น จุดที่เลือกเล็กน้อย ใช้ตัวหนังสือน้ำเงินเข้ม |
-| --team-bg | #F3F6FA | พื้นหน้าเว็บทึบ |
-| --team-surface | #FFFFFF | การ์ดและฟอร์ม |
-| --team-text | #172B43 | ข้อความหลัก |
-| --team-muted | #526277 | ข้อความรองที่ยังอ่านชัด |
-| --team-border | #D7E0EA | ขอบการ์ด |
-| --team-full | #166534 | ข้อความเต็มวัน พื้น #F0FDF4 |
-| --team-half | #854D0E | ข้อความครึ่งวัน พื้น #FFFBEB |
-| --team-absent | #991B1B | ข้อความไม่มา พื้น #FEF2F2 |
-
-สีสถานะต้องมีข้อความและเครื่องหมายเลือกประกอบเสมอ ห้ามใช้สีอย่างเดียวแยกความหมาย ปุ่มสถานะที่ไม่เลือกให้พื้นขาว ไม่ทำทุกปุ่มเป็นสีเข้มแข่งกัน
-
-### ฟอนต์และขนาด
-
-- Sarabun จริง 400 และ 700; fallback Tahoma, sans-serif เพื่อคงตัวไทยมีหัว ไม่ใช้ Prompt เป็น fallback หลักสำหรับงานนี้
-- ภาษาไทย letter-spacing: normal; เนื้อหา line-height: 1.65; หัวข้อ 1.3
-- ขนาดรากตามกฎเดิม: <640 = 15px, 640–1023 = 15.5px, 1024–1439 = 16px, 1440–1919 = 16.5px, ≥1920 = 17.5px
-- เนื้อหา/ฟอร์ม/ปุ่ม 1.2rem ทำให้มือถือได้ประมาณ 18px; ชื่อคน 1.33rem; หัวหน้า 1.67rem; ยอดหลัก 2rem; ข้อความรองไม่ต่ำกว่า 1.067rem หรือประมาณ 16px บนมือถือ
-- เงินใช้เลขอารบิก คั่นหลักพันและทศนิยม 2 ตำแหน่ง เช่น 14,500.00 บาท; เลขชิดขวาเฉพาะแถวสรุป ไม่ใช้ตารางกว้างบนมือถือ
-- ห้ามใช้ weight 500/600/800 ที่ไม่มีไฟล์จริงหรือทำทุกข้อความตัวหนา
-
-Apps Script HTML Service ไม่มี static directory `fonts/` แบบเว็บโฮสต์ทั่วไป: ให้เตรียม WOFF2 ที่มี glyph ไทยและละตินครบ ฝังเป็น base64 ใน Fonts.html ผ่าน @font-face พร้อม font-display: swap เก็บใบอนุญาตฟอนต์ไว้ในชุดส่งมอบ ไม่โหลดฟอนต์จาก CDN ตอนผู้ใช้เปิดเว็บ หากไฟล์ฟอนต์ยังไม่ได้แนบ ให้แสดง Tahoma อย่างซื่อสัตย์และระบุว่างานฟอนต์ยังไม่ครบ ไม่ใส่ data URL ปลอม
-
-### ระยะและปุ่ม
-
-- ขอบจอมือถือ 1.067rem; ช่องว่างหลัก 1.067rem; gap ปุ่ม 0.533rem
-- ปุ่มหลักและปุ่มสถานะสูงอย่างน้อย 3.467rem ประมาณ 52px บนมือถือ
-- จุดกดรองสูงอย่างน้อย 3rem ประมาณ 45px; อย่าใช้ไอคอนเล็กเป็นจุดกดเดี่ยว
-- มุมการ์ด 1.067rem; ปุ่ม 0.8rem; ขอบ 1px; เงาเบาเฉพาะเมื่อต้องแยกพื้น
-- ไม่มี glass, backdrop-filter, glow, decorative blur, sticky shadow ขนาดใหญ่ หรือเอฟเฟกต์เด้ง
-- ไม่ใช้ transform layer กับองค์ประกอบข้อความขณะอยู่นิ่ง
-- button/a: touch-action: manipulation; ปุ่ม user-select: none; focus-visible เห็นชัด; อย่าปิด outline โดยไม่มีตัวแทน
-- input, textarea, select บนมือถือและ coarse pointer ใช้ font-size: max(1.2rem, 16px) !important
-- ไม่ปิด pinch zoom; รองรับการขยายตัวอักษร 200%
-
-### โครงหน้าร่วม
-
-หัวบน: DE TEAM + ชื่อหน้าปัจจุบัน ไม่มี banner ใหญ่ ไม่มี dashboard เพิ่มเป็นหน้าแรก
-
-มือถือ: เนื้อหาคอลัมน์เดียว แถบ 3 แท็บติดด้านล่างพร้อมคำว่า “เช็คชื่อ / รายงาน / ตั้งค่า” และ Lucide/SVG; แถบสูงประมาณ 4.5rem + safe-area; เนื้อหามี bottom clearance อย่างน้อย 6rem + safe-area; ฟอร์มเพิ่มข้อมูลใช้หน้าเต็มพร้อม “กลับ” แทน modal เล็ก
-
-แท็บเล็ต/เดสก์ท็อป: เนื้อหาสูงสุดประมาณ 64rem วางกึ่งกลาง; แสดง navigation เพียงชุดเดียว ย้ายไปด้านบนได้; รายชื่อ 2 คอลัมน์เมื่อพอดีจริง ไม่บีบตัวอักษร
-
-meta viewport width=device-width, initial-scale=1, viewport-fit=cover; ใช้ 100dvh; html scrollbar-gutter: stable; วันที่ native input ต้อง min-width:0 และ max-width:100%
-
-## 5. แท็บ 1 — เช็คชื่อ
-
-### ลำดับจากบนลงล่าง
-
-1. หัว “เช็คชื่อ”
-2. วันที่ไทย เช่น “จันทร์ 14 ก.ย. 2569” พร้อมปุ่ม “เลือกวัน” และ “วันนี้” เฉพาะเมื่อดูวันอื่น
-3. สรุปบรรทัดเดียว “เช็คแล้ว 8 จาก 12 คน” กับตัวกรอง “ทั้งหมด / ยังไม่เช็ค” แบบกดใหญ่ ไม่เพิ่มแท็บหลัก
-4. ช่อง “ค้นหาชื่อ” เมื่อมีพนักงานมากกว่า 8 คน; จำน้อยกว่านี้ให้ซ่อนไป
-5. รายชื่อพนักงาน แต่ละคนหนึ่งการ์ด
-6. สถานะการบันทึกอยู่ในการ์ดของคนนั้น เห็นตลอดจนกว่าจะแก้ไขสำเร็จ
-
-### การ์ดหนึ่งคน
-
-```text
-[รูป]  สมชาย ใจดี
-       ช่างติดตั้ง
-
-[ เต็มวัน ] [ ครึ่งวัน ] [ ไม่มา ]
-
-เต็มวัน · บันทึกแล้ว 08:42
-แก้ไขรายการ
-```
-
-- รูปเป็นภาพย่อสัดส่วนเดิมในช่องสูงคงที่แบบ contain ไม่ crop เป็นวงกลม; ไม่มีรูปใช้ชื่อย่อที่ไม่ใช่อิโมจิ
-- แสดงชื่อเต็มและชื่อเล่นถ้ามี โดยชื่อเต็มเป็นชื่อหลัก แสดงตำแหน่งเป็นข้อความรอง
-- ไม่แสดงค่าแรงในการ์ดเช็คชื่อเพราะไม่จำเป็นต่อการกดและทำหน้ารก
-- 3 ปุ่มมีพื้นที่กดเท่ากัน ชัดเจน ขนาดประมาณ 18px ที่ 320px จอยังวางได้; เมื่อขยายตัวอักษรแล้วไม่พอ ให้เรียงแนวตั้งแทนการลดฟอนต์
-- กดแล้วขีดเครื่องหมายเลือกและข้อความ “กำลังบันทึก”; ปิดเฉพาะปุ่มของคนนั้นชั่วคราว คนอื่นยังเช็คได้
-- สำเร็จแล้วจึงแสดง “บันทึกแล้ว”; อย่าแสดงสำเร็จทันทีที่เปลี่ยนสีปุ่ม
-- ความล้มเหลวแบบยืนยัน เช่น ไม่มีสิทธิ์/ข้อมูลชนกัน: คืนค่าที่เซิร์ฟเวอร์ยืนยันล่าสุด พร้อมข้อความและปุ่มแก้ไข
-- timeout: “ยังยืนยันการบันทึกไม่ได้” มี “ตรวจสอบอีกครั้ง” ใช้ requestId เดิม; ห้ามสรุปว่าล้มเหลวแล้วส่งรายการใหม่ เพราะเซิร์ฟเวอร์อาจบันทึกสำเร็จแล้ว
-- การเช็คครั้งแรกไม่ต้องถามยืนยันทุกคน; การเปลี่ยนสถานะเดิมให้บันทึกได้โดยตรงพร้อมปุ่ม “ย้อนกลับ” ชั่วคราว ซึ่งเป็นคำสั่งใหม่ที่อ้าง revision ล่าสุด; ถ้าข้อมูลเปลี่ยนจากเครื่องอื่น ให้หยุด undo และโหลดสถานะล่าสุด
-- “แก้ไขรายการ” เปิดรายละเอียด: วันที่ สถานะ หมายเหตุ และ “ล้างการเช็คชื่อ”; การล้างต้องยืนยันและเก็บ revision/audit ไม่ลบแถว
-- ปุ่มไม่มาต้องบอกความหมายว่าไม่มาทำงาน ไม่ตีความเป็นประเภทการลาตามกฎหมาย
-
-### วันและตารางทำงาน
-
-- เซิร์ฟเวอร์ใช้ Asia/Bangkok; บันทึก dateKey เป็นข้อความ YYYY-MM-DD ค.ศ. หน้าเว็บแสดง พ.ศ.
-- เปิดมาวันนี้จาก serverToday ไม่ใช้ UTC จาก toISOString().slice(0,10) บนเครื่องผู้ใช้
-- เช็คย้อนหลังได้ในเดือนที่เปิด; ไม่ให้เช็ควันอนาคต; เดือนปิดแสดงอ่านอย่างเดียว
-- วันที่อยู่นอก startDate/endDate ของพนักงานไม่อยู่ในรายชื่อเช็ควันนั้น
-- วันหยุดแสดง “วันหยุดตามตาราง”; ไม่แปลงเป็นไม่มาอัตโนมัติ หากมาทำงานจริงให้กด “บันทึกวันทำงานเพิ่ม” ก่อนแสดงรายชื่อ และค่าจ้างใช้อัตราปกติของวันที่นั้น ไม่มี OT อัตโนมัติ
-- การกรอกไม่มาในวันหยุดที่ไม่ได้เพิ่มวันทำงานต้องถูกปฏิเสธจากเซิร์ฟเวอร์
-- ถ้าตั้งตารางงานผิดให้แก้ตารางก่อนปิดเดือน แสดงผลกระทบจำนวนวันที่ยังไม่เช็ค
-
-### สถานะหน้าว่าง/ผิดพลาด
-
-ไม่มีพนักงาน: “ยังไม่มีรายชื่อพนักงาน” + “เพิ่มพนักงาน” เปิดฟอร์มในแท็บตั้งค่า
-
-ยังไม่เช็ค: ปุ่มทุกปุ่มไม่เลือก ข้อความ “ยังไม่เช็ค” ไม่ใช้เครื่องหมายสีแดง
-
-โหลดไม่ได้: “โหลดรายชื่อไม่สำเร็จ” + “ลองอีกครั้ง” ไม่ใช้ spinner หมุนไม่มีที่สิ้นสุด
-
-เน็ตขาด: “ไม่มีอินเทอร์เน็ต ยังบันทึกไม่ได้” ปิดการส่งใหม่ และรักษาหน้าปัจจุบันไว้; รุ่นแรกไม่มีคิว offline ที่อาจเผลอส่งผิดวันภายหลัง
-
-## 6. แท็บ 2 — รายงาน
-
-### หน้ารายชื่อสรุปรายเดือน
-
-1. หัว “รายงาน”
-2. ตัวเลือกเดือนและปีที่กดง่าย ค่าเริ่มต้นเดือนปัจจุบัน
-3. การ์ดยอดรวม **“ยอดค่าจ้างเดือนนี้”** ตัวเลขใหญ่; บรรทัดรอง “ค่าแรง … + เงินพิเศษ …”
-4. ถ้ายังไม่จบเดือนใช้ “ยอดสะสมถึง 14 ก.ย.” และแสดงเงินพิเศษของเดือนแยกจากค่าแรงที่เกิดแล้ว; ถ้ามีวันค้างแสดง “ยังไม่เช็ค 3 รายการ” คำว่ารายการ = หนึ่งคนต่อหนึ่งวัน
-5. รายชื่อพนักงาน แต่ละแถวเป็นปุ่มดูรายละเอียดเต็มความกว้าง
-6. ท้ายรายการ: “ตรวจและปิดเดือน” เมื่อเป็นเดือนที่ผ่านมาและไม่มีข้อมูลค้าง; “พิมพ์รายงาน” เป็นปุ่มรอง
-
-การ์ดรายบุคคลแสดงชื่อ ตำแหน่ง ยอดรวม และบรรทัด “เต็มวัน 22 · ครึ่งวัน 4 · ไม่มา 2” มีคำ “วัน” ตามบริบท ไม่ย่อตัวเลขจนต้องเดา; ถ้ายังไม่เช็คต้องแสดงอีกบรรทัดและไม่รวมเป็นไม่มา
-
-ไม่เพิ่มกราฟวงกลมหรือกราฟหลายสีที่ไม่ช่วยจ่ายเงิน แสดงยอดและชื่อคนก่อน
-
-### หน้ารายละเอียดรายบุคคล
-
-```text
-กลับรายงาน
-สมชาย ใจดี
-กันยายน 2569
-
-ยอดค่าจ้าง 14,500.00 บาท
-
-เต็มวัน 22 วัน    ครึ่งวัน 4 วัน
-ไม่มา 2 วัน      วันคิดค่าจ้าง 24 วัน
-
-ค่าแรงรวม                     12,000.00
-ค่าเดินทาง                     1,500.00
-ค่าอาหาร                       1,000.00
-รวม                           14,500.00 บาท
-
-รายการเช็คชื่อ
-1 ก.ย.  เต็มวัน                   500.00
-2 ก.ย.  ครึ่งวัน                  250.00
-3 ก.ย.  ไม่มา                       0.00
-```
-
-ตัวเลขด้านบนเป็นตัวอย่างเดือนสมมติที่มี 28 วันทำงาน ต้องสร้าง fixture ให้ตรงกับจำนวนวันทำงานของเดือนที่เลือก ไม่เอาตัวอย่างนี้ไปแสดงเป็นข้อมูลจริงโดยไม่ตรวจปฏิทิน
-
-- สูตรวันคิดค่าจ้าง = เต็มวัน + ครึ่งวัน × 0.5 ไม่ใช่จำนวนครั้งที่มาทำงาน; จำนวนวันที่มาทำงานจริง = เต็มวัน + ครึ่งวัน
-- มี “รายละเอียดค่าแรง” แสดงช่วงอัตราหากเปลี่ยนกลางเดือน เช่น 1–15 ก.ย. 500 บาท/วัน; 16–30 ก.ย. 550 บาท/วัน
-- กดแถววันเปิดรายละเอียดและแก้ได้เมื่อเดือนไม่ปิด กลับมารายงานต้อง invalidate ยอดเดิม
-- เงินพิเศษของเดือนกดแก้ชื่อ/จำนวน หรือเพิ่มรายการได้จาก “แก้เงินพิเศษเดือนนี้” ในหน้านี้ ไม่ต้องย้อนกลับหลายแท็บ
-- แสดงคำว่า “ไม่มีเงินพิเศษ” เมื่อไม่มีรายการ แทนแถวว่าง
-- รายงานรวมต้องยังมีพนักงานที่สิ้นสุดงานแล้ว หากมีข้อมูลทำงาน/เงินพิเศษ/อยู่ในช่วงจ้างของเดือนนั้น
-- รายการยังไม่เช็คแสดง “รอเช็ค” และยอด “—”; วันหยุดใช้ “วันหยุด” และ “—”; วันอนาคตไม่ถือเป็นข้อมูลค้าง
-- พิมพ์ใช้ CSS @media print ซ่อน navigation/ปุ่ม พิมพ์เฉพาะรายงานที่เลือก พร้อมเดือน เวลา และสถานะร่างหรือปิดเดือน; บนมือถือผู้ใช้ใช้เมนูพิมพ์/บันทึก PDF ของเครื่องเอง
-
-### ตรวจและปิดเดือน
-
-ปุ่มเดียวเปิดหน้าตรวจ: จำนวนพนักงาน วันค้าง เงินพิเศษที่ยังไม่ตรวจ และยอดรวม กดชื่อคนเพื่อแก้ จุดประสงค์คือกันยอดเก่าเปลี่ยน ไม่เพิ่มขั้นตอนทุกวัน
-
-ปิดได้เมื่อเดือนสิ้นสุดตาม Bangkok, วันทำงานทุกคนถึง endDate เช็คครบ, ทุกคนตรวจเงินพิเศษแล้ว แม้ยอด 0, ไม่มีคำขอค้าง และข้อมูลผ่าน validation
-
-เมื่อยืนยันให้คำนวณใหม่ฝั่งเซิร์ฟเวอร์ใต้ lock แล้วเก็บ snapshot รายบุคคล พร้อมชื่อ ตำแหน่ง ช่วงอัตรา รายการเงินพิเศษ ยอดเป็นสตางค์ snapshotVersion, generatedAt, generatedBy และสถานะ CLOSED ใน atomic batch เดียวกัน
-
-เดือนปิดอ่าน snapshot เท่านั้น การเปลี่ยนชื่อ ตำแหน่ง ค่าแรง หรือรายการเงินพิเศษประจำในอนาคตต้องไม่ทำให้เดือนปิดเปลี่ยน
-
-“เปิดเดือนเพื่อแก้ไข” อยู่ในรายละเอียดเดือนที่ปิด ต้องยืนยัน ระบุเหตุผล ไม่ลบ snapshot เก่า เพิ่ม version และ audit เมื่อปิดใหม่ ไม่อนุญาตแก้ตาราง/ค่าแรงย้อนหลังที่แตะเดือนปิดจนกว่าเปิดเดือนที่ได้รับผลกระทบทั้งหมด
-
-## 7. แท็บ 3 — ตั้งค่า
-
-### หน้าหลัก
-
-- หัว “ตั้งค่า”
-- ปุ่มหลัก “เพิ่มพนักงาน”
-- รายชื่อ: รูป ชื่อ ตำแหน่ง ค่าแรงต่อวัน และปุ่ม “แก้ไข” แบบมีคำชัดเจน
-- ตัวกรอง “ทำงานอยู่ / สิ้นสุดงานแล้ว” ไม่สร้างแท็บหลักเพิ่ม
-- ส่วน “วันทำงาน” ยุบได้ แสดงสรุป เช่น จันทร์–เสาร์
-- ส่วน “ข้อมูลร้าน” ยุบได้: ชื่อที่แสดงในรายงาน ไม่ขอเลขบัตรประชาชน บัญชีธนาคาร หรือข้อมูลที่ไม่ได้ใช้
-
-### ฟอร์มเพิ่ม/แก้ไขพนักงาน
-
-ลำดับฟิลด์:
-
-1. “รูปพนักงาน” ปุ่ม “เลือกรูป” และ “ลบรูป” เมื่อมีรูป ดูตัวอย่างสัดส่วนเดิม
-2. “ชื่อพนักงาน” จำเป็น ความยาว 1–100 ตัวอักษร trim ขอบ ไม่เปลี่ยนตัวสะกด
-3. “ชื่อเล่น” ไม่จำเป็น สูงสุด 40 ตัวอักษร
-4. “ตำแหน่ง” พิมพ์ได้ มีคำเดิมให้เลือกได้ แต่ไม่บังคับสร้างตำแหน่งก่อน สูงสุด 80 ตัวอักษร
-5. “เริ่มงานวันที่” จำเป็น
-6. “ค่าแรงต่อวัน” จำเป็น จำนวนไม่ติดลบ ไม่เกิน 1,000,000.00 บาท ไม่เกิน 2 ทศนิยม; ค่า 0 ต้องยืนยันเพื่อกันกรอกพลาด
-7. “เริ่มใช้อัตรานี้วันที่” แสดงเมื่อแก้ค่าแรง ต้องไม่ก่อนวันเริ่มงาน; เปลี่ยนตั้งแต่วันนี้เป็นค่าเริ่มต้น แต่เลือกอนาคตได้
-8. “เงินพิเศษประจำเดือน” เพิ่มแถวได้: “ชื่อรายการ” + “จำนวนบาทต่อเดือน” + ปุ่ม “ลบรายการ”; เช่น ค่าเดินทาง 1,500.00, ค่าตำแหน่ง 2,000.00
-9. “เริ่มใช้เงินพิเศษเดือน” เมื่อเพิ่มหรือแก้รายการประจำ แสดงชัดว่าเป็น template ตั้งแต่เดือนไหน
-10. “รายละเอียดเพิ่มเติม” สูงสุด 500 ตัวอักษร textarea ขยายตามเนื้อหา
-11. “บันทึก” ปุ่มหลักเต็มกว้าง; “ยกเลิก” ปุ่มรอง แยกจากปุ่มบันทึก
-
-label ต้องอยู่เหนือช่อง ไม่ใช้ placeholder แทน label; พิมพ์เงินใช้ type=text inputmode=decimal เพื่อควบคุมทศนิยม ไม่รับ 1e6, Infinity, NaN, เครื่องหมายลบ หรือ comma หลายรูปแบบโดยเงียบ ๆ
-
-ชื่อซ้ำได้ในชีวิตจริง: แสดงคำเตือนเมื่อชื่อเหมือนพร้อมตำแหน่ง/รหัสสั้นให้แยก แต่ห้ามใช้ชื่อเป็น primary key ต้องใช้ UUID
-
-การแก้ค่าแรงสร้างแถวใหม่ใน RateHistory ไม่ overwrite อัตราเดิม; วันที่มีผลชนกับแถวเดิมต้องเข้าสู่การแก้ไขแบบยืนยัน ไม่เพิ่มสองอัตราในวันที่เดียวกัน
-
-การเพิ่ม template เงินพิเศษไม่ได้แปลว่าให้บวกยอดซ้ำทุกครั้งที่เปิดรายงาน: สร้าง MonthlyExtras หนึ่งชุดต่อ employeeId + month + templateId + templateVersion แล้วบันทึก snapshot ชื่อและจำนวน
-
-เมื่อเดือนมีรายการเงินพิเศษแล้ว การเปลี่ยน template มีผลเฉพาะเดือนที่ยังไม่สร้างรายการ; หากต้องการแก้เดือนนี้ต้องกด “แก้เงินพิเศษเดือนนี้” โดยตรง ไม่ sync ทับรายการรายเดือนที่เจ้าของแก้เอง
-
-พนักงานเข้า/ออกกลางเดือน: ค่าแรงนับเฉพาะวันที่อยู่ในช่วงจ้าง แต่เงินพิเศษเต็มเดือนตามกติกาที่เลือก ให้หน้า “ตรวจเงินพิเศษ” แสดงรายการเพื่อเจ้าของปรับเอง ไม่เฉลี่ยหรือยกเลิกอัตโนมัติ
-
-### สิ้นสุดการทำงาน
-
-ใช้ “สิ้นสุดการทำงาน” พร้อมวันที่และยืนยัน แทนการลบถาวร วันที่ endDate เป็นวันสุดท้ายที่ทำงานได้ พนักงานยังปรากฏในรายงานย้อนหลัง ห้ามซ่อนโดย filter active เพียงอย่างเดียว
-
-ถ้ามี attendance หลัง endDate ที่กำลังตั้ง ให้แสดงวันที่ขัดแย้งและหยุดบันทึก ไม่ลบทิ้งอัตโนมัติ เดือนปิดต้องแก้ด้วยขั้นตอนเปิดเดือนก่อน
-
-### รูปพนักงานภายใต้ข้อจำกัดใช้เพียง Apps Script + Sheets
-
-รุ่นนี้ไม่ใช้ Drive เก็บภาพหรือบริการภายนอก ให้เก็บ **ภาพย่อ** JPEG ในชีต Photos แยกจากข้อมูลรายชื่อ เพื่อไม่โหลดภาพทุกคนพร้อม bootstrap
-
-- อ่านรูปใน browser ตรวจชนิด JPEG/PNG/WebP ขนาดไฟล์ต้นทางไม่เกิน 5 MB และจำนวนพิกเซลไม่เกิน 20 ล้านพิกเซล; ปฏิเสธ SVG/GIF/ไฟล์อ่านไม่ได้
-- วาดผ่าน Canvas โดยคงสัดส่วนเดิม ลบ metadata ตามการ re-encode วางพื้นขาวก่อนแปลง JPEG; ด้านยาวไม่เกิน 192px เป้าหมายประมาณ 8–15 KB จำกัดสูงสุด 24 KiB
-- ลด quality หรือขนาดอย่างมีขอบเขต ถ้ายังใหญ่เกินให้ปฏิเสธ ไม่วนค้าง
-- เก็บ base64 ไม่รวม prefix ไม่เกิน 32,768 ตัวอักษร; แนบ width/height ที่จำกัดและตรวจสมเหตุสมผล
-- ฝั่ง server ตรวจ payload length, base64 grammar, decoded bytes, JPEG magic bytes และชนิดที่อนุญาต; การตรวจ header ไม่ใช่การพิสูจน์ว่ารูปไม่มีปัญหาทุกชนิด ห้ามใช้รูปเป็น HTML หรือ code
-- คืนรูปเฉพาะผู้ดูแลที่ผ่าน auth เป็น data:image/jpeg;base64,... ไม่รับ URL อิสระ และไม่ทำรูปเป็น public
-- โหลดเฉพาะภาพที่ใกล้ viewport เป็นชุดเล็ก ไม่เรียก endpoint ต่อภาพทีละ 50 ครั้ง; มี placeholder ขนาดคงที่ ป้องกัน CLS
-- รูปแสดง height:auto; max-width:100%; object-fit:contain ในพื้นที่ที่สงวนไว้
-- ไม่มีรูปเต็มต้นฉบับในระบบนี้ ถ้าต้องการเก็บภาพใหญ่จริงภายหลัง ต้องตกลงเพิ่มพื้นที่เก็บไฟล์ก่อน
-
-## 8. โครงสร้าง Google Sheets
-
-ใช้ Spreadsheet ใหม่แยกจากระบบเดิม ตั้ง locale Thailand และ timezone Asia/Bangkok เก็บ ID ใน Script Properties ไม่ใช้ active spreadsheet โดยหวังว่า web app จะรู้บริบทเสมอ
-
-ใช้คอลัมน์หัวภาษาอังกฤษตาม schema ห้ามเปลี่ยนชื่อโดยเงียบ ๆ; setup ต้องตรวจ schema ก่อนใช้ ไม่ล้างข้อมูลเดิม ไม่ clear() ชีต; technical tabs ไม่ใช่แท็บ UI เจ้าของไม่ต้องเปิดชีตทุกวัน
-
-ทุก monetary field ลงท้าย Satang เป็น integer; date/month keys เป็น plain text; timestamps เป็น ISO UTC string; version เป็น integer เริ่ม 1 ไม่มี Date object ใน payload google.script.run
-
-| ชีต | คอลัมน์หลัก |
+| Token | ค่า |
 |---|---|
-| Settings | key, value, revision, updatedAt |
-| Employees | employeeId, name, nickname, position, startDate, endDate, notes, photoVersion, revision, updatedAt |
-| RateHistory | rateId, employeeId, effectiveFrom, dailySatang, revision, updatedAt |
-| ExtraTemplates | templateId, employeeId, label, amountSatang, effectiveFromMonth, effectiveToMonth, revision, updatedAt |
-| Photos | employeeId, jpegBase64, width, height, revision, updatedAt |
-| WorkCalendar | dateKey, kind, note, revision, updatedAt |
-| Attendance_YYYY_MM | key, dateKey, employeeId, status, revision, updatedAt, updatedBy, requestId |
-| MonthlyExtras_YYYY_MM | extraId, employeeId, label, amountSatang, sourceTemplateId, sourceTemplateVersion, revision, updatedAt |
-| ExtraReviews_YYYY_MM | employeeId, extrasRevision, confirmedAt, confirmedBy |
-| MonthState | monthKey, state, revision, snapshotVersion, closedAt, closedBy |
-| Snapshots_YYYY_MM | snapshotVersion, employeeId, jsonPartIndex, jsonPartCount, snapshotJsonPart |
-| Audit_YYYY_MM | auditId, entityKey, beforeJson, afterJson, updatedAt, updatedBy, requestId |
-| Requests_YYYY_MM | requestId, fingerprint, responseJson, updatedAt |
+| primary / dark | #003566 / #001D3D |
+| accent | #FFC300 ใช้คู่ข้อความน้ำเงินเข้ม |
+| background / surface | #F3F6FA / #FFFFFF |
+| text / muted / border | #172B43 / #526277 / #D7E0EA |
+| FULL | #166534 บน #F0FDF4 |
+| HALF | #854D0E บน #FFFBEB |
+| ABSENT | #991B1B บน #FEF2F2 |
 
-Settings อย่างน้อยมี schemaVersion=1, shopName, workweekJson เช่น [1,2,3,4,5,6] โดย Sunday=0 และ calendarEffectiveFrom วันที่เริ่มใช้ระบบ; งาน production ต้องเก็บตาราง workweek แบบมีวันที่มีผล ไม่ overwrite ตารางอดีตที่ปิดเดือนแล้ว
+สถานะมีข้อความและเครื่องหมายเลือก ไม่สื่อด้วยสีอย่างเดียว ปุ่มที่ยังไม่เลือกพื้นขาว ไม่ทำทุกปุ่มเข้มแข่งกัน
 
-WorkCalendar ใช้ kind=WORKDAY หรือ HOLIDAY override ตารางประจำวันนั้น; การเปลี่ยนวันหยุดเก็บ audit เช่นกัน; กรณีแต่ละคนหยุดคนละวันเป็นส่วนขยาย employeeId override ในเวอร์ชันต่อไป ไม่แกล้งนับขาดงานให้คนที่ไม่ได้มีกำหนดทำงาน
+ฟอนต์ **Sarabun แบบมีหัว** ไฟล์ WOFF2 จริง 400/700 ใน `public/fonts/` พร้อมใบอนุญาต ใช้ @font-face font-display:swap; fallback Tahoma,sans-serif ไม่ใช้ Ekkamai New เป็นหลัก ไม่โหลด CDN และไม่ฝัง base64 ฟอนต์ตามข้อจำกัด Apps Script เดิม
 
-status ใช้ FULL, HALF, ABSENT; การล้างใช้ UNMARKED โดยคงแถวและเพิ่ม revision ไม่ลบ; ไม่มีแถวเทียบเท่า UNMARKED revision=0
+- root html: <640=15px, 640–1023=15.5px, 1024–1439=16px, 1440–1919=16.5px, ≥1920=17.5px
+- เนื้อหา/ฟอร์ม/ปุ่ม 1.2rem ประมาณ18px บนมือถือ; ชื่อ1.33rem หัวหน้า1.67rem ยอดใหญ่2rem รอง≥1.067rem
+- เนื้อหา line-height1.65 หัวข้อ1.3; letter-spacing:normal; 400 สำหรับเนื้อหา 700 เฉพาะหัวข้อ ชื่อ ยอด และปุ่มสำคัญ
+- ปุ่มหลัก/สถานะ≥3.467rem ประมาณ52px; รอง≥3rem ประมาณ45px; gap≥0.533rem; ขอบจอ1.067rem
+- มุมการ์ด1.067rem ปุ่ม0.8rem border1px เงาเบา; ใช้ rem เป็นหลัก
+- ไม่มีอิโมจิ glass blur glow backdrop-filter หรือการสร้าง GPU layer กับข้อความขณะอยู่นิ่ง ใช้ Lucide เฉพาะไอคอนที่จำเป็น
+- touch-action:manipulation, ปุ่ม user-select:none, focus-visible ชัด; ไม่ปิด pinch zoom; ช่องกรอกบน touch≥16px
+- viewport-fit=cover,100dvh,safe-area,scrollbar-gutter:stable; bottom clearance≥6rem+safe-area
+- มือถือหนึ่งคอลัมน์ เมนู3แท็บด้านล่าง; desktop กึ่งกลาง max-widthประมาณ64rem เมนูชุดเดียวตาม breakpoint
+- ภาพสัดส่วนเดิม height:auto max-width:100% และ contain ในพื้นที่สงวนไว้ ไม่ครอปวงกลมหรือบีบรูป
+- รองรับ text zoom200%; ถ้าปุ่มไม่พอให้ reflow แทนการลดฟอนต์ ไม่มี horizontal overflow
 
-key ของ attendance = dateKey + "|" + employeeId ต้องไม่ซ้ำ; rates ห้ามซ้ำ employeeId + effectiveFrom; เงินพิเศษแต่ละรายการใช้ extraId เพราะชื่อรายการอาจซ้ำได้ แต่ UI ควรเตือนชื่อซ้ำ
+## 5. หน้าเข้าสู่ระบบและ session
 
-แบ่งตารางธุรกรรมรายเดือนเพื่อไม่อ่านประวัติหลายปีทุกครั้ง; ถ้ายังไม่มีชีตเดือนให้ setupMonth สร้าง header และ MonthState OPEN แบบ idempotent; endpoint อ่านไม่ควรเขียนสร้างเงินพิเศษหรือปิดเดือนโดยผลข้างเคียง
+หน้า login อยู่นอก3แท็บ แสดงชื่อระบบ หัว “เข้าสู่ระบบ” และปุ่ม “เข้าสู่ระบบด้วย Google” ไม่มีสมัครสมาชิก/รหัสผ่านเอง
 
-Snapshots เก็บ JSON ส่วนละไม่เกิน 30,000 ตัวอักษร พร้อมจำนวนส่วนและ checksum รวม แบ่งหลายแถวได้; ห้ามใส่รายงานพนักงานทั้งหมดลง cell เดียว เก็บทุกส่วนพร้อม MonthState ใน batch เดียว
+เริ่มด้วย popup จากการกดโดยตรง หากถูกบล็อกให้ข้อความแก้ไขสั้น ๆ ถ้าเพิ่ม redirect fallback ต้องทำตามข้อจำกัด authDomain และ third-party storage พร้อมทดสอบ Safari ไม่เพียงสลับเป็น signInWithRedirect แล้วถือว่าเสร็จ [Google sign-in](https://firebase.google.com/docs/auth/web/google-signin), [Redirect best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices)
 
-### ตัวอย่างข้อมูลสอดคล้องกัน
+ใช้ browserSessionPersistence เป็นค่าเริ่มต้น ไม่เขียน token ลง localStorage เอง ไม่ log token หรือใส่ query string หลัง auth ส่ง `Authorization: Bearer <ID token>` ไป API
 
-employeeId: e-demo-01; name: สมชาย ใจดี; position: ช่างติดตั้ง; startDate: 2026-09-01; endDate: ว่าง
+API ตรวจ Firebase ID token และ UID ตรง OWNER_UID จาก server environment ทุก endpoint การ sign-in สำเร็จไม่ได้ให้สิทธิ์เงินเดือน ห้ามตั้งผู้สมัครคนแรกเป็น owner อัตโนมัติ หรือเชื่อ email/isAdmin/role จาก body
 
-rateId: r-demo-01; effectiveFrom: 2026-09-01; dailySatang: 50000
+บัญชีอื่นเห็น “บัญชีนี้ไม่มีสิทธิ์ใช้งาน” และ “เปลี่ยนบัญชี” ไม่เปิดเผย email เจ้าของ Token หมดอายุ refresh ผ่าน SDK แล้ว retryได้1ครั้งโดย mutation ใช้ requestId เดิม
 
-attendance key: 2026-09-14|e-demo-01; status: HALF; revision: 1
+HTML shell ไม่มีเงินเดือน/รูปก่อน auth มี logout ในตั้งค่า เมื่อ logout ล้าง memory cache และ revoke blob URLs และป้องกัน response จาก session เก่ากลับมา render
 
-extraId: x-demo-01; label: ค่าเดินทาง; amountSatang: 150000
+## 6. แท็บเช็คชื่อ
 
-เก็บข้อมูลสมมติแยกจาก production; setup ปกติห้ามสร้างคนหรือเงินสมมติโดยไม่เลือกโหมด demo
+ลำดับ: หัวเช็คชื่อ → วันที่ไทย → เลือกวัน/วันนี้ → “เช็คแล้ว 8 จาก 12 คน” → ทั้งหมด/ยังไม่เช็ค → ค้นหาเมื่อ>8คน → การ์ดรายชื่อ
 
-## 9. สูตรเงินและความถูกต้อง
+การ์ด: รูปหรือชื่อย่อ + ชื่อใหญ่ + ตำแหน่งรอง → **เต็มวัน / ครึ่งวัน / ไม่มา** สามปุ่มเท่ากัน → สถานะบันทึก/เวลา → “แก้ไขรายการ” ไม่จำเป็นต้องโชว์ค่าแรงในหน้านี้
+
+กดแล้วแสดง pending ทันที ปิดเฉพาะปุ่มคนที่กำลังบันทึก คนอื่นยังใช้งานได้ สำเร็จจึงแสดง “บันทึกแล้ว” ครั้งแรกไม่ต้องยืนยันทุกคน ไม่เรียงคนใหม่ทุกครั้งจนกดผิดคน
+
+เปลี่ยนสถานะเก็บ audit; undo เป็น mutation ใหม่ที่อ้าง revision ล่าสุด; ล้างต้องยืนยัน ใช้ UNMARKED เพิ่ม revision ไม่ delete ประวัติ
+
+Server คุม today Bangkok ห้ามใช้ UTC slice ของเครื่อง เช็คอนาคตไม่ได้ ย้อนหลังได้เฉพาะ OPEN; CLOSING/CLOSED อ่านอย่างเดียว
+
+วันหยุดแสดงวันหยุดตามตาราง หากมาทำงานจริงกด “บันทึกวันทำงานเพิ่ม” เปลี่ยน calendar แบบมี audit ก่อน ไม่ถือว่าขาดงานและไม่คิด OT เอง รายชื่อขึ้นตามช่วง startDate/endDate ของวันที่เลือก
+
+ไม่มีคน: “ยังไม่มีรายชื่อพนักงาน”+เพิ่มพนักงาน; โหลดไม่ได้: “โหลดรายชื่อไม่สำเร็จ”+ลองอีกครั้ง; ไม่พบชื่อ: ล้างค้นหา
+
+Offline ก่อนส่งให้รักษา draft และแจ้งยังบันทึกไม่ได้; timeout แสดง “ยังยืนยันการบันทึกไม่ได้” + ตรวจสอบอีกครั้ง โดยอ่าน receipt หรือส่ง requestId เดิม ห้ามเดาว่า server ไม่ได้เขียนแล้วส่ง ID ใหม่; conflict โหลดสถานะใหม่ให้ตรวจไม่ทับเอง
+
+## 7. แท็บรายงาน
+
+หัวรายงาน → เดือน/ปี → ยอดค่าจ้างเดือนนี้ → ค่าแรงสะสมและเงินพิเศษแยกกัน → pending → รายชื่อ → ตรวจและปิดเดือน/พิมพ์รายงาน
+
+เดือนยังไม่จบใช้ “ยอดสะสมถึง …” เงินพิเศษยังเป็นยอดเต็มของเดือน หากยังไม่เช็คต้องเห็นชัด ไม่ทำให้ดูเป็นยอดปิดแล้ว
+
+การ์ดรายคนเป็นปุ่มเต็มความกว้าง แสดงชื่อ/ตำแหน่ง/ยอด/FULLกี่วัน/HALFกี่วัน/ABSENTกี่วัน/pending ไม่มีตารางเลื่อนข้างหรือกราฟที่ไม่ช่วยจ่ายเงิน
+
+กดชื่อ: กลับรายงาน → ชื่อและเดือน → ยอดใหญ่ → จำนวนวันแต่ละสถานะและวันคิดค่าจ้าง → ค่าแรงรวม → เงินพิเศษแต่ละรายการ → รวม → ประวัติรายวัน
+
+วันที่มาทำงาน = FULL+HALF; วันคิดค่าจ้าง = FULL+HALF×0.5 ต้องแยกความหมาย ถ้าเปลี่ยนอัตรากลางเดือนแสดงช่วงอัตรา ไม่ใช้ค่าแรงล่าสุดคูณทั้งเดือน
+
+กดวันที่ไปแก้เมื่อ OPEN ได้ มี “แก้เงินพิเศษเดือนนี้” จากหน้านี้โดยตรง วันยังไม่เช็คแสดงรอเช็คและ “—” วันหยุดไม่เป็น absent อนาคตไม่เป็น pending; คนสิ้นสุดงานยังปรากฏเมื่อมีข้อมูล/ช่วงจ้างในเดือนนั้น
+
+พิมพ์ใช้ print CSS ซ่อนเมนู/ปุ่ม แสดงชื่อร้าน เดือน เวลา สถานะร่าง/ปิด และยอด ไม่ต้องเพิ่มบริการ PDF ภายนอก
+
+## 8. แท็บตั้งค่า
+
+หน้าหลัก: เพิ่มพนักงาน → รายชื่อพร้อมรูป/ตำแหน่ง/ค่าแรง/แก้ไข → filter ทำงานอยู่/สิ้นสุดงาน → วันทำงาน/วันหยุด → ชื่อร้าน → logout
+
+ฟอร์มหน้าเต็ม: รูป → ชื่อ1–100ตัวอักษร → ชื่อเล่น≤40 → ตำแหน่ง≤80 → เริ่มงาน → ค่าแรงต่อวัน → วันที่เริ่มใช้อัตรา → เงินพิเศษหลายรายการพร้อมเดือนมีผล → รายละเอียด≤500 → บันทึก/ยกเลิก
+
+ตำแหน่งพิมพ์ได้และแนะนำคำเดิม ไม่ต้องสร้างหมวดก่อน ชื่อซ้ำให้เตือนแยกคนแต่ยอมรับเพราะใช้ employeeId เป็น key จำนวนเงิน0ถึง1,000,000.00บาท≤2ทศนิยม ค่า0ต้องยืนยันกันผิดพลาด ใช้ strict parser ปฏิเสธ1e6/NaN/Infinity/ค่าลบ ไม่ปัดเองเงียบ ๆ
+
+เปลี่ยนค่าแรงสร้าง RateHistory effectiveFrom; วันมีผลซ้ำต้องแก้แบบ explicit revision ห้ามมีสองอัตราวันเดียวกัน ตรวจผลกระทบเดือนปิดและกัน race กับ close
+
+เงินพิเศษประจำเป็น template ชื่อ/จำนวน/เดือนเริ่มสิ้นสุด/version; เงินพิเศษรายเดือนเป็น snapshot ที่สร้างครั้งเดียวตาม employee/month/template/version ไม่สร้างซ้ำทุก GET และไม่ sync ทับเมื่อ template เปลี่ยน
+
+เพิ่ม/แก้/ลบ MonthlyExtras ต้อง invalidate review เดิม มีการ review แม้0รายการ ผู้เข้า/ออกกลางเดือนยังได้ยอดเต็มตามกติกานี้ ให้เจ้าของปรับรายเดือนเอง
+
+พนักงานออกใช้ endDate รวมวันสุดท้าย ไม่ลบประวัติ ถ้ามี attendance หลังวันที่กำลังตั้งให้แจ้งและหยุด ไม่ลบทิ้ง เดือนปิดต้องเปิดก่อนแก้ข้อมูลที่กระทบ
+
+ปฏิทินมี workweek versions + date overrides + systemStartDate ไม่เปลี่ยนตารางปัจจุบันแล้วทำอดีตเปลี่ยน ไม่สมมติทุกคนมีวันหยุดส่วนตัวต่างกัน หากต้องการให้พัฒนา employee calendar เพิ่มชัดเจน
+
+## 9. Firestore schema
+
+ทุกเส้นทางใต้ `shops/{SHOP_ID}` โดย SHOP_ID มาจาก server environment ไม่รับจาก browser ให้เลือกข้ามร้านได้
 
 ```text
-dailySatang = อัตราที่มี effectiveFrom ล่าสุดซึ่งไม่เกินวันที่เช็ค
-FULL   => dailySatang
-HALF   => ปัดครึ่งสตางค์ขึ้นเป็น 1 สตางค์ของ dailySatang / 2 ต่อวัน
-ABSENT => 0
-UNMARKED / วันหยุด / อนาคต => ยังไม่มียอดยืนยัน ไม่สร้างการขาดงาน
-
-baseSatang = ผลรวมยอดของแต่ละวันที่ยืนยันแล้ว
-extraSatang = ผลรวม MonthlyExtras ของคนและเดือนนั้น
-totalSatang = baseSatang + extraSatang
+shops/{shopId}/profile/main
+shops/{shopId}/control/finance
+shops/{shopId}/employees/{employeeId}
+shops/{shopId}/employees/{employeeId}/rates/{rateId}
+shops/{shopId}/employees/{employeeId}/extraTemplates/{templateId}
+shops/{shopId}/calendarVersions/{versionId}
+shops/{shopId}/calendarOverrides/{YYYY-MM-DD}
+shops/{shopId}/months/{YYYY-MM}
+shops/{shopId}/months/{YYYY-MM}/attendance/{dateKey_employeeId}
+shops/{shopId}/months/{YYYY-MM}/extras/{extraId}
+shops/{shopId}/months/{YYYY-MM}/extraReviews/{employeeId}
+shops/{shopId}/months/{YYYY-MM}/closures/{closureId}
+shops/{shopId}/months/{YYYY-MM}/closures/{closureId}/employees/{employeeId}
+shops/{shopId}/months/{YYYY-MM}/closures/{closureId}/employees/{employeeId}/parts/{partId}
+shops/{shopId}/closeJobs/{requestId}
+shops/{shopId}/requests/{requestId}
+shops/{shopId}/audit/{eventId}
 ```
 
-กติกาปัดเงินต่อวันเป็นข้อเสนอทางระบบที่ต้องแสดงในคู่มือ: เช่น 500.01 / 2 = 250.005 บาท ปัดเป็น 250.01 บาท; รวมหลังจากปัดแต่ละวันแล้ว ไม่รวมเศษสตางค์ลอยไปปัดครั้งเดียวท้ายเดือน; ถ้าเจ้าของต้องการอีกแบบให้แก้ engine และ tests ให้ตรงกัน
-
-parse จำนวนจาก string อย่างเข้มงวดเป็นสตางค์ เช่น "500.01" => 50001 ห้ามใช้ parseFloat(value)*100 โดยไม่ควบคุม rounding และห้ามใช้จำนวนจาก browser เป็นยอดสุดท้าย
-
-รายงานต้องสร้าง expected work dates จากปฏิทินรายเดือน + ช่วงจ้าง + วันเริ่มใช้ระบบ แล้วนับวัน UNMARKED เฉพาะวันทำงานที่ถึงแล้ว จำนวนไม่มาได้จาก ABSENT ที่เช็คจริงเท่านั้น
-
-วันคิดค่าจ้างใช้สำหรับสรุปจำนวน ไม่ใช้คูณค่าแรงปัจจุบันเมื่ออัตราเปลี่ยนกลางเดือน ต้องคิดทีละวัน; ถ้าไม่มีอัตราที่ครอบคลุมวันทำงาน ให้ error ไม่แทน 0 บาทเงียบ ๆ
-
-## 10. Architecture และ API contract
-
-Frontend: HTML Service + CSS ธรรมดา + vanilla JavaScript ไม่มี framework หนัก ไม่มี npm runtime ผู้ใช้ไม่ต้องติดตั้งแอป
-
-Backend: Apps Script V8; ใช้ Advanced Google Sheets Service สำหรับ atomic batch ของข้อมูล + audit + request receipt ซึ่งยังอยู่ใน Google Sheets เดิม ไม่ใช่ฐานข้อมูลเพิ่ม
-
-อ่าน/เขียนเป็นชุด ไม่ getValue()/setValue() ทีละ cell ใน loop; `google.script.run` เป็น asynchronous และลำดับตอบกลับอาจไม่ตรงลำดับส่ง ต้องมี requestId และตัวกัน response เก่าทับหน้าใหม่ [เอกสารการเรียกเซิร์ฟเวอร์](https://developers.google.com/apps-script/guides/html/communication), [แนวปฏิบัติ Apps Script](https://developers.google.com/apps-script/guides/support/best-practices)
-
-ฟังก์ชันภายในลงท้าย `_` เพื่อไม่ให้ client เรียกตรง ทุก public endpoint ตรวจสิทธิ์เอง ไม่มีการเชื่อ browser ว่าเป็น admin
-
-| Endpoint | Input สำคัญ | Output/พฤติกรรม |
-|---|---|---|
-| getBootstrap | ไม่มี | serverToday, monthKey, shopName, employee summaries, day attendance, month state ไม่มี base64 รูป |
-| getDay | dateKey | รายชื่อในช่วงจ้าง + สถานะ/revision + isWorkday + isClosed |
-| saveAttendance | dateKey, employeeId, status, expectedRevision, requestId | แถวจริงพร้อม revision ใหม่ หรือ conflict |
-| getMonthReport | monthKey | summary rows, pending counts, totals, isClosed, snapshotVersion |
-| getEmployeeMonth | employeeId, monthKey | count, daily rows, rate periods, extras, total |
-| saveEmployee | employee fields, expectedRevision, requestId | save person + initial rate/template changes แบบ atomic |
-| setEmploymentEnd | employeeId, endDate, expectedRevision, requestId | ตรวจวันที่ขัดแย้งก่อน soft archive |
-| addRate | employeeId, effectiveFrom, dailySatang, requestId | ตรวจช่วงเดือนปิด + เพิ่มประวัติ |
-| saveExtraTemplate | template fields, expectedRevision, requestId | เปลี่ยน template เวอร์ชันใหม่ |
-| prepareMonthExtras | monthKey, requestId | สร้าง snapshot template เฉพาะที่ยังไม่เคย materialize ไม่สร้างซ้ำ |
-| saveMonthExtra | monthKey, extra fields, expectedRevision, requestId | แก้เฉพาะเดือนเปิด ทำ review เดิมหมดอายุ |
-| confirmMonthExtras | employeeId, monthKey, expectedExtrasRevision, requestId | ยืนยันจำนวนเงินรวมและรายการปัจจุบัน แม้ 0 รายการ |
-| getPhotos | employeeIds พร้อม knownVersions ไม่เกิน 8 คน | เฉพาะภาพที่เปลี่ยน ผ่าน auth |
-| savePhoto | employeeId, jpegBase64, width, height, expectedRevision, requestId | ตรวจข้อมูล + บันทึกภาพ |
-| saveCalendar | workweek version / date override, expectedRevision, requestId | ป้องกันแก้เดือนปิด ตรวจการเช็คเดิมที่ขัดกัน |
-| closeMonth | monthKey, expectedRevision, requestId | คำนวณใหม่และ snapshot ภายใต้ lock |
-| reopenMonth | monthKey, reason, expectedRevision, requestId | คง snapshot เก่า เก็บ audit |
-
-โค้ดแนบ implement getDay/saveAttendance พร้อมตัวตรวจสูตรและ schema บางส่วน ไม่ได้ implement endpoint ทั้งตาราง Gemini ต้องสร้างให้ครบโดยใช้หลักเดียวกัน
-
-### การบันทึกที่ไม่ทับกันและไม่เพิ่มซ้ำ
-
-1. ตรวจ email ผู้ใช้กับ OWNER_EMAIL จาก Script Properties; ปฏิเสธเมื่อระบุไม่ได้
-2. validate shape, date, enum, UUID, revision; reject ฟิลด์ที่ไม่รู้จักสำหรับ mutation contract
-3. ขอ ScriptLock แบบ tryLock ระยะสั้น ถ้าไม่ว่างคืน BUSY ให้ลองใหม่ ไม่ล็อก browser
-4. อ่าน Requests ของเดือน หาก requestId เดิมและ fingerprint เดิม คืน receipt เดิม; ถ้า ID เดิม payload ต่างคืน REQUEST_ID_REUSED
-5. อ่าน MonthState, employee, calendar, attendance เวอร์ชันล่าสุดใต้ lock; ไม่อ่าน cache มาใช้ตัดสินการเขียน
-6. expectedRevision ต้องตรงข้อมูลจริง หากไม่ตรง return CONFLICT พร้อมให้ client โหลดข้อมูลล่าสุด
-7. ส่ง updateCells/appendCells สำหรับ attendance, audit, request receipt ใน **Sheets.Spreadsheets.batchUpdate ครั้งเดียว** ใช้ userEnteredValue.stringValue สำหรับ string เพื่อไม่ให้ชื่อหรือหมายเหตุกลายเป็นสูตร
-8. release lock ใน finally; ถ้าใช้ SpreadsheetApp เขียนให้ flush ก่อนปล่อย lock; อย่าผสมการเขียนสองกลไกจนเข้าใจผิดว่าเป็น transaction เดียว
-9. reply ข้อมูลจริง; frontend เปลี่ยนจาก pending เป็น saved และ invalidate report cache ของเดือน
-
-Google Sheets batchUpdate รวมคำขอและยกเลิกชุดเมื่อคำขอหนึ่งไม่ผ่าน ช่วยรักษาข้อมูล/audit/receipt ในการเขียนครั้งเดียว [การอัปเดตแบบ batch](https://developers.google.com/workspace/sheets/api/guides/batchupdate) และ [Advanced Sheets Service](https://developers.google.com/apps-script/advanced/sheets)
-
-LockService ป้องกันเฉพาะ execution ที่ใช้ lock ร่วมกัน ไม่ป้องกันเจ้าของเปิด Google Sheets แล้วแก้ cell เอง จึงต้อง protect ชีตธุรกรรมและให้แก้ผ่านเว็บ รวมทั้งตรวจ duplicate keys/schema ก่อนสรุป [LockService](https://developers.google.com/apps-script/reference/lock/lock)
-
-### รูปแบบ error
-
-AUTH_REQUIRED: เข้าใช้ด้วยบัญชีเจ้าของ; INVALID_INPUT: ระบุช่องที่ผิด; CONFLICT: ข้อมูลเปลี่ยนแล้ว กรุณาตรวจสอบอีกครั้ง; MONTH_CLOSED: เดือนนี้ปิดแล้ว; BUSY: ระบบกำลังบันทึก กรุณาลองอีกครั้ง; UNAVAILABLE: ติดต่อระบบไม่ได้; UNKNOWN: ยังยืนยันผลไม่ได้
-
-แสดงข้อความไทยที่ whitelist ฝั่ง client ไม่แสดง stack trace, Spreadsheet ID, email เจ้าของ หรือ raw exception ให้ผู้ไม่มีสิทธิ์; log แค่ error code/requestId ไม่ log salary payload หรือ base64 รูปทั้งชุด
-
-## 11. State และความลื่น
-
-- State แยก: activeTab, selectedDate, selectedMonth, employeesById, dayByDate, reportByMonth, pendingByKey, drafts, selectedEmployee
-- กดแท็บเปลี่ยนเนื้อหาในเครื่อง ไม่ reload document ไม่เรียก doGet ใหม่
-- สลับไปหน้าที่เคยโหลดให้แสดง memory cache พร้อมเวลาที่โหลด ไม่บอกว่าเป็นข้อมูลปัจจุบันเสมอ
-- หลัง mutation invalidate เฉพาะวัน/เดือน/คนที่เกี่ยวข้อง; update การ์ดคนเดียว อย่าสร้าง DOM รายชื่อใหม่ทั้งหมดทุกครั้งจน focus/scroll หาย
-- เมื่อเลือกวันที่หรือเดือนเร็ว ๆ ต้องผูก response กับ date/month key และ generation counter; response เก่ายังเก็บ cache ได้ แต่ห้าม render ทับวันที่กำลังดู
-- จำกัดคำขอ mutation พร้อมกัน 1–2 คำขอ; ไม่ยิง 50 google.script.run พร้อมกัน; รุ่นแรกไม่ต้องมีปุ่ม “เต็มวันทุกคน”
-- tab content แต่ละหน้ามี skeleton ตามรูปแบบจริง 3–4 การ์ด และพื้นที่แถวเงินที่คงขนาด ไม่ใช้ spinner กลางจออย่างเดียว
-- ไม่ใช้ interval polling; refresh เมื่อผู้ใช้กดโหลดใหม่หรือกลับจาก background หากข้อมูลเก่ากว่าเกณฑ์ เช่น 60 วินาที โดยไม่แตะ form draft
-- ใช้ memory cache เป็นหลัก; ไม่เก็บรายงานเงินเดือน รูป หรือ token ใน localStorage รุ่นแรก; เก็บเพียงแท็บ/เดือนที่เลือกได้ถ้าไม่มีข้อมูลอ่อนไหว
-- อ่านข้อมูลเฉพาะเดือนที่เลือก ไม่แนบประวัติทุกปีใน bootstrap; รูป lazy load; font 2 weights; inline ไอคอนเท่าที่ใช้
-- แอนิเมชันถ้ามี 120–180ms บน opacity/transform เฉพาะองค์ประกอบจำเป็น เคารพ prefers-reduced-motion; ไม่มี shimmer วนเร็วหรือ pulse ที่รบกวนผู้สูงวัย
-- อย่าใช้ content-visibility/virtualization เป็นค่าเริ่มต้นสำหรับ 20–50 คนจนหาในหน้าไม่เจอ; หากคนมากให้วัดก่อนเพิ่มความซับซ้อน
-
-เป้าหมายตรวจรับ ไม่ใช่คำรับรองล่วงหน้า: UI feedback ≤100ms, เปลี่ยนแท็บจาก cache ≤100ms, INP ≤200ms, CLS ≤0.1 และเป้าหมายใกล้ 0; first useful content บน 2 Mbps ตั้งเป้า ≤4s โดยวัด cold/warm แยก; backend latency ให้บันทึก p50/p95 จริงจาก Google ไม่รวมเป็น FPS
-
-## 12. สิทธิ์และการติดตั้ง
-
-ผู้ดูแลคนเดียว: Deploy เป็น Web app, Execute as Me และ Who has access เป็น **Only myself** หรือค่าที่จำกัดเฉพาะตัวเองในบัญชีนั้น ห้ามเลือก Anyone เพื่อหลบขั้นตอนเข้าระบบ หน้าเว็บไม่ต้องมีแบบฟอร์มรหัสผ่านแอดมินซ้ำ
-
-ตั้ง Script Properties: SPREADSHEET_ID และ OWNER_EMAIL ด้วยมือใน Project Settings ไม่ใส่ค่า email จริงหรือ credential ลง Git; Session.getActiveUser().getEmail() ต้องเท่ากับ OWNER_EMAIL และไม่ว่างทุก endpoint ไม่ fallback ไป getEffectiveUser เพื่ออ้างว่าผู้เยี่ยมชมเป็นเจ้าของ
-
-Google ระบุว่าโหมด execute as owner และบริบทการอนุญาตบางแบบอาจทำให้อีเมลผู้ใช้ว่าง การใช้งานต้อง fail closed และทดสอบ deployment จริง; หากต้องเพิ่มคนภายหลังต้องออกแบบ identity ใหม่ก่อน ไม่เปิดลิงก์สาธารณะแล้วใช้ช่องพิมพ์อีเมลแทนการยืนยันตัวตน [Web Apps](https://developers.google.com/apps-script/guides/web), [Session](https://developers.google.com/apps-script/reference/base/session)
-
-ขั้นติดตั้งสำหรับ Gemini:
-
-1. สร้าง Spreadsheet ใหม่โดยเจ้าของ ตั้ง timezone/locale และเก็บเป็น private
-2. เปิด Extensions > Apps Script ตั้ง runtime V8 และ timezone Asia/Bangkok
-3. สร้างไฟล์ server/frontend ตามข้อ 14 เปิดบริการ Google Sheets API ใน Services; standard Cloud project อาจต้องเปิด API ที่ Cloud Console ด้วย
-4. ใส่ Script Properties ของจริงใน console เท่านั้น
-5. รัน setupSystem_ จาก editor; ตรวจ header/schema; setup ต้องไม่แก้ข้อมูลร้านเดิม
-6. สร้างข้อมูลตัวอย่างเฉพาะ Spreadsheet ทดสอบ รัน test checklist
-7. Deploy Web app จำกัดตัวเอง เข้าด้วยบัญชีเจ้าของ เปิดลิงก์ /exec
-8. ทดสอบบัญชีอื่น/ไม่ล็อกอินว่าถูกปฏิเสธทั้งหน้าและ endpoint
-9. ทดสอบมือถือจริงและเน็ตช้า ก่อนใช้ข้อมูลพนักงานจริง
-10. เมื่อแก้โค้ดให้อัปเดต version ของ deployment และทดสอบซ้ำ; /dev มีไว้ทดสอบกับผู้แก้ script ไม่ใช่ลิงก์ใช้งานทั่วไป
-
-Apps Script มีโควตาและเวลารันสูงสุดซึ่งเปลี่ยนได้ ให้ตรวจจากเอกสารก่อน deploy ไม่รับรองว่าใช้งานได้ไม่จำกัด [โควตา Apps Script](https://developers.google.com/apps-script/guides/services/quotas)
-
-สำรองข้อมูลผ่านสำเนา Spreadsheet แบบ private ของเจ้าของก่อน migration และเป็นระยะตามการใช้งาน เก็บ snapshot เดือนปิด; ทดสอบ restore ในสำเนาและตรวจยอดตรง ไม่อ้างว่า version history แทนการตรวจสำรองทั้งหมดได้
-
-## 13. เกณฑ์ทดสอบและตรวจรับ
-
-### สูตรและข้อมูล
-
-| กรณี | ผลที่ต้องได้ |
+| เอกสาร | ฟิลด์หลัก |
 |---|---|
-| 22 เต็มวัน + 4 ครึ่งวัน + 2 ไม่มา, 500/วัน, พิเศษ 2,500 | 24 วันคิดค่าจ้าง, 14,500.00 บาท |
-| 10 เต็มวันที่ 500 + 10 เต็มวันที่ 550 + 2 ครึ่งวันที่ 550 | ค่าแรง 11,050.00 บาท |
-| 500.01 บาท ครึ่งวัน | 250.01 บาท ตามกติกาปัดรายวัน |
-| วันทำงานยังไม่เช็ค 2 วัน | pending 2, absent ไม่เพิ่ม, ปิดเดือนไม่ได้ |
-| วันหยุด 4 วัน | ไม่บวกจำนวนไม่มา |
-| เดือนกุมภาพันธ์ปีอธิกสุรทิน | วันที่ 29 ถูกต้อง; วันที่ 30 ปฏิเสธ |
-| เพิ่มคนกลางเดือน/สิ้นสุดกลางเดือน | expected dates อยู่ในช่วงจ้าง |
-| เปลี่ยนค่าแรงวันนี้ | เดือนปิดเก่าไม่เปลี่ยน |
-| ชื่อพนักงานซ้ำ | แยกได้ด้วย employeeId |
-| ค่า 1e6, NaN, ลบ, ทศนิยมเกิน 2 หลัก | ปฏิเสธ ไม่แปลงเงียบ |
-| attendance/rate key ซ้ำในชีต | แจ้ง integrity error ไม่เลือกแถวแรกเงียบ ๆ |
+| profile | schemaVersion,displayName,timezone,systemStartDate,revision |
+| finance control | revision,closingMonth:nullหรือmonth,activeCloseJobId,updatedAt |
+| employee | name,nickname,position,notes,startDate,endDate,revision,photo:{objectPath,width,height,version},createdAt,updatedAt |
+| rate | effectiveFrom,dailySatang:int,revision,createdAt,updatedAt |
+| extra template | label,amountSatang:int,effectiveFromMonth,effectiveToMonth,version,revision |
+| calendar version/override | effectiveFrom,weekdays:[0..6],revision / kind:WORKDAYหรือHOLIDAY,note,revision |
+| month | state:OPEN/CLOSING/CLOSED,revision,extrasRevision,currentClosureId,closedAt,closedBy |
+| attendance | employeeId,dateKey,status:FULL/HALF/ABSENT/UNMARKED,revision,updatedAt,updatedBy,requestId |
+| monthly extra | employeeId,label,amountSatang,sourceTemplateId,sourceTemplateVersion,revision,deletedAt |
+| review | employeeId,extrasRevision,reviewedExtrasRevision,confirmedAt,confirmedBy |
+| request receipt | actorUid,method,entityKey,payloadHash,response,createdAt ไม่เก็บ token |
+| audit | actorUid,action,entityKey,before,after,reason,requestId,createdAt |
+| closure manifest | status:STAGING/READY,sourceRevision,employeeIds,totalsSatang,manifestHash,algorithmVersion |
+| snapshot per person | name,position,counts,ratePeriods,extras,baseSatang,extraSatang,totalSatang,partsCount,checksum |
+| close job | monthKey,status,cursor,sourceRevision,closureId,errorCode,createdAt,updatedAt |
 
-### การเชื่อมต่อและความปลอดภัย
+UUIDเป็นID ไม่ใช้ชื่อหรือarray index; เงินinteger satang; วันที่ธุรกิจstringYYYY-MM-DD ค.ศ.; เดือนYYYY-MM; serverTimestampสำหรับเวลาที่เหมาะสม และ serialize เป็นISOเมื่อคืนAPI
 
-- กดเร็ว 2 ครั้ง, เปิดสองหน้าต่างแก้คนเดียวกัน: ไม่มีแถวซ้ำ ไม่มีการทับโดยไม่ตรวจ revision
-- response หายหลังเขียนสำเร็จ: retry requestId เดิมคืน receipt เดิม audit ไม่เพิ่มซ้ำ
-- requestId เดิม payload ต่าง: ปฏิเสธ
-- batch มี request ที่ผิด: attendance/audit/receipt ไม่เปลี่ยนทั้งชุด ทดสอบกับ Sheets จริง
-- กดล้างหลังคนอื่นแก้: conflict ไม่ลบข้อมูลล่าสุด
-- เดือนปิดปฏิเสธ attendance/extras/calendar/rate ที่มีผลย้อนหลังทุก endpoint แม้เรียกตรงจาก console
-- ชื่อ `<script>`, `<img onerror=...>` แสดงเป็นข้อความ; `=IMPORTXML(...)` ลง cell เป็น string ไม่เป็น formula
-- endpoint ไม่เผยข้อมูลเมื่อ identity ว่างหรือบัญชีอื่น; private Photos ไม่เข้าถึงผ่าน URL สาธารณะ
-- รูปปลอม SVG หรือ JPEG เกินขนาดถูกปฏิเสธ; ไม่แสดง stack trace หรือ credentials
-- ปุ่มปิดเดือนตรวจ fresh data เสมอ ไม่เชื่อยอดที่ client ส่งมา
+UNMARKEDคงdocument/revision; ลบเงินพิเศษเป็น tombstone และ audit; ข้อมูลขาด/schemaผิดต้อง error ไม่เดายอด0
 
-### หน้าจอและความเร็ว
+เดือนที่ยังไม่มี document ให้ GET แสดงสถานะ OPEN/revision0 โดยไม่เขียนข้อมูล การ mutation ครั้งแรกสร้าง month document พร้อมข้อมูลใน transaction เดียวกัน ส่วน profile/control ต้องผ่าน setup ก่อน การเปลี่ยน extras ของคนใดให้เพิ่ม extrasRevision ใน review document ของคนนั้นและทำให้ reviewedExtrasRevision ไม่ตรง ยืนยันใหม่เฉพาะคนนั้น; month.extrasRevision ใช้ invalidation ภาพรวม ไม่บังคับตรวจทุกคนใหม่เพราะแก้คนเดียว
 
-ตรวจ viewport 320,375,390,414,768,1024,1440,2560; portrait/landscape; Android Chrome และ iOS Safari; ไม่มี horizontal overflow ปุ่ม 3 สถานะกดได้ชัด ไม่มี footer บังรายการสุดท้าย
+สร้าง firestore.indexes.json จาก query จริง เช่น attendance(employeeId,dateKey), audit(entityKey,createdAt) ดึงเฉพาะเดือน ไม่ scan ทุกปี ยกเว้น index สำหรับ text/JSONยาวที่ไม่ query
 
-ตรวจ touch target, focus-visible, Enter submit, Back navigation, focus กลับปุ่มเดิมเมื่อกลับจากรายละเอียด, screen reader labels, 200% text zoom และ reduced motion
+ตั้ง application budget snapshot doc≤256KiB แบ่ง daily parts เมื่อเกิน ไม่รวมทุกคนใน doc เดียว เก็บ algorithmVersion/checksum สำหรับตรวจ restore และสูตร
 
-จำลอง download 2 Mbps, upload 512 kbps, RTT 150ms และ cold cache อย่างน้อย 5 รอบ; ทดลอง offline/กลับ online โดยไม่ทำข้อมูลหาย; ทดสอบ 50 คนและข้อมูลอย่างน้อย 12 เดือน; วัด request count/payload/INP/CLS/latency พร้อมระบุเครื่องและเบราว์เซอร์
+## 10. สูตรเงินและโค้ดอ้างอิง
 
-ตรวจหน้ารายงานและตั้งค่าหลังแก้เช็คชื่อ; เปลี่ยนค่าแรงแล้วกลับรายงาน; เปลี่ยนเงินพิเศษแล้วกลับหน้าแรก; อย่าเขียนว่า “ผ่านทุกอุปกรณ์/ไม่มีบั๊ก 100%” หากทดสอบเพียง VM หรือ browser เดียว
+```text
+FULL = rateOfDateSatang
+HALF = floor((rateOfDateSatang + 1) / 2)
+ABSENT = 0
+UNMARKED / HOLIDAY = null ในแถวรายงาน
+base = sum(confirmed daily amounts)
+extra = sum(active monthly extra amounts)
+total = base + extra
+```
 
-## 14. ลำดับงานและไฟล์ที่ Gemini ต้องส่ง
+ปัดแบบ half-up ต่อวัน:500.01บาทครึ่งวัน=250.01บาท รวมหลังปัดแต่ละวัน เก็บกติกาในคู่มือและ algorithmVersion ไม่แก้ snapshot เก่าเมื่อสูตรเปลี่ยน
 
-1. สร้าง theme + 3 หน้าจอด้วย demo data ให้ตรวจ flow ก่อน
-2. ทำ setup/schema/auth และ calendar ก่อน mutation
-3. เชื่อมรายชื่อและเช็คชื่อ พร้อม atomic writes/idempotency/conflict
-4. ทำรายงานผ่าน Payroll engine และอัตราย้อนหลัง
-5. ทำตั้งค่ารายชื่อ/ภาพ/เงินพิเศษ template และรายเดือน
-6. ทำตรวจและปิดเดือน/snapshots/reopen/audit
-7. ทำ performance, accessibility, error/offline และ deployment checklist
+22FULL+4HALF+2ABSENT ค่าแรง500บาท +พิเศษ2500บาท =14500บาท โดย fixture ต้องมี28วันที่กำหนดทำงานจริง ไม่ใส่เดือนตัวอย่างที่ปฏิทินไม่ตรง
 
-ไฟล์ production อย่างน้อย: Code.gs, Config.gs, Auth.gs, Schema.gs, Repository.gs, AttendanceService.gs, EmployeeService.gs, Payroll.gs, ReportService.gs, ExtrasService.gs, CalendarService.gs, PhotoService.gs, MonthService.gs, Index.html, Styles.html, Fonts.html, App.html, appsscript.json, README_TH.md และชุด tests
+อัตราที่ใช้คือ effectiveFrom ล่าสุด≤dateKey ห้ามเชื่อยอด/อัตราจากclient; missing rate/duplicate key/rate/date ต้องหยุด ไม่เลือกตัวแรกเงียบ ๆ
 
-อนุญาตรวมไฟล์ตามความเหมาะสม แต่ทุกไฟล์ต้องครบ ไม่ทิ้ง TODO/stub ในเส้นทางที่ UI เรียก ไม่ใช้ data demo ใน production และต้องระบุชัดว่าส่วนใดทดสอบกับ Google จริงแล้ว
+Expected work dates = calendar version+override ∩ employment ∩ systemStartDate ∩ ถึงtodayBangkok โค้ด payroll-core.cjs ยังรับ weekdays ชุดเดียว+override จึงต้องเพิ่ม calendar version resolver ในTypeScriptก่อนใช้งานจริง
 
-## 15. ข้อเสนอที่ควรมีตั้งแต่รุ่นแรก
+## 11. สิทธิ์และ API safety
 
-**ควรมี:** วันยังไม่เช็ค, วันทำงาน/วันหยุด, ปิดเดือน, อัตรามีวันที่เริ่มใช้, ประวัติแก้ไข, สิ้นสุดการทำงานแทนลบ, เงินพิเศษแยกรายการ, ปุ่มลองอีกครั้งที่ไม่บันทึกซ้ำ
+ทุก Route Handler ข้อมูลใช้ Node runtime, firebase-admin อยู่ server-only module ตรวจ ID token/OWNER_UID ทุกครั้ง ตรวจ revoked token ในเส้นทางอ่อนไหวตามนโยบายที่ทดสอบแล้ว ห้ามเชื่อ role/email/isAdmin ใน body [Verify ID tokens](https://firebase.google.com/docs/auth/admin/verify-id-tokens)
 
-**ยังไม่ต้องเพิ่ม:** GPS, สแกนหน้า, QR เช็คตัวเอง, แชต, push notifications, ระบบพนักงานล็อกอิน, กราฟจำนวนมาก หรือแท็บ dashboard ใหม่ สิ่งเหล่านี้ยังไม่ช่วยโจทย์ผู้ดูแลคนเดียวและเพิ่มขั้นตอน
+Firestore/Storage client rules deny all ตาม reference-config เพราะข้อมูลผ่าน API; Admin SDK ข้าม Firestore Rules จึงต้องมี owner guard, schema validation และ IAM ฝั่ง server จริง ห้ามอ้างว่ามี rules แล้ว API ปลอดภัยเอง [Admin SDK and rules](https://firebase.google.com/docs/firestore/security/rules-conditions)
 
-**ต้องตกลงก่อนขยาย:** OT, วันลา/วันหยุดที่มีค่าจ้าง, หักเงิน, เบิกล่วงหน้า, รอบเงินเดือนที่ไม่ใช่เดือนปฏิทิน, ตารางงานรายบุคคล และผู้ดูแลหลายคน
+JSON/รูป/รายงานใช้ `Cache-Control: private, no-store`; ไม่ให้ Next/CDN/shared data cache เก็บเงินเดือนร่วมผู้ใช้ HTML shellไม่มีข้อมูลก่อนauth ใช้ same-origin fetch/CORSไม่wildcard, method/content-type/body limit และ reject unknown fields
+
+Bearer tokenส่งheaderเองและไม่อาศัยcookie authโดยปริยาย ถ้าจะเปลี่ยนเป็นsession cookieต้องออกแบบ CSRF,SameSite,secure,httpOnly ให้ครบ ไม่ทำครึ่งระบบ
+
+ไม่logtoken,privatekey,salarypayload,รูป หรือข้อมูลจริงในanalytics แสดง errorไทยจากcodeไม่rawstack; CSP/securityheadersต้องทดสอบกับGoogleAuthไม่ตั้งจนloginเสีย
+
+Firebase web config เช่น apiKey/projectId ไม่ใช่ Admin credential แต่ต้องจำกัดการใช้ API ตามบริการที่ใช้ ส่วน Admin private key/OWNER_UID ไม่ใส่ NEXT_PUBLIC_ [Firebase API keys](https://firebase.google.com/docs/projects/api-keys)
+
+## 12. Transaction และการส่งซ้ำ
+
+Mutationทุกตัวมี requestId UUID + expectedRevision; normalize/hash canonical payloadรวมmethod/actor/entity เก็บreceiptถาวรในFirestore ไม่ใช้memorymapในVercelแทนreceipt
+
+อ่านreceiptในtransactionก่อน ถ้าID/payload/actorตรงคืนผลเดิมแม้เดือนปิดแล้ว ถ้าIDเดิมpayloadต่างปฏิเสธ REQUEST_ID_REUSED; receiptเป็นผลคำขอเก่า UIต้องไม่ renderทับrevisionใหม่กว่า
+
+คำขอใหม่อ่านcontrol/finance,month,employee,calendar/rateและentityที่เกี่ยวข้องในtransaction ตรวจgate/ช่วงจ้าง/วันที่/revision แล้วเขียนentity+audit+receipt+เพิ่มfinanceRevisionและmonthRevisionแบบatomic อ่านทั้งหมดก่อนเขียน
+
+การแก้ชื่อ/ตำแหน่งที่ใช้snapshot,rate,calendar,employment,template ใช้ finance gate ร่วมกัน Rate/calendarย้อนหลังต้องตรวจทุก CLOSED month ที่อาจกระทบ และเพิ่มfinanceRevision เพื่อกันraceกับclose
+
+Transactioncallbackอาจถูกเรียกซ้ำ ห้าม upload Storage/ส่งข้อความ/เปลี่ยนclientstate/สุ่มIDใหม่หรือside effectภายนอกภายในcallback สร้างID/hashก่อนเข้า [Firestore transactions](https://firebase.google.com/docs/firestore/manage-data/transactions)
+
+control docเป็นจุดรวมwriteโดยตั้งใจสำหรับเจ้าของคนเดียว ทีม≤50คนในรุ่นแรก หากขยายต้องวัดcontentionและปรับpartition ไม่อ้างว่าscaleไม่จำกัด
+
+Success `{ok:true,data,requestId,serverTime}`; error `{ok:false,error:{code,message,fields?,requestId}}`; ใช้401ไม่มีauth,403ไม่ใช่owner,409conflict/closed,422input,429busy,503service; timeoutclientเป็นUNKNOWN ไม่สรุปว่าไม่ได้เขียน
+
+## 13. ปิดเดือนแบบทำต่อได้
+
+ไม่ยัด snapshot ทุกคนใน transaction ใหญ่ ใช้ close job ที่กั้นfinancial writes ระหว่างสร้างsnapshot และทำต่อได้เมื่อVercel requestจบ
+
+1. Start transactionตรวจเดือนสิ้นสุดBangkok,OPEN,expectedRevision,receipt/control แล้วตั้งmonth CLOSING และcontrol.closingMonth/activeCloseJobId เก็บsourceRevision,closureId และroster ทุกfinancial mutationต้องผ่านgateนี้ก่อนเขียน
+2. Continue API ตรวจowner/jobที่ผูกกับgate ทำทีละชุดเล็กและcheckpointในFirestore ไม่พึ่งงานหลังHTTPresponseหรือlocaldisk ข้อมูลต้นทางนิ่งเพราะgateเริ่มก่อนอ่านและทุกmutationใช้ร่วมกัน
+3. ตรวจpending,extra reviews,ratesและข้อมูลครบ ถ้าผิดแสดงชื่อ/ปัญหาให้เจ้าของcancelกลับไปแก้ ระหว่างCLOSINGยังไม่ถือว่าเดือนปิด
+4. เขียนSTAGING closureและsnapshotต่อคน/parts ด้วยdeterministic keys/checksums ทำซ้ำไม่บวกยอดซ้ำ ทุกchunktransactionตรวจjob/gate กันworkerเก่าหลังcancel
+5. Finalize serverตรวจmanifestครบroster,checksums,totals,sourceRevision แล้วtransactionเช็คgate/month/jobรุ่นเดิม เปลี่ยนclosure READY,month CLOSED/currentClosureId ปล่อยgateและเก็บaudit/receipt
+6. UIแสดง “กำลังตรวจ … จาก … คน” ทำต่อหลังหลุดได้ Continueเรียกเฉพาะงานactive ไม่pollทั้งวัน
+7. Cancel transactionตรวจjobแล้วกลับOPENปล่อยgate เก็บSTAGINGที่ยกเลิกแยกไม่ใช้รายงาน Cleanupภายหลังอย่างปลอดภัย ไม่มีการปล่อยล็อกเองตามเวลาจนworkerเก่ากลับมาเขียนได้
+8. Reopenต้องยืนยัน+reason เก็บclosureเก่าimmutable การปิดใหม่สร้างclosureIdใหม่ CLOSED reportอ่านเฉพาะcurrentClosureที่READY
+
+การแก้rate/calendarย้อนหลังต้องเปิดเดือนที่กระทบก่อน ไม่แก้snapshotเดิม Rollbackโค้ดVercelไม่ใช่rollbackFirestore
+
+## 14. รูปพนักงานใน Storage
+
+เลิกเก็บbase64ในSheet/Firestore เก็บเฉพาะobjectPath/dimensions/version ในFirestore ภาพอยู่private Storage
+
+ClientรับJPEG/PNG/WebPต้นทาง≤5MBและ≤20ล้านพิกเซล Canvasย่อด้านยาว≤800pxคงสัดส่วน แปลงJPEGเป้าหมาย≤200KiB ลดขนาดแบบมีขอบเขต ถ้าไม่ผ่านแจ้งก่อนส่ง ไม่ส่งต้นฉบับ5MBเข้าVercel
+
+API upload bodyรวม≤1MiBตรวจbytesจริงไม่เชื่อContent-Length ตรวจownerก่อนdecodeภาพ ใช้sharpหรือไลบรารีที่ตรวจสอบแล้วจำกัดpixels,rotateตามorientation,stripmetadata,re-encodeเป็นthumb≤192pxและdisplay≤800px ไม่เชื่อMIME/headerอย่างเดียว
+
+Path `shops/{SHOP_ID}/employees/{employeeId}/{requestId}/thumb.jpg` และdisplay.jpgสร้างจากserver ไม่รับpathอิสระ ไม่มีpublicACL/permanentdownloadtoken ไม่ใช้getDownloadURLทำรูปพนักงานเปิดสาธารณะ
+
+StorageกับFirestoreไม่atomicร่วมกัน: uploadobjectใหม่ก่อน → ตรวจสำเร็จ → Firestoretransactionสลับphoto pointer+revision+audit+receipt → cleanupภาพเก่าทีหลัง หากล้มเหลวรูปเดิมยังใช้งานได้ retryใช้requestId/hashรูปเดิม ไม่รับIDเดิมรูปต่าง orphan cleanupตรวจreferenceก่อนลบ
+
+อ่านผ่านauthenticated GET photo API ซึ่งหาpathจากemployee doc Browserfetchblobด้วยtokenแล้วcreateObjectURLใส่img revokeเมื่อเปลี่ยน/ออกจากระบบ มีlazyloadingและplaceholder ไม่ให้image optimizerสาธารณะแคชรูปprivate
+
+Vercel Functionมีเพดานpayload4.5MB ณเอกสารที่ตรวจ จึงกำหนดapplication limitต่ำกว่าอย่างตั้งใจ [Function limits](https://vercel.com/docs/functions/limitations)
+
+## 15. API contract ที่ต้องทำครบ
+
+| Endpoint | หน้าที่ |
+|---|---|
+| GET /api/bootstrap | profile,serverToday,เดือน,รายชื่อย่อ,เช็ควันนี้,state ไม่มีภาพbase64/ประวัติทุกปี |
+| GET /api/attendance?date= | คนและสถานะวันที่เลือก+revision+workday/closed flags |
+| POST /api/attendance | date/employeeId/status/revision/requestId |
+| GET /api/requests/{id} | receiptของowner/shopเพื่อแก้UNKNOWN |
+| GET /api/reports?month= | totals/countsรายคน+pending+sourceRevision |
+| GET /api/reports/{employeeId}?month= | รายวัน ช่วงอัตรา extras ยอด |
+| GET/POST /api/employees | รายชื่อ/เพิ่มคนและอัตราเริ่มต้นแบบatomic |
+| PATCH /api/employees/{id} | ชื่อ ตำแหน่ง notes revision ไม่รับfieldลับแก้rate |
+| POST /api/employees/{id}/end-employment | ตรวจendDateกับattendanceก่อนสิ้นสุด |
+| POST /api/employees/{id}/rates | เพิ่ม/แก้อัตราวันมีผลแบบexplicit revision |
+| POST/PATCH /api/employees/{id}/extra-templates | versionของtemplate ไม่ทับmonthlyextras |
+| POST /api/months/{month}/prepare-extras | materializeครั้งเดียว ทุกGETread-only |
+| POST/PATCH /api/months/{month}/extras | เพิ่ม/แก้/tombstoneและinvalidate review |
+| POST /api/months/{month}/review-extras | ยืนยันrevisionต่อคน แม้0 |
+| GET/POST /api/calendar | versions/overridesไม่แก้เดือนปิด |
+| GET/POST /api/employees/{id}/photo | private read/upload; ลบรูปเป็นmutationแยกมีrevision |
+| POST /api/months/{month}/close | เริ่มclose job |
+| GET /api/close-jobs/{id} | สถานะ/ความคืบหน้า |
+| POST /api/close-jobs/{id}/continue | ทำchunk/finalizeโดยserver |
+| POST /api/close-jobs/{id}/cancel | กลับOPENหลังเช็คgate/job |
+| POST /api/months/{month}/reopen | reason+revisionคงsnapshotเก่า |
+| PATCH /api/settings | displayName/configที่อนุญาต ไม่มีแก้owner/secretในUI |
+
+ทุกmutationรับrequestId/revisionตามentity คุมbody/schema/length ไม่เปิดGETที่เขียนข้อมูล ปรับชื่อได้เมื่อUI/server/testsตรงกันทั้งหมด
+
+Reportหลายqueryต้องอ่านfinanceRevisionก่อน/หลังและmonthstate ถ้าเปลี่ยนให้retryอย่างมีขอบเขต ไม่คืนรายงานผสมคนละรุ่น CLOSEDอ่านimmutable snapshot; frontendผูกresponseกับdate/month/session generation กันผลเก่าทับหน้าปัจจุบัน
+
+## 16. ความลื่นและcache
+
+เป้าหมายวัด: UI feedback≤100ms, cached tab≤100ms, INP≤200ms, CLS≤0.1มุ่งใกล้0, firstusefulcontent2Mbpsตั้งเป้า≤4s แยกcold/warmและเวลาauthจากAPI latency ไม่รับรองก่อนวัด
+
+App shellเดิม stateแยกtab/date/month/person Reactkeyคงที่ ไม่remountทั้งรายชื่อเมื่อแก้คนเดียว ทุกหน้ามีskeletonตรงโครง โหลดตั้งค่าเมื่อเปิด รายงานเฉพาะเดือน font2weights local ไอคอนเฉพาะใช้
+
+MemoryquerycacheผูกsessionUID invalidateเฉพาะส่วนหลังmutation จำกัดrequestพร้อมกัน ไม่intervalทุกวินาที refreshเมื่อfocus/staleหรือผู้ใช้กดโดยรักษาdraft privateAPIno-storeยังใช้clientmemorycacheที่แสดงเวลาโหลดได้
+
+ไม่cacheเงินเดือน/รูปในserviceworker/localStorage ไม่ทำofflinewritesค้างคืน Pending requestIdอยู่session memory ถ้าปิดtabแล้วเปิดใหม่ต้องอ่านสถานะล่าสุดก่อนส่งคำสั่งใหม่
+
+วัดcoldstart/readcounts/storagebytesจริง โหลดratesเป็นชุดไม่queryทีละวัน indexed monthqueries auditpagination ไม่ทำN+1 callsจากbrowser
+
+## 17. Environment และไฟล์ production
+
+```text
+employee-attendance/
+  src/app/layout.tsx, page.tsx, login/page.tsx
+  src/app/api/.../route.ts
+  src/components/{shell,attendance,reports,settings,shared}/
+  src/features/{auth,attendance,reports,employees,extras,calendar}/
+  src/lib/firebase/{client,admin}.ts
+  src/lib/server/{auth,repository,idempotency,errors,finance-gate}.ts
+  src/lib/payroll/{money,dates,calendar,engine,snapshots}.ts
+  src/lib/validation/
+  src/styles/{tokens,globals}.css
+  public/fonts/{Sarabun-Regular.woff2,Sarabun-Bold.woff2,OFL.txt}
+  tests/{unit,integration,rules,e2e}/
+  scripts/{setup,seed-demo,backup,restore-check}.ts
+  firestore.rules, storage.rules, firestore.indexes.json, firebase.json
+  .github/workflows/ci.yml
+  .env.example, .gitignore, package.json, lockfile
+  README_TH.md, DEPLOYMENT.md, TEST_RESULTS.md
+```
+
+Client env: NEXT_PUBLIC_FIREBASE_API_KEY/AUTH_DOMAIN/PROJECT_ID/APP_ID และค่าที่SDKใช้จริง; server env: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY หรือidentityที่ตั้งถูกต้อง, FIREBASE_STORAGE_BUCKET, OWNER_UID, SHOP_ID, APP_ENV
+
+Admin module server-only singletonเฉพาะSDKconnection ไม่เก็บbusinessstateในinstance; .env.exampleไม่มีค่าจริง .env/credentialไม่เข้าGit; productionห้ามเปิดemulator envvars
+
+reference-config rules เป็นdenyallสำหรับprojectใหม่/architectureนี้ ห้ามdeployทับrulesเว็บเดิม
+
+## 18. GitHub → Vercel และการสำรอง
+
+repoใหม่privateเป็นค่าเริ่มต้น .gitignoreกัน.env*,serviceaccount,emulator exports,privatebackups,logs และอนุญาต.env.exampleที่ปลอดภัย CIใช้npm ci/lint/typecheck/unit/emulator integration/rules/build ไม่มีproductionsecretsในPRหรือfork
+
+featurebranch codex/... → PR/CI → VercelPreviewต่อFirebaseDEVเท่านั้น → ตรวจแล้วreleaseProductionตามสิทธิ์ งานเอกสารในrepoปัจจุบันส่งorigin mainตามกฎเดิมได้ แต่ไม่ใช่อนุมัติเปิดbillingหรือเชื่อมcredentialproduction
+
+เชื่อมrepoและRootDirectoryถูกต้อง Productionbranchmain แยกPreview/Production env; ใช้previewdomainคงที่สำหรับGoogleAuth/authorizeddomains ไม่เพิ่มทุกdeploymentdomainกว้าง ๆ Previewต้องไม่มีสิทธิ์production ใช้projectId/appEnvassertionsให้failclosedเมื่อจับคู่ผิด [GitHub integration](https://vercel.com/docs/git/vercel-for-github), [Environment variables](https://vercel.com/docs/environment-variables)
+
+Push/mergeอาจtriggerdeployment ต้องรู้targetก่อนทำ สำรองFirestoreและStorageพร้อมmanifestในพื้นที่ownerควบคุมก่อนmigrationและตามรอบ RestoreในDEVเทียบchecksums/counts/totals GitHubสำรองโค้ดไม่ใช่เงินเดือน Migrationมีversion/dryrun/idempotency ไม่clear/resetproduction
+
+## 19. แผนพัฒนา
+
+1. ตรวจช่องว่างreference → scaffoldNext/TypeScript/CI/fonts ไม่แก้เว็บเดิม
+2. DEV+Emulator+ownerAuth+AdminAPI+denyallrules+testsการเรียกตรง
+3. schema/setup/demoแยกenvironment/calendar version resolver
+4. UI3แท็บทุกempty/loading/errorstate พร้อมkeyboard/touch
+5. attendance transaction/receipt/revision/financegate พร้อมtimeout/concurrency
+6. employee/rates/templates/monthlyextras/reviews/privatephotosและorphan handling
+7. reportengine/monthqueries/effective dates/pending/money rounding
+8. closejobs/chunks/finalize/cancel/reopen/snapshotimmutability
+9. print/responsive/2Mbps/realphones/accessibility/performance
+10. PreviewDEV/ownerUAT → Productionsetup/releaseตามสิทธิ์ พร้อมbackup/restoreคู่มือ
+
+## 20. เกณฑ์ส่งมอบและทดสอบ
+
+ส่งsourceครบทุกไฟล์ ไม่มีTODO/stubในfeatureที่กดได้ ไม่มีdemoในproduction READMEไทยละเอียดและTEST_RESULTSแยกunit/emulator/browser/realFirebase/Vercel/physicaldevice
+
+ทดสอบสูตร:เต็ม/ครึ่ง/ไม่มา/pending/วันหยุด/อนาคต/เข้าออกงาน/leapyear/เศษสตางค์/rateเปลี่ยนกลางเดือน/calendarเปลี่ยนกลางเดือน/duplicate/missingrate/templateไม่เพิ่มซ้ำ/เงินพิเศษเต็มเดือน
+
+ทดสอบระบบ:ownerUIDผิด/expired/revokedtoken/directFirestore&Storagedenied/AdminAPIguard/privatephoto/IDซ้ำpayloadต่าง/responseหายretry/revisionconflict/rateย้อนหลังชนCLOSED/rateเปลี่ยนระหว่างclose/closefail-resume-cancel/staleworker/manifestขาด/logoutระหว่างpending/Previewจับคู่productionผิด
+
+UI320/375/390/414/768/1024/1440/2560 portrait/landscape AndroidChrome+iOSSafari 200%zoom reducedmotion Enter/focus ไม่มีfooterบัง/overflow เน็ต2Mbps upload512kbps RTT150ms cold/warm≥5รอบ ทีม50คนข้อมูล12เดือน วัดจริงไม่แต่งผล
+
+ยังไม่เพิ่มGPS/สแกนหน้า/QRเช็คตัวเอง/พนักงานlogin/chat/notifications/หลายร้าน/หลายผู้ดูแล/กราฟจำนวนมาก หากขยายต้องตกลงกติกาใหม่
+
+ถ้าGeminiไม่มีสิทธิ์บัญชี ให้ทำsource/tests/คู่มือ/envexampleครบแล้วระบุขั้นตอนConsoleที่เจ้าของต้องทำ ไม่ขอprivatekeyหรือรหัสผ่านในแชต และไม่อ้างออนไลน์แล้วโดยไม่มีdeploymentที่ตรวจจริง
