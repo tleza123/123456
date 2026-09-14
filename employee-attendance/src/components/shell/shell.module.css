@@ -1,0 +1,87 @@
+.header {
+  background-color: var(--team-primary);
+  color: #ffffff;
+  padding: 1.15rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  letter-spacing: 0.05em;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.brand span {
+  color: var(--team-accent);
+}
+
+.shopName {
+  font-size: var(--team-secondary);
+  color: #e1eaf4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 32rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0.55rem 0.6rem calc(0.55rem + env(safe-area-inset-bottom));
+  gap: 0.4rem;
+  border-top: 1px solid var(--team-border);
+  background-color: var(--team-surface);
+  z-index: 50;
+}
+
+@media (min-width: 640px) {
+  .nav {
+    position: static;
+    max-width: none;
+    border-top: none;
+    border-bottom: 1px solid var(--team-border);
+    padding: 0.55rem 1rem;
+  }
+}
+
+.navBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--team-radius-small);
+  color: var(--team-muted);
+  font-size: var(--team-secondary);
+  padding: 0.6rem 0.2rem;
+  min-height: 3.5rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navBtn:hover {
+  color: var(--team-primary);
+  background-color: #f3f6fa;
+}
+
+.navBtnActive {
+  color: var(--team-primary);
+  background-color: #e9f1f9;
+  border-bottom: 3px solid var(--team-accent);
+  font-weight: 700;
+}
+
+.navIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}

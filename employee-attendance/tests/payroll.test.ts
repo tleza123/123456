@@ -1,0 +1,206 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  calculateEmployeeMonth,
+  dailyPay
+} from '../src/lib/payroll/engine';
+import {
+  moneySatang,
+  validateSatang,
+  formatMoney
+} from '../src/lib/payroll/money';
+import {
+  dateKey,
+  monthKey,
+  monthDates
+} from '../src/lib/payroll/dates';
+
+const fixture = () => ({
+  month: '2026-09',
+  today: '2026-09-30',
+  systemStartDate: '2026-09-01',
+  employee: {
+    employeeId: 'e1',
+    name: 'สมชาย',
+    position: 'ช่าง',
+    startDate: '2026-09-01',
+    endDate: null as string | null,
+    revision: 1
+  },
+  rates: [
+    {
+      employeeId: 'e1',
+      effectiveFrom: '2026-09-01',
+      dailySatang: 50000 // 500 บาท
+    }
+  ],
+  attendance: [] as any[],
+  extras: [] as any[],
+  weekdays: [0, 1, 2, 3, 4, 5, 6],
+  calendar: {} as Record<string, 'WORKDAY' | 'HOLIDAY'>
+});
+
+const marks = (days: number, status: 'FULL' | 'HALF' | 'ABSENT', start = 1) =>
+  Array.from({ length: days }, (_, i) => ({
+    employeeId: 'e1',
+    dateKey: `2026-09-${String(start + i).padStart(2, '0')}`,
+    status
+  }));
+
+test('Test 1: 22 full + 4 half + 2 absent + monthly extras = 14,500 THB', () => {
+  const f = fixture();
+  f.employee.endDate = '2026-09-28';
+  f.attendance = [
+    ...marks(22, 'FULL'),
+    ...marks(4, 'HALF', 23),
+    ...marks(2, 'ABSENT', 27)
+  ];
+  f.extras = [
+    {
+      employeeId: 'e1',
+      monthKey: f.month,
+      extraId: 'x1',
+      label: 'ค่าเดินทาง',
+      amountSatang: 150000
+    },
+    {
+      employeeId: 'e1',
+      monthKey: f.month,
+      extraId: 'x2',
+      label: 'ค่าอาหาร',
+      amountSatang: 100000
+    }
+  ];
+
+  const r = calculateEmployeeMonth(f);
+  assert.equal(r.totalSatang, 1450000); // 14,500.00 บาท
+  assert.equal(r.paidDayUnits, 24);
+  assert.equal(r.workedDays, 26);
+  assert.equal(r.absent, 2);
+  assert.equal(r.pending, 0);
+  assert.equal(formatMoney(r.totalSatang), '14,500.00');
+});
+
+test('Test 2: Historical rates calculate each day, including half-days', () => {
+  const f = fixture();
+  f.rates.push({
+    employeeId: 'e1',
+    effectiveFrom: '2026-09-11',
+    dailySatang: 55000 // 550 บาท
+  });
+  f.attendance = [...marks(20, 'FULL'), ...marks(2, 'HALF', 21)];
+  const r = calculateEmployeeMonth(f);
+  assert.equal(r.baseSatang, 1105000);
+});
+
+test('Test 3: Half satang rounds up per day', () => {
+  assert.equal(dailyPay('HALF', 50001), 25001);
+  assert.equal(dailyPay('HALF', 50000), 25000);
+  assert.equal(dailyPay('FULL', 50000), 50000);
+  assert.equal(dailyPay('ABSENT', 50000), 0);
+});
+
+test('Test 4: Strict money decimal conversion', () => {
+  assert.equal(moneySatang('500.01'), 50001);
+  assert.equal(moneySatang('0.1'), 10);
+  assert.equal(moneySatang('500'), 50000);
+  assert.equal(moneySatang('0'), 0);
+
+  const badInputs = [
+    '1e6',
+    'NaN',
+    '-1',
+    '0.001',
+    '1,000',
+    ' 500',
+    '01',
+    'Infinity',
+    '1000000.01'
+  ];
+  for (const bad of badInputs) {
+    assert.throws(() => moneySatang(bad));
+  }
+});
+
+test('Test 5: Leap year and invalid date', () => {
+  assert.equal(monthDates('2024-02').length, 29);
+  assert.equal(monthDates('2026-02').length, 28);
+  assert.throws(() => dateKey('2026-02-29'));
+  assert.throws(() => dateKey('2026-09-31'));
+  assert.throws(() => monthKey('2026-13'));
+});
+
+test('Test 6: Unmarked days are pending, holidays and future days are excluded', () => {
+  const f = fixture();
+  f.today = '2026-09-03';
+  f.calendar = { '2026-09-02': 'HOLIDAY' };
+  const r = calculateEmployeeMonth(f);
+  assert.equal(r.pending, 2);
+  assert.equal(r.absent, 0);
+  const holidayDay = r.days.find((x) => x.dateKey === '2026-09-02');
+  assert.equal(holidayDay?.amountSatang, null);
+  assert.equal(holidayDay?.status, 'HOLIDAY');
+});
+
+test('Test 7: Employment dates and system start bound pending days', () => {
+  const f = fixture();
+  f.employee.startDate = '2026-09-10';
+  f.employee.endDate = '2026-09-12';
+  assert.equal(calculateEmployeeMonth(f).pending, 3);
+  f.systemStartDate = '2026-09-11';
+  assert.equal(calculateEmployeeMonth(f).pending, 2);
+});
+
+test('Test 8: Duplicate attendance, rates and extras fail closed', () => {
+  let f = fixture();
+  f.attendance = [...marks(1, 'FULL'), ...marks(1, 'HALF')];
+  assert.throws(() => calculateEmployeeMonth(f), /DUPLICATE_ATTENDANCE/);
+
+  f = fixture();
+  f.rates.push({ ...f.rates[0] });
+  assert.throws(() => calculateEmployeeMonth(f), /DUPLICATE_RATE/);
+
+  f = fixture();
+  const x = {
+    extraId: 'x',
+    employeeId: 'e1',
+    monthKey: f.month,
+    label: 'ค่ารถ',
+    amountSatang: 100
+  };
+  f.extras = [x, x];
+  assert.throws(() => calculateEmployeeMonth(f), /DUPLICATE_EXTRA/);
+});
+
+test('Test 9: Missing rate never silently becomes zero', () => {
+  const f = fixture();
+  f.attendance = marks(1, 'FULL');
+  f.rates = [];
+  assert.throws(() => calculateEmployeeMonth(f), /MISSING_RATE/);
+});
+
+test('Test 10: Holiday and future attendance are rejected', () => {
+  const f = fixture();
+  f.attendance = marks(1, 'FULL');
+  f.calendar = { '2026-09-01': 'HOLIDAY' };
+  assert.throws(() => calculateEmployeeMonth(f), /ATTENDANCE_ON_HOLIDAY/);
+
+  f.calendar = {};
+  f.today = '2026-08-31';
+  assert.throws(() => calculateEmployeeMonth(f), /FUTURE_ATTENDANCE/);
+});
+
+test('Test 11: Monthly bonus remains whole for partial-month employment', () => {
+  const f = fixture();
+  f.employee.startDate = '2026-09-30';
+  f.extras = [
+    {
+      employeeId: 'e1',
+      monthKey: f.month,
+      extraId: 'x',
+      label: 'ค่าอาหาร',
+      amountSatang: 100000
+    }
+  ];
+  assert.equal(calculateEmployeeMonth(f).extraSatang, 100000);
+});
