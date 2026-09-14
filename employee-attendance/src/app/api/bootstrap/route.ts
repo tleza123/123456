@@ -22,14 +22,15 @@ export async function GET(req: NextRequest) {
     const currentMonth = getBangkokMonth();
 
     const profileSnap = await getProfileRef(shopId).get();
-    const profile = profileSnap.exists
-      ? profileSnap.data()
-      : {
-          displayName: 'DE TEAM',
-          timezone: 'Asia/Bangkok',
-          systemStartDate: '2026-08-01',
-          revision: 1
-        };
+    const rawProfile = profileSnap.exists ? profileSnap.data() : null;
+    const shopName = rawProfile?.shopName || rawProfile?.displayName || 'DE TEAM';
+    const profile = {
+      displayName: shopName,
+      shopName,
+      timezone: rawProfile?.timezone || 'Asia/Bangkok',
+      systemStartDate: rawProfile?.systemStartDate || '2026-08-01',
+      revision: rawProfile?.revision || 1
+    };
 
     const employeesSnap = await getEmployeesCol(shopId).get();
     const employees = employeesSnap.docs.map(doc => {

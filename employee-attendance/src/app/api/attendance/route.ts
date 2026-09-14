@@ -17,6 +17,7 @@ import { getAdminFirestore } from '@/lib/firebase/admin';
 import { dateKey, getBangkokToday } from '@/lib/payroll/dates';
 import { isWorkday, resolveWeekdaysForDate } from '@/lib/payroll/calendar';
 import { employedOn } from '@/lib/payroll/engine';
+import { validateSatang } from '@/lib/payroll/money';
 import { computePayloadHash, checkRequestReceipt, recordRequestReceipt } from '@/lib/server/idempotency';
 import { verifyFinanceGate } from '@/lib/server/finance-gate';
 
@@ -72,6 +73,7 @@ export async function GET(req: NextRequest) {
       attendanceMap.set(d.employeeId, {
         docId: doc.id,
         status: d.status,
+        advanceSatang: typeof d.advanceSatang === 'number' ? d.advanceSatang : 0,
         revision: d.revision,
         updatedAt: d.updatedAt,
         notes: d.notes || ''
@@ -91,12 +93,14 @@ export async function GET(req: NextRequest) {
         attendance: record
           ? {
               status: record.status,
+              advanceSatang: record.advanceSatang || 0,
               revision: record.revision,
               updatedAt: record.updatedAt,
               notes: record.notes
             }
           : {
               status: 'UNMARKED',
+              advanceSatang: 0,
               revision: 0,
               updatedAt: null,
               notes: ''
@@ -125,7 +129,7 @@ export async function POST(req: NextRequest) {
   try {
     const owner = await verifyOwner(req);
     const body = await req.json();
-    const { dateKey: rawDate, employeeId, status, expectedRevision, requestId, notes } = body;
+    const { dateKey: rawDate, employeeId, status, expectedRevision, requestId, notes, advanceSatang } = body;
 
     if (!requestId || typeof requestId !== 'string' || requestId.length < 10) {
       return createErrorResponse('INVALID_INPUT', 'กรุณาระบุ requestId ให้ถูกต้อง', 422);
@@ -138,6 +142,16 @@ export async function POST(req: NextRequest) {
     }
     if (!['FULL', 'HALF', 'ABSENT', 'UNMARKED'].includes(status)) {
       return createErrorResponse('INVALID_INPUT', 'สถานะการเช็คชื่อไม่ถูกต้อง', 422);
+    }
+
+    let parsedAdvance: number | undefined = undefined;
+    if (advanceSatang !== undefined && advanceSatang !== null) {
+      const num = Number(advanceSatang);
+      try {
+        parsedAdvance = validateSatang(num);
+      } catch {
+        return createErrorResponse('INVALID_INPUT', 'จำนวนเงินเบิกล่วงหน้าไม่ถูกต้อง', 422);
+      }
     }
 
     const targetDate = dateKey(rawDate);
@@ -155,6 +169,7 @@ export async function POST(req: NextRequest) {
       employeeId,
       status,
       expectedRevision,
+      advanceSatang: parsedAdvance !== undefined ? parsedAdvance : undefined,
       notes: notes || ''
     });
 
@@ -213,10 +228,14 @@ export async function POST(req: NextRequest) {
 
       const newRevision = currentRevision + 1;
       const now = new Date().toISOString();
+      const currentAdvance = attSnap.exists ? (typeof attSnap.data()?.advanceSatang === 'number' ? attSnap.data()?.advanceSatang : 0) : 0;
+      const finalAdvance = parsedAdvance !== undefined ? parsedAdvance : currentAdvance;
+
       const attendanceData = {
         dateKey: targetDate,
         employeeId,
         status,
+        advanceSatang: finalAdvance,
         revision: newRevision,
         updatedAt: now,
         updatedBy: owner.uid,
@@ -244,6 +263,7 @@ export async function POST(req: NextRequest) {
         dateKey: targetDate,
         employeeId,
         status,
+        advanceSatang: finalAdvance,
         revision: newRevision,
         updatedAt: now
       };

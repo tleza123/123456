@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const owner = await verifyOwner(req);
     const body = await req.json();
-    const { displayName, expectedRevision, requestId } = body;
+    const { displayName, shopName, expectedRevision, requestId } = body;
 
     if (!requestId || typeof requestId !== 'string') {
       return createErrorResponse('INVALID_INPUT', 'กรุณาระบุ requestId ให้ถูกต้อง', 422);
@@ -24,14 +24,15 @@ export async function PATCH(req: NextRequest) {
     if (typeof expectedRevision !== 'number') {
       return createErrorResponse('INVALID_INPUT', 'กรุณาระบุ expectedRevision', 422);
     }
-    if (!displayName || typeof displayName !== 'string' || displayName.trim().length === 0 || displayName.length > 80) {
-      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุชื่อร้าน (1-80 ตัวอักษร)', 422);
+    const targetName = typeof shopName === 'string' ? shopName.trim() : (typeof displayName === 'string' ? displayName.trim() : '');
+    if (!targetName || targetName.length === 0 || targetName.length > 80) {
+      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุชื่อร้าน 1-80 ตัวอักษร', 422);
     }
 
     const shopId = getShopId();
     const db = getAdminFirestore();
     const payloadHash = computePayloadHash(owner.uid, 'PATCH', 'profile:main', {
-      displayName: displayName.trim(),
+      shopName: targetName,
       expectedRevision
     });
 
@@ -45,7 +46,7 @@ export async function PATCH(req: NextRequest) {
       const profileSnap = await tx.get(profileRef);
       const current = profileSnap.exists
         ? profileSnap.data()
-        : { displayName: 'DE TEAM', timezone: 'Asia/Bangkok', systemStartDate: '2026-08-01', revision: 1 };
+        : { displayName: 'DE TEAM', shopName: 'DE TEAM', timezone: 'Asia/Bangkok', systemStartDate: '2026-08-01', revision: 1 };
 
       if (current?.revision !== expectedRevision) {
         throw new Error('CONFLICT');
@@ -54,7 +55,8 @@ export async function PATCH(req: NextRequest) {
       const now = new Date().toISOString();
       const newRevision = (current?.revision || 1) + 1;
       const updated = {
-        displayName: displayName.trim(),
+        displayName: targetName,
+        shopName: targetName,
         revision: newRevision,
         updatedAt: now
       };

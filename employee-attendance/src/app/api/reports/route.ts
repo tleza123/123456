@@ -63,6 +63,8 @@ export async function GET(req: NextRequest) {
             pending: 0,
             baseSatang: s.baseSatang,
             extraSatang: s.extraSatang,
+            advanceSatang: s.advanceSatang || 0,
+            grossSatang: s.grossSatang ?? (s.baseSatang + s.extraSatang),
             totalSatang: s.totalSatang
           };
         });
@@ -127,6 +129,9 @@ export async function GET(req: NextRequest) {
     // Calculate per employee
     let totalBase = 0;
     let totalExtra = 0;
+    let totalAdvance = 0;
+    let totalGross = 0;
+    let totalNet = 0;
     let totalPending = 0;
 
     const employeeReports = await Promise.all(
@@ -153,6 +158,9 @@ export async function GET(req: NextRequest) {
 
           totalBase += calc.baseSatang;
           totalExtra += calc.extraSatang;
+          totalAdvance += calc.advanceSatang;
+          totalGross += calc.grossSatang;
+          totalNet += calc.totalSatang;
           totalPending += calc.pending;
 
           return {
@@ -168,6 +176,8 @@ export async function GET(req: NextRequest) {
             pending: calc.pending,
             baseSatang: calc.baseSatang,
             extraSatang: calc.extraSatang,
+            advanceSatang: calc.advanceSatang,
+            grossSatang: calc.grossSatang,
             totalSatang: calc.totalSatang
           };
         } catch (e: any) {
@@ -185,6 +195,8 @@ export async function GET(req: NextRequest) {
             pending: 0,
             baseSatang: 0,
             extraSatang: 0,
+            advanceSatang: 0,
+            grossSatang: 0,
             totalSatang: 0,
             error: e.message
           };
@@ -198,7 +210,9 @@ export async function GET(req: NextRequest) {
       totals: {
         base: totalBase,
         extra: totalExtra,
-        total: totalBase + totalExtra
+        advance: totalAdvance,
+        gross: totalGross,
+        total: totalNet
       },
       pendingTotal: totalPending,
       employees: employeeReports

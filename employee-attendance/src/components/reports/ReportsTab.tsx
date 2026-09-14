@@ -19,6 +19,8 @@ interface EmployeeReportSummary {
   pending: number;
   baseSatang: number;
   extraSatang: number;
+  advanceSatang?: number;
+  grossSatang?: number;
   totalSatang: number;
   error?: string;
 }
@@ -345,25 +347,32 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
 
           <div className={styles.lineItem}>
             <span>ค่าแรงรวม</span>
-            <strong>{formatMoney(detailData.baseSatang)}</strong>
+            <strong>{formatMoney(detailData.baseSatang)} บาท</strong>
           </div>
 
           {detailData.extras && detailData.extras.length > 0 ? (
             detailData.extras.map((x: any, i: number) => (
               <div key={i} className={styles.lineItem}>
                 <span>{x.label}</span>
-                <span>{formatMoney(x.amountSatang)}</span>
+                <span>{formatMoney(x.amountSatang)} บาท</span>
               </div>
             ))
           ) : (
             <div className={styles.lineItem}>
               <span style={{ color: 'var(--team-muted)' }}>ไม่มีเงินพิเศษ</span>
-              <span>0.00</span>
+              <span>0.00 บาท</span>
+            </div>
+          )}
+
+          {detailData.advanceSatang > 0 && (
+            <div className={styles.lineItem} style={{ color: 'var(--team-absent)' }}>
+              <span>หักเบิกเงินล่วงหน้ารวม</span>
+              <strong>-{formatMoney(detailData.advanceSatang)} บาท</strong>
             </div>
           )}
 
           <div className={styles.lineItem} style={{ borderTop: '2px solid var(--team-border)', marginTop: '0.4rem', paddingTop: '0.8rem' }}>
-            <strong>ยอดรวมทั้งสิ้น</strong>
+            <strong>ยอดสุทธิทั้งสิ้น</strong>
             <strong style={{ fontSize: '1.4rem', color: 'var(--team-primary-dark)' }}>
               {formatMoney(detailData.totalSatang)} บาท
             </strong>
@@ -398,6 +407,11 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
                     <br />
                     <span style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-muted)' }}>
                       {label}
+                      {d.advanceSatang > 0 && (
+                        <span style={{ color: 'var(--team-absent)', marginLeft: '0.5rem', fontWeight: 700 }}>
+                          · เบิก {formatMoney(d.advanceSatang)} บาท
+                        </span>
+                      )}
                     </span>
                   </div>
                   <span>{d.amountSatang === null ? '—' : `${formatMoney(d.amountSatang)} บาท`}</span>
@@ -412,7 +426,7 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
             <div className={styles.modalCard}>
               <h3 className={styles.modalTitle}>เพิ่มเงินพิเศษเดือนนี้</h3>
               <p style={{ color: 'var(--team-muted)', fontSize: 'var(--team-secondary)' }}>
-                สำหรับ {detailData.name} (เฉพาะเดือน {formatThaiMonth(selectedMonth)})
+                สำหรับ {detailData.name} เฉพาะเดือน {formatThaiMonth(selectedMonth)}
               </p>
 
               <label className={styles.monthLabel} style={{ marginTop: '1rem' }}>
@@ -486,11 +500,12 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
       ) : (
         <>
           <div className={styles.summaryCard}>
-            <p className={styles.summaryLabel}>ยอดค่าจ้างเดือนนี้</p>
+            <p className={styles.summaryLabel}>ยอดค่าจ้างสุทธิเดือนนี้</p>
             <p className={styles.summaryMoney}>{formatMoney(reportData.totals.total)} บาท</p>
             <p className={styles.summarySub}>
-              ค่าแรงสะสม {formatMoney(reportData.totals.base)} บาท + เงินพิเศษ{' '}
-              {formatMoney(reportData.totals.extra)} บาท
+              ค่าแรงสะสม {formatMoney(reportData.totals.base)} บาท
+              {reportData.totals.extra > 0 && ` + เงินพิเศษ ${formatMoney(reportData.totals.extra)} บาท`}
+              {reportData.totals.advance > 0 && ` - หักเบิกเงินล่วงหน้า ${formatMoney(reportData.totals.advance)} บาท`}
             </p>
           </div>
 
@@ -533,7 +548,14 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
                   <span style={{ fontSize: '1.2rem', color: 'var(--team-muted)' }}>›</span>
                 </div>
 
-                <div className={styles.rowMoney}>{formatMoney(emp.totalSatang)} บาท</div>
+                <div className={styles.rowMoney}>
+                  {formatMoney(emp.totalSatang)} บาท
+                  {emp.advanceSatang && emp.advanceSatang > 0 ? (
+                    <span style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-absent)', marginLeft: '0.6rem', fontWeight: 700 }}>
+                      · หักเบิก {formatMoney(emp.advanceSatang)} บาท
+                    </span>
+                  ) : null}
+                </div>
 
                 <div className={styles.rowCounts}>
                   <span>เต็มวัน {emp.full} วัน</span>

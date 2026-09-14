@@ -14,14 +14,31 @@ import styles from '@/components/shell/shell.module.css';
 
 export default function HomePage() {
   const router = useRouter();
-  const { user, isOwner, loading, logout } = useAuth();
+  const { user, idToken, isOwner, loading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('attendance');
+  const [shopName, setShopName] = useState<string>('DE TEAM');
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
   }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!idToken) return;
+    fetch('/api/bootstrap', {
+      headers: { Authorization: `Bearer ${idToken}` }
+    })
+      .then(res => res.json())
+      .then(json => {
+        const data = json.data || json;
+        const profile = data.profile || data.shop;
+        if (profile?.shopName || profile?.displayName) {
+          setShopName(profile.shopName || profile.displayName);
+        }
+      })
+      .catch(() => {});
+  }, [idToken]);
 
   if (loading) {
     return (
@@ -145,7 +162,7 @@ export default function HomePage() {
 
   return (
     <div className={styles.appContainer}>
-      <AppHeader />
+      <AppHeader shopName={shopName} />
 
       <main className={styles.mainContent}>
         {/* In-memory tab display caching to preserve scroll and state without re-render lag */}
@@ -160,7 +177,7 @@ export default function HomePage() {
           <ReportsTab initialMonth={month} serverToday={today} />
         </div>
         <div style={{ display: activeTab === 'settings' ? 'block' : 'none' }}>
-          <SettingsTab />
+          <SettingsTab onUpdateShopName={setShopName} />
         </div>
       </main>
 

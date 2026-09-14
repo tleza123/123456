@@ -27,6 +27,7 @@ export interface AttendanceRecord {
   dateKey: string;
   employeeId: string;
   status: AttendanceStatus;
+  advanceSatang?: number;
   revision?: number;
 }
 
@@ -46,6 +47,7 @@ export interface DailyResult {
   status: AttendanceStatus;
   dailySatang?: number;
   amountSatang: number | null;
+  advanceSatang?: number;
 }
 
 export interface EmployeeMonthResult {
@@ -59,6 +61,8 @@ export interface EmployeeMonthResult {
   paidDayUnits: number;
   baseSatang: number;
   extraSatang: number;
+  advanceSatang: number;
+  grossSatang: number;
   totalSatang: number;
   days: DailyResult[];
   extras: { extraId: string; label: string; amountSatang: number }[];
@@ -168,6 +172,13 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
       attendanceMap.set(r.dateKey, r);
     });
 
+  let advanceSum = 0;
+  attendanceMap.forEach(att => {
+    if (att.advanceSatang && att.advanceSatang > 0) {
+      advanceSum += validateSatang(att.advanceSatang);
+    }
+  });
+
   const result: EmployeeMonthResult = {
     employeeId: employee.employeeId,
     month: input.month,
@@ -179,6 +190,8 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
     paidDayUnits: 0,
     baseSatang: 0,
     extraSatang: 0,
+    advanceSatang: advanceSum,
+    grossSatang: 0,
     totalSatang: 0,
     days: [],
     extras: [],
@@ -197,15 +210,26 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
     const workday = isWorkday(date, activeWeekdays, input.calendar);
     const row = attendanceMap.get(date);
     const status: AttendanceStatus = row ? row.status : 'UNMARKED';
+    const dayAdvance = row?.advanceSatang ? validateSatang(row.advanceSatang) : 0;
 
     if (!workday) {
-      result.days.push({ dateKey: date, status: 'HOLIDAY', amountSatang: null });
+      result.days.push({
+        dateKey: date,
+        status: 'HOLIDAY',
+        amountSatang: null,
+        advanceSatang: dayAdvance
+      });
       return;
     }
 
     if (status === 'UNMARKED') {
       result.pending += 1;
-      result.days.push({ dateKey: date, status: 'UNMARKED', amountSatang: null });
+      result.days.push({
+        dateKey: date,
+        status: 'UNMARKED',
+        amountSatang: null,
+        advanceSatang: dayAdvance
+      });
       return;
     }
 
@@ -220,7 +244,8 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
       dateKey: date,
       status,
       dailySatang: rate,
-      amountSatang: amount
+      amountSatang: amount,
+      advanceSatang: dayAdvance
     });
   });
 
@@ -247,7 +272,8 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
 
   result.workedDays = result.full + result.half;
   result.paidDayUnits = result.full + result.half / 2;
-  result.totalSatang = result.baseSatang + result.extraSatang;
+  result.grossSatang = result.baseSatang + result.extraSatang;
+  result.totalSatang = result.grossSatang - result.advanceSatang;
   requireCondition(Number.isSafeInteger(result.totalSatang), 'MONEY_OVERFLOW');
 
   return result;

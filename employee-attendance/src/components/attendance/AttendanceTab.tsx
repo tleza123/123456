@@ -15,6 +15,7 @@ interface AttendanceItem {
   };
   attendance: {
     status: 'FULL' | 'HALF' | 'ABSENT' | 'UNMARKED';
+    advanceSatang: number;
     revision: number;
     updatedAt: string | null;
     notes?: string;
@@ -35,6 +36,7 @@ export function AttendanceTab({
   const { idToken } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string>(initialDate || serverToday);
   const [items, setItems] = useState<AttendanceItem[]>([]);
+  const [advanceInputs, setAdvanceInputs] = useState<Record<string, string>>({});
   const [isWorkday, setIsWorkday] = useState<boolean>(true);
   const [isClosed, setIsClosed] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -58,6 +60,13 @@ export function AttendanceTab({
           setItems(json.data.items);
           setIsWorkday(json.data.isWorkday);
           setIsClosed(json.data.isClosed);
+          const advances: Record<string, string> = {};
+          json.data.items.forEach((it: AttendanceItem) => {
+            if (it.attendance.advanceSatang) {
+              advances[it.employee.employeeId] = (it.attendance.advanceSatang / 100).toFixed(2);
+            }
+          });
+          setAdvanceInputs(advances);
         } else {
           setErrorMsg(json.error?.message || 'โหลดข้อมูลไม่สำเร็จ');
         }
@@ -77,11 +86,24 @@ export function AttendanceTab({
   const handleMark = async (
     employeeId: string,
     status: 'FULL' | 'HALF' | 'ABSENT' | 'UNMARKED',
-    expectedRevision: number
+    expectedRevision: number,
+    customAdvanceSatang?: number
   ) => {
     if (!idToken || isClosed) return;
     setPendingMap(prev => ({ ...prev, [employeeId]: true }));
     const requestId = crypto.randomUUID();
+
+    // Determine advanceSatang to send
+    let advanceToSend = customAdvanceSatang;
+    if (advanceToSend === undefined) {
+      const inputVal = advanceInputs[employeeId];
+      if (inputVal !== undefined && inputVal.trim() !== '') {
+        const num = parseFloat(inputVal);
+        if (!isNaN(num) && num >= 0) {
+          advanceToSend = Math.round(num * 100);
+        }
+      }
+    }
 
     try {
       const res = await fetch('/api/attendance', {
@@ -94,6 +116,7 @@ export function AttendanceTab({
           dateKey: selectedDate,
           employeeId,
           status,
+          advanceSatang: advanceToSend,
           expectedRevision,
           requestId
         })
@@ -108,6 +131,7 @@ export function AttendanceTab({
                   ...item,
                   attendance: {
                     status: json.data.status,
+                    advanceSatang: json.data.advanceSatang || 0,
                     revision: json.data.revision,
                     updatedAt: json.data.updatedAt,
                     notes: ''
@@ -116,6 +140,11 @@ export function AttendanceTab({
               : item
           )
         );
+        if (json.data.advanceSatang) {
+          setAdvanceInputs(prev => ({ ...prev, [employeeId]: (json.data.advanceSatang / 100).toFixed(2) }));
+        } else if (advanceToSend === 0) {
+          setAdvanceInputs(prev => ({ ...prev, [employeeId]: '' }));
+        }
       } else {
         alert(json.error?.message || 'บันทึกไม่สำเร็จ');
         fetchDayData(selectedDate);
@@ -126,6 +155,24 @@ export function AttendanceTab({
       setPendingMap(prev => ({ ...prev, [employeeId]: false }));
       setClearingId(null);
     }
+  };
+
+  const handleSaveAdvance = (
+    employeeId: string,
+    currentStatus: 'FULL' | 'HALF' | 'ABSENT' | 'UNMARKED',
+    expectedRevision: number
+  ) => {
+    const rawVal = (advanceInputs[employeeId] || '').trim();
+    let satang = 0;
+    if (rawVal !== '') {
+      const num = parseFloat(rawVal);
+      if (isNaN(num) || num < 0) {
+        alert('กรุณากรอกจำนวนเงินเบิกเป็นตัวเลขที่ถูกต้อง');
+        return;
+      }
+      satang = Math.round(num * 100);
+    }
+    handleMark(employeeId, currentStatus, expectedRevision, satang);
   };
 
   const handleAddWorkday = async () => {
@@ -288,7 +335,7 @@ export function AttendanceTab({
                 </div>
                 <div className={styles.personInfo}>
                   <h3 className={styles.personName}>
-                    {emp.name} {emp.nickname ? `(${emp.nickname})` : ''}
+                    {emp.name} {emp.nickname ? `· ${emp.nickname}` : ''}
                   </h3>
                   <p className={styles.personPosition}>{emp.position}</p>
                 </div>
@@ -336,25 +383,64 @@ export function AttendanceTab({
                 </button>
               </div>
 
+              {/* Advance Salary Input directly following attendance status */}
+              <div className={styles.advanceSection}>
+                <label className={styles.advanceLabel} htmlFor={`advance-${emp.employeeId}`}>
+                  เบิกเงินล่วงหน้า บาท
+                </label>
+                <div className={styles.advanceRow}>
+                  <input
+                    id={`advance-${emp.employeeId}`}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0"
+                    className={styles.advanceInput}
+                    placeholder="ระบุจำนวนเงิน เช่น 200"
+                    value={advanceInputs[emp.employeeId] ?? (att.advanceSatang ? (att.advanceSatang / 100).toFixed(2) : '')}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setAdvanceInputs(prev => ({ ...prev, [emp.employeeId]: val }));
+                    }}
+                    disabled={isPending || isClosed}
+                  />
+                  <button
+                    type="button"
+                    className={styles.advanceSaveBtn}
+                    disabled={isPending || isClosed}
+                    onClick={() => handleSaveAdvance(emp.employeeId, att.status, att.revision)}
+                  >
+                    บันทึกเบิก
+                  </button>
+                </div>
+                {att.advanceSatang > 0 && (
+                  <div className={styles.advanceBadge}>
+                    บันทึกเบิกแล้ว {(att.advanceSatang / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท
+                  </div>
+                )}
+              </div>
+
               <div className={styles.cardFooter}>
                 <span className={styles.statusText}>
                   {isPending
                     ? 'กำลังบันทึก...'
                     : att.status !== 'UNMARKED'
                     ? `${statusLabel} · บันทึกแล้ว`
+                    : att.advanceSatang > 0
+                    ? 'บันทึกเบิกเงินแล้ว'
                     : 'ยังไม่เช็ค'}
                 </span>
 
-                {att.status !== 'UNMARKED' && !isClosed && (
+                {(att.status !== 'UNMARKED' || att.advanceSatang > 0) && !isClosed && (
                   <div>
                     {isClearing ? (
                       <div className={styles.confirmBox}>
-                        <span>ยืนยันล้าง?</span>
+                        <span>ยืนยันล้างข้อมูล</span>
                         <button
                           type="button"
                           className={styles.textBtn}
                           disabled={isPending}
-                          onClick={() => handleMark(emp.employeeId, 'UNMARKED', att.revision)}
+                          onClick={() => handleMark(emp.employeeId, 'UNMARKED', att.revision, 0)}
                         >
                           ยืนยัน
                         </button>

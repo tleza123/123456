@@ -18,12 +18,14 @@ export interface EmployeeSnapshot {
   extras: { extraId: string; label: string; amountSatang: number }[];
   baseSatang: number;
   extraSatang: number;
+  advanceSatang: number;
   totalSatang: number;
   days: {
     dateKey: string;
     status: string;
     dailySatang?: number;
     amountSatang: number | null;
+    advanceSatang?: number;
   }[];
   checksum: string;
   partsCount: number;
@@ -38,6 +40,7 @@ export interface ClosureManifest {
   totalsSatang: {
     base: number;
     extra: number;
+    advance: number;
     total: number;
   };
   manifestHash: string;
@@ -78,6 +81,7 @@ export function buildEmployeeSnapshot(
     extras: calc.extras,
     baseSatang: calc.baseSatang,
     extraSatang: calc.extraSatang,
+    advanceSatang: calc.advanceSatang,
     totalSatang: calc.totalSatang,
     days: calc.days,
     partsCount: 1
@@ -102,6 +106,7 @@ export function buildClosureManifest(
 ): ClosureManifest {
   let baseSum = 0;
   let extraSum = 0;
+  let advanceSum = 0;
   let totalSum = 0;
   const employeeIds: string[] = [];
 
@@ -109,6 +114,7 @@ export function buildClosureManifest(
     employeeIds.push(s.employeeId);
     baseSum += s.baseSatang;
     extraSum += s.extraSatang;
+    advanceSum += s.advanceSatang || 0;
     totalSum += s.totalSatang;
   }
 
@@ -120,6 +126,7 @@ export function buildClosureManifest(
     totalsSatang: {
       base: baseSum,
       extra: extraSum,
+      advance: advanceSum,
       total: totalSum
     },
     algorithmVersion: ALGORITHM_VERSION,

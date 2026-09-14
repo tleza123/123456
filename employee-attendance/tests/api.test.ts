@@ -53,6 +53,7 @@ test('Snapshot Integrity: Checksum verifies all employee records deterministical
       extras: [],
       baseSatang: 1100000,
       extraSatang: 200000,
+      advanceSatang: 0,
       totalSatang: 1300000,
       days: [],
       checksum: 'fake_sum',

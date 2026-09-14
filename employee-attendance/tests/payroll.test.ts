@@ -5,6 +5,10 @@ import {
   dailyPay
 } from '../src/lib/payroll/engine';
 import {
+  buildEmployeeSnapshot,
+  buildClosureManifest
+} from '../src/lib/payroll/snapshots';
+import {
   moneySatang,
   validateSatang,
   formatMoney
@@ -44,7 +48,8 @@ const marks = (days: number, status: 'FULL' | 'HALF' | 'ABSENT', start = 1) =>
   Array.from({ length: days }, (_, i) => ({
     employeeId: 'e1',
     dateKey: `2026-09-${String(start + i).padStart(2, '0')}`,
-    status
+    status,
+    advanceSatang: 0
   }));
 
 test('Test 1: 22 full + 4 half + 2 absent + monthly extras = 14,500 THB', () => {
@@ -204,3 +209,64 @@ test('Test 11: Monthly bonus remains whole for partial-month employment', () => 
   ];
   assert.equal(calculateEmployeeMonth(f).extraSatang, 100000);
 });
+
+test('Test 12: Salary advance deduction reduces net pay correctly (Gross - Advance = Net)', () => {
+  const f = fixture();
+  f.employee.endDate = '2026-09-10';
+  // 10 days FULL @ 500 = 5,000 THB (500,000 satang)
+  const att = marks(10, 'FULL');
+  // Day 2 advance 500 THB (50,000 satang)
+  att[1].advanceSatang = 50000;
+  // Day 5 advance 1,000 THB (100,000 satang)
+  att[4].advanceSatang = 100000;
+  f.attendance = att;
+
+  f.extras = [
+    {
+      employeeId: 'e1',
+      monthKey: f.month,
+      extraId: 'x1',
+      label: 'เบี้ยขยัน',
+      amountSatang: 100000 // 1,000 THB
+    }
+  ];
+
+  const r = calculateEmployeeMonth(f);
+  assert.equal(r.baseSatang, 500000); // 5,000 THB
+  assert.equal(r.extraSatang, 100000); // 1,000 THB
+  assert.equal(r.grossSatang, 600000); // 6,000 THB
+  assert.equal(r.advanceSatang, 150000); // 1,500 THB
+  assert.equal(r.totalSatang, 450000); // Net 4,500 THB
+  assert.equal(formatMoney(r.totalSatang), '4,500.00');
+
+  // Verify daily result mapping has advance recorded
+  const day2 = r.days.find((d) => d.dateKey === '2026-09-02');
+  assert.equal(day2?.advanceSatang, 50000);
+  const day5 = r.days.find((d) => d.dateKey === '2026-09-05');
+  assert.equal(day5?.advanceSatang, 100000);
+});
+
+test('Test 13: Closure manifest and employee snapshot properly persist and sum advanceSatang', () => {
+  const f = fixture();
+  f.employee.endDate = '2026-09-02';
+  const att = marks(2, 'FULL');
+  att[0].advanceSatang = 30000; // 300 THB
+  f.attendance = att;
+
+  const r = calculateEmployeeMonth(f);
+  assert.equal(r.grossSatang, 100000); // 1,000 THB
+  assert.equal(r.advanceSatang, 30000); // 300 THB
+  assert.equal(r.totalSatang, 70000); // 700 THB
+
+  const snapshot = buildEmployeeSnapshot(f.employee.name, f.employee.position, r);
+  assert.equal(snapshot.baseSatang, 100000);
+  assert.equal(snapshot.advanceSatang, 30000);
+  assert.equal(snapshot.totalSatang, 70000);
+
+  const manifest = buildClosureManifest('closure_1', '2026-09', 1, [snapshot], 'owner_test');
+
+  assert.equal(manifest.totalsSatang.base, 100000);
+  assert.equal(manifest.totalsSatang.advance, 30000);
+  assert.equal(manifest.totalsSatang.total, 70000);
+});
+

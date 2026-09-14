@@ -47,9 +47,13 @@ interface ShopSettings {
   revision: number;
 }
 
+interface SettingsTabProps {
+  onUpdateShopName?: (name: string) => void;
+}
+
 const DAY_NAMES = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
 
-export default function SettingsTab() {
+export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {}) {
   const { user, idToken, logout } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filterActive, setFilterActive] = useState<boolean>(true);
@@ -104,22 +108,27 @@ export default function SettingsTab() {
       });
       if (!res.ok) throw new Error('ไม่สามารถโหลดข้อมูลพนักงานได้');
       const data = await res.json();
-      setEmployees(data.employees || []);
+      const empData = data.data || data;
+      setEmployees(empData.employees || []);
 
       // Fetch bootstrap/settings
       const bootRes = await fetch('/api/bootstrap', {
         headers: { Authorization: `Bearer ${idToken}` }
       });
       if (bootRes.ok) {
-        const bootData = await bootRes.json();
-        if (bootData.shop) {
-          setShopSettings({
-            shopName: bootData.shop.name || 'DE TEAM',
-            workDays: bootData.shop.workDays || [1, 2, 3, 4, 5, 6],
-            revision: bootData.shop.revision || 1
-          });
-          setShopNameInput(bootData.shop.name || 'DE TEAM');
-          setSelectedWorkDays(bootData.shop.workDays || [1, 2, 3, 4, 5, 6]);
+        const bootJson = await bootRes.json();
+        const bootData = bootJson.data || bootJson;
+        const profile = bootData.profile || bootData.shop || {};
+        const currentShopName = profile.shopName || profile.displayName || 'DE TEAM';
+        const currentRev = typeof profile.revision === 'number' ? profile.revision : 1;
+        setShopSettings({
+          shopName: currentShopName,
+          workDays: profile.workDays || [1, 2, 3, 4, 5, 6],
+          revision: currentRev
+        });
+        setShopNameInput(currentShopName);
+        if (profile.workDays) {
+          setSelectedWorkDays(profile.workDays);
         }
       }
     } catch (err: any) {
@@ -443,9 +452,18 @@ export default function SettingsTab() {
         })
       });
 
-      if (!res.ok) throw new Error('ไม่สามารถบันทึกชื่อร้านได้');
+      if (!res.ok) {
+        const errJson = await res.json();
+        throw new Error(errJson.error?.message || errJson.message || 'ไม่สามารถบันทึกชื่อร้านได้');
+      }
+      const resJson = await res.json();
+      const updatedData = resJson.data || resJson;
+      const newName = updatedData.shopName || updatedData.displayName || shopNameInput.trim();
+      const newRev = typeof updatedData.revision === 'number' ? updatedData.revision : (shopSettings.revision + 1);
+
       showNotification('บันทึกชื่อร้านเรียบร้อย');
-      setShopSettings({ ...shopSettings, shopName: shopNameInput.trim() });
+      setShopSettings(prev => ({ ...prev, shopName: newName, revision: newRev }));
+      onUpdateShopName?.(newName);
       setShopNameOpen(false);
     } catch (err: any) {
       alert(err.message || 'เกิดข้อผิดพลาด');
@@ -798,13 +816,13 @@ export default function SettingsTab() {
               className={`${styles.filterBtn} ${filterActive ? styles.filterBtnActive : ''}`}
               onClick={() => setFilterActive(true)}
             >
-              พนักงานปัจจุบัน ({employees.filter((e) => !e.endDate).length})
+              พนักงานปัจจุบัน {employees.filter((e) => !e.endDate).length} คน
             </button>
             <button
               className={`${styles.filterBtn} ${!filterActive ? styles.filterBtnActive : ''}`}
               onClick={() => setFilterActive(false)}
             >
-              สิ้นสุดการจ้าง ({employees.filter((e) => !!e.endDate).length})
+              สิ้นสุดการจ้าง {employees.filter((e) => !!e.endDate).length} คน
             </button>
           </div>
 
@@ -842,7 +860,7 @@ export default function SettingsTab() {
                   </div>
                   <div className={styles.personInfo}>
                     <h3 className={styles.personName}>
-                      {emp.name} {emp.nickname ? `(${emp.nickname})` : ''}
+                      {emp.name} {emp.nickname ? `· ${emp.nickname}` : ''}
                     </h3>
                     <div className={styles.personPosition}>
                       {emp.position || 'พนักงาน'}
