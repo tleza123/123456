@@ -327,24 +327,27 @@ export function AttendanceTab({
                   {emp.photo ? (
                     <img
                       src={`/api/employees/${emp.employeeId}/photo?v=${emp.photo.version}`}
-                      alt={`รูป ${emp.name}`}
+                      alt={`รูป ${emp.nickname || emp.name}`}
                     />
                   ) : (
-                    emp.name.slice(0, 1)
+                    (emp.nickname || emp.name).slice(0, 1)
                   )}
                 </div>
                 <div className={styles.personInfo}>
                   <h3 className={styles.personName}>
-                    {emp.name} {emp.nickname ? `· ${emp.nickname}` : ''}
+                    {emp.nickname ? emp.nickname : emp.name}
                   </h3>
-                  <p className={styles.personPosition}>{emp.position}</p>
+                  <p className={styles.personPosition}>
+                    {emp.position}
+                    {emp.name && emp.nickname && emp.name !== emp.nickname && ` · ${emp.name}`}
+                  </p>
                 </div>
               </div>
 
               <div
                 className={styles.statusGrid}
                 role="group"
-                aria-label={`เช็คชื่อ ${emp.name}`}
+                aria-label={`เช็คชื่อ ${emp.nickname || emp.name}`}
               >
                 <button
                   type="button"

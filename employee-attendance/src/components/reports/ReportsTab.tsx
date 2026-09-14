@@ -302,9 +302,10 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
           ← กลับหน้ารายงาน
         </button>
 
-        <h2 className={styles.title}>{detailData.name}</h2>
+        <h2 className={styles.title}>{detailData.nickname || detailData.name}</h2>
         <p style={{ color: 'var(--team-muted)', margin: '0 0 1rem' }}>
           {formatThaiMonth(selectedMonth)} · {detailData.position}
+          {detailData.name && detailData.nickname && detailData.name !== detailData.nickname && ` · ${detailData.name}`}
         </p>
 
         <div className={styles.summaryCard}>
@@ -426,7 +427,7 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
             <div className={styles.modalCard}>
               <h3 className={styles.modalTitle}>เพิ่มเงินพิเศษเดือนนี้</h3>
               <p style={{ color: 'var(--team-muted)', fontSize: 'var(--team-secondary)' }}>
-                สำหรับ {detailData.name} เฉพาะเดือน {formatThaiMonth(selectedMonth)}
+                สำหรับ {detailData.nickname || detailData.name} เฉพาะเดือน {formatThaiMonth(selectedMonth)}
               </p>
 
               <label className={styles.monthLabel} style={{ marginTop: '1rem' }}>
@@ -540,7 +541,7 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
               >
                 <div className={styles.reportRowHead}>
                   <div>
-                    <h3 className={styles.rowName}>{emp.name}</h3>
+                    <h3 className={styles.rowName}>{emp.nickname || emp.name}</h3>
                     <span style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-muted)' }}>
                       {emp.position}
                     </span>

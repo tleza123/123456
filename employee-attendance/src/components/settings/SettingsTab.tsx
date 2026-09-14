@@ -265,8 +265,10 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idToken) return;
-    if (!formName.trim()) {
-      alert('กรุณากรอกชื่อ-นามสกุล');
+    const effectiveNick = formNickname.trim();
+    const effectiveName = formName.trim() || effectiveNick;
+    if (!effectiveNick && !formName.trim()) {
+      alert('กรุณาระบุชื่อเล่นหรือชื่อ-นามสกุล');
       return;
     }
     const rateNum = parseFloat(formDailyRate);
@@ -293,8 +295,8 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            name: formName.trim(),
-            nickname: formNickname.trim(),
+            name: effectiveName,
+            nickname: effectiveNick,
             position: formPosition.trim(),
             notes: formNotes.trim(),
             startDate: formStartDate,
@@ -333,8 +335,8 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            name: formName.trim(),
-            nickname: formNickname.trim(),
+            name: effectiveName,
+            nickname: effectiveNick,
             position: formPosition.trim(),
             notes: formNotes.trim(),
             expectedRevision: selectedEmployee.revision,
@@ -612,41 +614,41 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
               </button>
             </div>
 
-            {/* Name */}
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>ชื่อ-นามสกุล *</label>
-              <input
-                type="text"
-                className={styles.formInput}
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="เช่น สมศักดิ์ มีชัย"
-                required
-              />
-            </div>
-
             {/* Nickname & Position */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>ชื่อเล่น</label>
+                <label className={styles.formLabel}>ชื่อเล่น *</label>
                 <input
                   type="text"
                   className={styles.formInput}
                   value={formNickname}
                   onChange={(e) => setFormNickname(e.target.value)}
-                  placeholder="เช่น บอย"
+                  placeholder="เช่น บอย, ตาล, เก่ง"
                 />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>ตำแหน่ง</label>
+                <label className={styles.formLabel}>ตำแหน่ง *</label>
                 <input
                   type="text"
                   className={styles.formInput}
                   value={formPosition}
                   onChange={(e) => setFormPosition(e.target.value)}
                   placeholder="เช่น ช่างเทคนิค"
+                  required
                 />
               </div>
+            </div>
+
+            {/* Name */}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>ชื่อจริง นามสกุล</label>
+              <input
+                type="text"
+                className={styles.formInput}
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="ระบุหรือไม่ก็ได้ เช่น สมศักดิ์ มีชัย"
+              />
             </div>
 
             {/* Start Date */}
@@ -852,18 +854,19 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
                     {emp.photoPath ? (
                       <img
                         src={`/api/employees/${emp.id}/photo?t=${emp.photoVersion || 1}`}
-                        alt={emp.name}
+                        alt={emp.nickname || emp.name}
                       />
                     ) : (
-                      emp.nickname ? emp.nickname.charAt(0) : emp.name.charAt(0)
+                      (emp.nickname || emp.name).charAt(0)
                     )}
                   </div>
                   <div className={styles.personInfo}>
                     <h3 className={styles.personName}>
-                      {emp.name} {emp.nickname ? `· ${emp.nickname}` : ''}
+                      {emp.nickname ? emp.nickname : emp.name}
                     </h3>
                     <div className={styles.personPosition}>
                       {emp.position || 'พนักงาน'}
+                      {emp.name && emp.nickname && emp.name !== emp.nickname && ` · ${emp.name}`}
                     </div>
                   </div>
                 </div>

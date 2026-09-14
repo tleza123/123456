@@ -26,6 +26,7 @@ const fixture = () => ({
   employee: {
     employeeId: 'e1',
     name: 'สมชาย',
+    nickname: '' as string | undefined,
     position: 'ช่าง',
     startDate: '2026-09-01',
     endDate: null as string | null,
@@ -269,4 +270,20 @@ test('Test 13: Closure manifest and employee snapshot properly persist and sum a
   assert.equal(manifest.totalsSatang.advance, 30000);
   assert.equal(manifest.totalsSatang.total, 70000);
 });
+
+test('Test 14: Employee with nickname-only is valid and calculated correctly', () => {
+  const f = fixture();
+  f.employee.name = 'บอย'; // Only nickname used as name
+  f.employee.nickname = 'บอย';
+  f.attendance = marks(5, 'FULL');
+
+  const r = calculateEmployeeMonth(f);
+  assert.equal(r.workedDays, 5);
+  assert.equal(r.totalSatang, 250000);
+
+  const snapshot = buildEmployeeSnapshot(f.employee.nickname || f.employee.name, f.employee.position, r);
+  assert.equal(snapshot.name, 'บอย');
+  assert.equal(snapshot.totalSatang, 250000);
+});
+
 

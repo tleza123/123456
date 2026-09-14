@@ -58,9 +58,17 @@ export async function PATCH(
 
       const newRevision = current.revision + 1;
       const now = new Date().toISOString();
+      const updatedNick = nickname !== undefined ? String(nickname).trim().slice(0, 50) : (current.nickname || '');
+      const updatedName = name !== undefined ? String(name).trim().slice(0, 100) : (current.name || '');
+      const finalDisplayName = updatedNick || updatedName;
+      if (!finalDisplayName) {
+        throw new Error('INVALID_NAME');
+      }
+      const finalName = updatedName || updatedNick;
+
       const updated = {
-        name: name !== undefined ? String(name).trim().slice(0, 100) : current.name,
-        nickname: nickname !== undefined ? String(nickname).trim().slice(0, 40) : current.nickname,
+        name: finalName,
+        nickname: updatedNick,
         position: position !== undefined ? String(position).trim().slice(0, 80) : current.position,
         notes: notes !== undefined ? String(notes).slice(0, 500) : current.notes,
         revision: newRevision,
@@ -107,6 +115,9 @@ export async function PATCH(
     }
     if (error.message === 'NOT_FOUND') {
       return createErrorResponse('NOT_FOUND', undefined, 404);
+    }
+    if (error.message === 'INVALID_NAME') {
+      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุชื่อเล่นหรือชื่อพนักงาน', 422);
     }
     return createErrorResponse(
       error.code || 'INTERNAL_ERROR',

@@ -84,11 +84,17 @@ export async function POST(req: NextRequest) {
     if (!requestId || typeof requestId !== 'string' || requestId.length < 10) {
       return createErrorResponse('INVALID_INPUT', 'กรุณาระบุ requestId ให้ถูกต้อง', 422);
     }
-    if (!name || typeof name !== 'string' || name.trim().length === 0 || name.length > 100) {
-      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุชื่อพนักงาน (1-100 ตัวอักษร)', 422);
+
+    const cleanNick = nickname ? String(nickname).trim().slice(0, 50) : '';
+    const cleanName = name ? String(name).trim().slice(0, 100) : '';
+    const finalDisplayName = cleanNick || cleanName;
+    if (!finalDisplayName) {
+      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุชื่อเล่นหรือชื่อพนักงาน', 422);
     }
+    const finalName = cleanName || cleanNick;
+
     if (!position || typeof position !== 'string' || position.trim().length === 0 || position.length > 80) {
-      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุตำแหน่งพนักงาน (ไม่เกิน 80 ตัวอักษร)', 422);
+      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุตำแหน่งพนักงาน ไม่เกิน 80 ตัวอักษร', 422);
     }
 
     const startDate = dateKey(rawStart);
@@ -98,8 +104,8 @@ export async function POST(req: NextRequest) {
     const db = getAdminFirestore();
     const employeeId = 'emp_' + crypto.randomUUID();
     const payloadHash = computePayloadHash(owner.uid, 'POST', employeeId, {
-      name: name.trim(),
-      nickname: nickname ? String(nickname).trim() : '',
+      name: finalName,
+      nickname: cleanNick,
       position: position.trim(),
       startDate,
       dailySatang,
@@ -116,8 +122,8 @@ export async function POST(req: NextRequest) {
 
       const now = new Date().toISOString();
       const employeeData = {
-        name: name.trim(),
-        nickname: nickname ? String(nickname).trim() : '',
+        name: finalName,
+        nickname: cleanNick,
         position: position.trim(),
         startDate,
         endDate: null,
