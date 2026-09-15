@@ -312,142 +312,148 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
           {detailData.name && detailData.nickname && detailData.name !== detailData.nickname && ` · ${detailData.name}`}
         </p>
 
-        <div className={styles.summaryCard}>
-          <p className={styles.summaryLabel}>ยอดค่าจ้างเดือนนี้</p>
-          <p className={styles.summaryMoney}>{formatMoney(detailData.totalSatang)} บาท</p>
-        </div>
+        <div className={styles.detailGrid}>
+          <div className={styles.detailLeftCol}>
+            <div className={styles.summaryCard}>
+              <p className={styles.summaryLabel}>ยอดค่าจ้างเดือนนี้</p>
+              <p className={styles.summaryMoney}>{formatMoney(detailData.totalSatang)} บาท</p>
+            </div>
 
-        <div className={styles.kpiGrid}>
-          <div className={styles.kpiCard}>
-            <span className={styles.kpiLabel}>เต็มวัน</span>
-            <span className={styles.kpiValue}>{detailData.full} วัน</span>
-          </div>
-          <div className={styles.kpiCard}>
-            <span className={styles.kpiLabel}>ครึ่งวัน</span>
-            <span className={styles.kpiValue}>{detailData.half} วัน</span>
-          </div>
-          <div className={styles.kpiCard}>
-            <span className={styles.kpiLabel}>ไม่มา</span>
-            <span className={styles.kpiValue}>{detailData.absent} วัน</span>
-          </div>
-          <div className={styles.kpiCard}>
-            <span className={styles.kpiLabel}>วันคิดค่าจ้าง</span>
-            <span className={styles.kpiValue}>{detailData.paidDayUnits} วัน</span>
-          </div>
-        </div>
+            <div className={styles.kpiGrid}>
+              <div className={styles.kpiCard}>
+                <span className={styles.kpiLabel}>เต็มวัน</span>
+                <span className={styles.kpiValue}>{detailData.full} วัน</span>
+              </div>
+              <div className={styles.kpiCard}>
+                <span className={styles.kpiLabel}>ครึ่งวัน</span>
+                <span className={styles.kpiValue}>{detailData.half} วัน</span>
+              </div>
+              <div className={styles.kpiCard}>
+                <span className={styles.kpiLabel}>ไม่มา</span>
+                <span className={styles.kpiValue}>{detailData.absent} วัน</span>
+              </div>
+              <div className={styles.kpiCard}>
+                <span className={styles.kpiLabel}>วันคิดค่าจ้าง</span>
+                <span className={styles.kpiValue}>{detailData.paidDayUnits} วัน</span>
+              </div>
+            </div>
 
-        <section className={styles.sectionCard}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 className={styles.sectionTitle}>รายละเอียดเงิน</h3>
-            {!reportData?.isClosed && (
-              <button
-                type="button"
-                className={styles.backBtn}
-                onClick={() => {
-                  setExtraType('BONUS');
-                  setShowExtrasModal(true);
-                }}
-              >
-                + เพิ่มเงินพิเศษหรือรายการหัก
-              </button>
-            )}
-          </div>
+            <section className={styles.sectionCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 className={styles.sectionTitle}>รายละเอียดเงิน</h3>
+                {!reportData?.isClosed && (
+                  <button
+                    type="button"
+                    className={styles.backBtn}
+                    onClick={() => {
+                      setExtraType('BONUS');
+                      setShowExtrasModal(true);
+                    }}
+                  >
+                    + เพิ่มเงินพิเศษหรือรายการหัก
+                  </button>
+                )}
+              </div>
 
-          <div className={styles.lineItem}>
-            <span>ค่าแรงรวม</span>
-            <strong>{formatMoney(detailData.baseSatang)} บาท</strong>
-          </div>
+              <div className={styles.lineItem}>
+                <span>ค่าแรงรวม</span>
+                <strong>{formatMoney(detailData.baseSatang)} บาท</strong>
+              </div>
 
-          {detailData.extras && detailData.extras.length > 0 ? (
-            detailData.extras.map((x: any, i: number) => {
-              const isDeduction = x.type === 'DEDUCTION';
-              return (
-                <div key={i} className={`${styles.lineItem} ${isDeduction ? styles.deductionItem : ''}`}>
-                  <span>{x.label}</span>
-                  <strong>{isDeduction ? `-${formatMoney(x.amountSatang)}` : `+${formatMoney(x.amountSatang)}`} บาท</strong>
+              {detailData.extras && detailData.extras.length > 0 ? (
+                detailData.extras.map((x: any, i: number) => {
+                  const isDeduction = x.type === 'DEDUCTION';
+                  return (
+                    <div key={i} className={`${styles.lineItem} ${isDeduction ? styles.deductionItem : ''}`}>
+                      <span>{x.label}</span>
+                      <strong>{isDeduction ? `-${formatMoney(x.amountSatang)}` : `+${formatMoney(x.amountSatang)}`} บาท</strong>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className={styles.lineItem}>
+                  <span style={{ color: 'var(--team-muted)' }}>ไม่มีเงินพิเศษหรือรายการหักเพิ่มเติม</span>
+                  <span>0.00 บาท</span>
                 </div>
-              );
-            })
-          ) : (
-            <div className={styles.lineItem}>
-              <span style={{ color: 'var(--team-muted)' }}>ไม่มีเงินพิเศษหรือรายการหักเพิ่มเติม</span>
-              <span>0.00 บาท</span>
-            </div>
-          )}
+              )}
 
-          {detailData.advanceSatang > 0 && (
-            <div className={`${styles.lineItem} ${styles.deductionItem}`}>
-              <span>หักเบิกเงินล่วงหน้ารวม</span>
-              <strong>-{formatMoney(detailData.advanceSatang)} บาท</strong>
-            </div>
-          )}
-
-          {(() => {
-            const dailyDeductions = detailData.days?.reduce((sum: number, d: any) => sum + (d.deductionSatang || 0), 0) || 0;
-            if (dailyDeductions > 0) {
-              return (
+              {detailData.advanceSatang > 0 && (
                 <div className={`${styles.lineItem} ${styles.deductionItem}`}>
-                  <span>หักเงินรายวันรวม</span>
-                  <strong>-{formatMoney(dailyDeductions)} บาท</strong>
+                  <span>หักเบิกเงินล่วงหน้ารวม</span>
+                  <strong>-{formatMoney(detailData.advanceSatang)} บาท</strong>
                 </div>
-              );
-            }
-            return null;
-          })()}
+              )}
 
-          <div className={styles.lineItem} style={{ borderTop: '2px solid var(--team-border)', marginTop: '0.4rem', paddingTop: '0.8rem' }}>
-            <strong>ยอดสุทธิทั้งสิ้น</strong>
-            <strong style={{ fontSize: '1.4rem', color: 'var(--team-primary-dark)' }}>
-              {formatMoney(detailData.totalSatang)} บาท
-            </strong>
+              {(() => {
+                const dailyDeductions = detailData.days?.reduce((sum: number, d: any) => sum + (d.deductionSatang || 0), 0) || 0;
+                if (dailyDeductions > 0) {
+                  return (
+                    <div className={`${styles.lineItem} ${styles.deductionItem}`}>
+                      <span>หักเงินรายวันรวม</span>
+                      <strong>-{formatMoney(dailyDeductions)} บาท</strong>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              <div className={styles.lineItem} style={{ borderTop: '2px solid var(--team-border)', marginTop: '0.4rem', paddingTop: '0.8rem' }}>
+                <strong>ยอดสุทธิทั้งสิ้น</strong>
+                <strong style={{ fontSize: '1.4rem', color: 'var(--team-primary-dark)' }}>
+                  {formatMoney(detailData.totalSatang)} บาท
+                </strong>
+              </div>
+
+              {!reportData?.isClosed && (
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  style={{ marginTop: '1rem' }}
+                  onClick={handleConfirmReview}
+                >
+                  ยืนยันการตรวจสอบเงินพิเศษและรายการหัก
+                </button>
+              )}
+            </section>
           </div>
 
-          {!reportData?.isClosed && (
-            <button
-              type="button"
-              className={styles.secondaryBtn}
-              style={{ marginTop: '1rem' }}
-              onClick={handleConfirmReview}
-            >
-              ยืนยันการตรวจสอบเงินพิเศษและรายการหัก
-            </button>
-          )}
-        </section>
+          <div className={styles.detailRightCol}>
+            <section className={styles.sectionCard}>
+              <h3 className={styles.sectionTitle}>รายการเช็คชื่อรายวัน</h3>
+              {detailData.days &&
+                detailData.days.map((d: any) => {
+                  let label = 'รอเช็ค';
+                  if (d.status === 'FULL') label = 'เต็มวัน';
+                  if (d.status === 'HALF') label = 'ครึ่งวัน';
+                  if (d.status === 'ABSENT') label = 'ไม่มา';
+                  if (d.status === 'HOLIDAY') label = 'วันหยุด';
 
-        <section className={styles.sectionCard}>
-          <h3 className={styles.sectionTitle}>รายการเช็คชื่อรายวัน</h3>
-          {detailData.days &&
-            detailData.days.map((d: any) => {
-              let label = 'รอเช็ค';
-              if (d.status === 'FULL') label = 'เต็มวัน';
-              if (d.status === 'HALF') label = 'ครึ่งวัน';
-              if (d.status === 'ABSENT') label = 'ไม่มา';
-              if (d.status === 'HOLIDAY') label = 'วันหยุด';
-
-              return (
-                <div key={d.dateKey} className={styles.lineItem}>
-                  <div>
-                    <span>{formatThaiDate(d.dateKey)}</span>
-                    <br />
-                    <span style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-muted)' }}>
-                      {label}
-                      {d.advanceSatang > 0 && (
-                        <span style={{ color: 'var(--team-absent)', marginLeft: '0.5rem', fontWeight: 700 }}>
-                          · เบิก {formatMoney(d.advanceSatang)} บาท
+                  return (
+                    <div key={d.dateKey} className={styles.lineItem}>
+                      <div>
+                        <span>{formatThaiDate(d.dateKey)}</span>
+                        <br />
+                        <span style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-muted)' }}>
+                          {label}
+                          {d.advanceSatang > 0 && (
+                            <span style={{ color: 'var(--team-absent)', marginLeft: '0.5rem', fontWeight: 700 }}>
+                              · เบิก {formatMoney(d.advanceSatang)} บาท
+                            </span>
+                          )}
+                          {d.deductionSatang > 0 && (
+                            <span style={{ color: '#dc2626', marginLeft: '0.5rem', fontWeight: 700 }}>
+                              · หัก {formatMoney(d.deductionSatang)} บาท
+                            </span>
+                          )}
                         </span>
-                      )}
-                      {d.deductionSatang > 0 && (
-                        <span style={{ color: '#dc2626', marginLeft: '0.5rem', fontWeight: 700 }}>
-                          · หัก {formatMoney(d.deductionSatang)} บาท
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <span>{d.amountSatang === null ? '—' : `${formatMoney(d.amountSatang)} บาท`}</span>
-                </div>
-              );
-            })}
-        </section>
+                      </div>
+                      <span>{d.amountSatang === null ? '—' : `${formatMoney(d.amountSatang)} บาท`}</span>
+                    </div>
+                  );
+                })}
+            </section>
+          </div>
+        </div>
 
         {/* Add Month Extra Modal */}
         {showExtrasModal && (
@@ -523,20 +529,22 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
     <div>
       <h2 className={styles.title}>รายงาน</h2>
 
-      <div className={styles.monthSelectGroup}>
-        <label className={styles.monthLabel} htmlFor="report-month-select">
-          เลือกเดือน
-        </label>
-        <input
-          id="report-month-select"
-          type="month"
-          className={styles.monthSelect}
-          value={selectedMonth}
-          max={serverToday.slice(0, 7)}
-          onChange={e => {
-            if (e.target.value) setSelectedMonth(e.target.value);
-          }}
-        />
+      <div className={styles.monthControlsBar}>
+        <div className={styles.monthSelectGroup}>
+          <label className={styles.monthLabel} htmlFor="report-month-select">
+            เลือกเดือน
+          </label>
+          <input
+            id="report-month-select"
+            type="month"
+            className={styles.monthSelect}
+            value={selectedMonth}
+            max={serverToday.slice(0, 7)}
+            onChange={e => {
+              if (e.target.value) setSelectedMonth(e.target.value);
+            }}
+          />
+        </div>
       </div>
 
       {errorMsg && <div className={styles.notice}>{errorMsg}</div>}
@@ -579,7 +587,7 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
             </div>
           )}
 
-          <div style={{ marginTop: '1.2rem' }}>
+          <div className={styles.reportsGrid}>
             {reportData.employees.map((emp: EmployeeReportSummary) => (
               <button
                 key={emp.employeeId}

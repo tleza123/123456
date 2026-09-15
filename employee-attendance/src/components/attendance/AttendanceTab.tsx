@@ -269,58 +269,62 @@ export function AttendanceTab({
     <div>
       <h2 className={styles.title}>เช็คชื่อ</h2>
 
-      <div className={styles.dateGroup}>
-        <label className={styles.dateLabel} htmlFor="attendance-date-picker">
-          วันที่
-        </label>
-        <div className={styles.dateRow}>
-          <input
-            id="attendance-date-picker"
-            type="date"
-            className={styles.dateInput}
-            value={selectedDate}
-            max={serverToday}
-            onChange={e => {
-              if (e.target.value && e.target.value <= serverToday) {
-                setSelectedDate(e.target.value);
-              }
-            }}
-          />
-          {selectedDate !== serverToday && (
+      <div className={styles.controlsBar}>
+        <div className={styles.controlsTopRow}>
+          <div className={styles.dateGroup}>
+            <label className={styles.dateLabel} htmlFor="attendance-date-picker">
+              วันที่
+            </label>
+            <div className={styles.dateRow}>
+              <input
+                id="attendance-date-picker"
+                type="date"
+                className={styles.dateInput}
+                value={selectedDate}
+                max={serverToday}
+                onChange={e => {
+                  if (e.target.value && e.target.value <= serverToday) {
+                    setSelectedDate(e.target.value);
+                  }
+                }}
+              />
+              {selectedDate !== serverToday && (
+                <button
+                  type="button"
+                  className={styles.todayBtn}
+                  onClick={() => setSelectedDate(serverToday)}
+                >
+                  วันนี้
+                </button>
+              )}
+            </div>
+            <div className={styles.thaiDateDisplay}>{formatThaiDate(selectedDate)}</div>
+          </div>
+
+          <div className={styles.toolbar}>
+            <p className={styles.checkedCount}>
+              เช็คแล้ว {checkedCount} จาก {items.length} คน
+            </p>
             <button
               type="button"
-              className={styles.todayBtn}
-              onClick={() => setSelectedDate(serverToday)}
+              className={`${styles.filterBtn} ${filterUnchecked ? styles.filterBtnActive : ''}`}
+              onClick={() => setFilterUnchecked(!filterUnchecked)}
             >
-              วันนี้
+              {filterUnchecked ? 'ดูทั้งหมด' : 'ดูที่ยังไม่เช็ค'}
             </button>
-          )}
+          </div>
         </div>
-        <div className={styles.thaiDateDisplay}>{formatThaiDate(selectedDate)}</div>
-      </div>
 
-      <div className={styles.toolbar}>
-        <p className={styles.checkedCount}>
-          เช็คแล้ว {checkedCount} จาก {items.length} คน
-        </p>
-        <button
-          type="button"
-          className={`${styles.filterBtn} ${filterUnchecked ? styles.filterBtnActive : ''}`}
-          onClick={() => setFilterUnchecked(!filterUnchecked)}
-        >
-          {filterUnchecked ? 'ดูทั้งหมด' : 'ดูที่ยังไม่เช็ค'}
-        </button>
+        {items.length > 8 && (
+          <input
+            type="search"
+            placeholder="ค้นหาชื่อพนักงาน หรือตำแหน่ง..."
+            className={styles.searchInput}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+        )}
       </div>
-
-      {items.length > 8 && (
-        <input
-          type="search"
-          placeholder="ค้นหาชื่อพนักงาน หรือตำแหน่ง..."
-          className={styles.searchInput}
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-        />
-      )}
 
       {errorMsg && <div className={styles.notice}>{errorMsg}</div>}
 
@@ -337,7 +341,7 @@ export function AttendanceTab({
       )}
 
       {loading ? (
-        <div>
+        <div className={styles.cardGrid}>
           <div className={styles.skeletonCard} />
           <div className={styles.skeletonCard} />
           <div className={styles.skeletonCard} />
@@ -355,7 +359,8 @@ export function AttendanceTab({
           {filterUnchecked ? 'เช็คชื่อครบทุกคนแล้ว' : 'ไม่พบรายชื่อที่ตรงกับการค้นหา'}
         </p>
       ) : (
-        filteredItems.map(item => {
+        <div className={styles.cardGrid}>
+          {filteredItems.map(item => {
           const emp = item.employee;
           const att = item.attendance;
           const isPending = Boolean(pendingMap[emp.employeeId]);
@@ -556,7 +561,8 @@ export function AttendanceTab({
               </div>
             </article>
           );
-        })
+        })}
+        </div>
       )}
     </div>
   );

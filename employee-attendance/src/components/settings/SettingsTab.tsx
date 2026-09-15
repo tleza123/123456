@@ -557,7 +557,7 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
 
       {/* VIEW: ADD OR EDIT FORM */}
       {(view === 'add' || view === 'edit') && (
-        <div>
+        <div className={styles.formContainer}>
           <h2
             style={{
               fontSize: 'var(--team-name)',
@@ -807,24 +807,26 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
       {/* VIEW: LIST */}
       {view === 'list' && (
         <div>
-          <button className={styles.addBtn} onClick={handleOpenAdd}>
-            เพิ่มพนักงานใหม่
-          </button>
+          <div className={styles.listControlsBar}>
+            <button className={styles.addBtn} onClick={handleOpenAdd}>
+              เพิ่มพนักงานใหม่
+            </button>
 
-          {/* Filter Active / Inactive */}
-          <div className={styles.filterRow}>
-            <button
-              className={`${styles.filterBtn} ${filterActive ? styles.filterBtnActive : ''}`}
-              onClick={() => setFilterActive(true)}
-            >
-              พนักงานปัจจุบัน {employees.filter((e) => !e.endDate).length} คน
-            </button>
-            <button
-              className={`${styles.filterBtn} ${!filterActive ? styles.filterBtnActive : ''}`}
-              onClick={() => setFilterActive(false)}
-            >
-              สิ้นสุดการจ้าง {employees.filter((e) => !!e.endDate).length} คน
-            </button>
+            {/* Filter Active / Inactive */}
+            <div className={styles.filterRow}>
+              <button
+                className={`${styles.filterBtn} ${filterActive ? styles.filterBtnActive : ''}`}
+                onClick={() => setFilterActive(true)}
+              >
+                พนักงานปัจจุบัน {employees.filter((e) => !e.endDate).length} คน
+              </button>
+              <button
+                className={`${styles.filterBtn} ${!filterActive ? styles.filterBtnActive : ''}`}
+                onClick={() => setFilterActive(false)}
+              >
+                สิ้นสุดการจ้าง {employees.filter((e) => !!e.endDate).length} คน
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -846,58 +848,60 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
               ไม่พบรายชื่อพนักงาน
             </div>
           ) : (
-            filteredEmployees.map((emp) => (
-              <div key={emp.id} className={styles.personCard}>
-                <div className={styles.personHead}>
-                  <div className={styles.avatar}>
-                    {emp.photoPath ? (
-                      <img
-                        src={`/api/employees/${emp.id}/photo?t=${emp.photoVersion || 1}`}
-                        alt={emp.nickname || emp.name}
-                      />
-                    ) : (
-                      (emp.nickname || emp.name).charAt(0)
-                    )}
-                  </div>
-                  <div className={styles.personInfo}>
-                    <h3 className={styles.personName}>
-                      {emp.nickname ? emp.nickname : emp.name}
-                    </h3>
-                    <div className={styles.personPosition}>
-                      {emp.position || 'พนักงาน'}
-                      {emp.name && emp.nickname && emp.name !== emp.nickname && ` · ${emp.name}`}
+            <div className={styles.employeeGrid}>
+              {filteredEmployees.map((emp) => (
+                <div key={emp.id} className={styles.personCard}>
+                  <div className={styles.personHead}>
+                    <div className={styles.avatar}>
+                      {emp.photoPath ? (
+                        <img
+                          src={`/api/employees/${emp.id}/photo?t=${emp.photoVersion || 1}`}
+                          alt={emp.nickname || emp.name}
+                        />
+                      ) : (
+                        (emp.nickname || emp.name).charAt(0)
+                      )}
+                    </div>
+                    <div className={styles.personInfo}>
+                      <h3 className={styles.personName}>
+                        {emp.nickname ? emp.nickname : emp.name}
+                      </h3>
+                      <div className={styles.personPosition}>
+                        {emp.position || 'พนักงาน'}
+                        {emp.name && emp.nickname && emp.name !== emp.nickname && ` · ${emp.name}`}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className={styles.personMeta}>
-                  <div>
-                    ค่าแรงวันละ:{' '}
-                    <strong>
-                      {((emp.dailyRateSatang || 0) / 100).toLocaleString('th-TH', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}{' '}
-                      บาท
-                    </strong>
+                  <div className={styles.personMeta}>
+                    <div>
+                      ค่าแรงวันละ:{' '}
+                      <strong>
+                        {((emp.dailyRateSatang || 0) / 100).toLocaleString('th-TH', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}{' '}
+                        บาท
+                      </strong>
+                    </div>
+                    <div>
+                      เงินพิเศษประจำ: {emp.extraTemplates?.length || 0} รายการ
+                    </div>
+                    <div style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-muted)' }}>
+                      เริ่มงาน: {emp.startDate}
+                      {emp.endDate && ` สิ้นสุดงาน: ${emp.endDate}`}
+                    </div>
                   </div>
-                  <div>
-                    เงินพิเศษประจำ: {emp.extraTemplates?.length || 0} รายการ
-                  </div>
-                  <div style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-muted)' }}>
-                    เริ่มงาน: {emp.startDate}
-                    {emp.endDate && ` สิ้นสุดงาน: ${emp.endDate}`}
-                  </div>
-                </div>
 
-                <button
-                  className={styles.editBtn}
-                  onClick={() => handleOpenEdit(emp)}
-                >
-                  แก้ไขข้อมูล
-                </button>
-              </div>
-            ))
+                  <button
+                    className={styles.editBtn}
+                    onClick={() => handleOpenEdit(emp)}
+                  >
+                    แก้ไขข้อมูล
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
 
           {/* Collapsible: Work Schedule */}

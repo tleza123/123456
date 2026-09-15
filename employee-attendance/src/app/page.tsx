@@ -35,7 +35,11 @@ export default function HomePage() {
 
   return (
     <div className={styles.appContainer}>
-      <AppHeader shopName={shopName} />
+      <AppHeader
+        shopName={shopName}
+        activeTab={activeTab}
+        onChangeTab={setActiveTab}
+      />
 
       <main className={styles.mainContent}>
         {/* In-memory tab display caching to preserve scroll and state without re-render lag */}

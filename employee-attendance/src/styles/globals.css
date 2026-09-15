@@ -1,5 +1,21 @@
 @import './tokens.css';
 
+/* Thai & Latin Ekkamai New Web Fonts */
+@font-face {
+  font-family: 'Ekkamai New';
+  src: url('/fonts/EkkamaiNew-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Ekkamai New';
+  src: url('/fonts/EkkamaiNew-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Thai & Latin Sarabun Web Fonts */
 @font-face {
   font-family: 'Sarabun';
@@ -40,7 +56,11 @@
 /* Base Responsive Root Scaling */
 html {
   font-size: 15px;
+  letter-spacing: normal;
   scrollbar-gutter: stable;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   box-sizing: border-box;
 }
 
@@ -67,6 +87,7 @@ html {
 
 *, *::before, *::after {
   box-sizing: inherit;
+  font-family: var(--font-brand);
 }
 
 body {
@@ -74,11 +95,13 @@ body {
   padding: 0;
   background-color: var(--team-bg);
   color: var(--team-text);
-  font-family: var(--font-sarabun);
+  font-family: var(--font-brand);
   font-size: var(--team-copy);
   line-height: 1.65;
   letter-spacing: normal;
+  min-height: 100vh;
   min-height: 100dvh;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -89,10 +112,10 @@ input, select, textarea, button {
   letter-spacing: normal;
 }
 
-/* Touch input minimum size */
-@media (pointer: coarse) {
+/* Touch input minimum size & prevent iOS auto-zoom */
+@media (max-width: 639px), (pointer: coarse) {
   input, textarea, select {
-    font-size: max(var(--team-copy), 16px) !important;
+    font-size: 16px !important;
   }
 }
 

@@ -22,7 +22,8 @@
   --team-notice-text: #63480c;
 
   /* Sizing and Typography */
-  --font-sarabun: 'Sarabun', Tahoma, sans-serif;
+  --font-brand: 'Ekkamai New', 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sarabun: var(--font-brand);
   --team-copy: 1.2rem;
   --team-name: 1.33rem;
   --team-heading: 1.67rem;
