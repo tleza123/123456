@@ -34,7 +34,7 @@
 ## 2. โครงสร้างโปรเจกต์
 
 ```text
-employee-attendance/
+เช็คชื่อร้าน/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                 # GitHub Actions CI (Typecheck, Test, Build)
@@ -89,7 +89,7 @@ employee-attendance/
 ### ขั้นตอนการรัน
 1. เข้าไปยังโฟลเดอร์โปรเจกต์:
    ```bash
-   cd employee-attendance
+   cd เช็คชื่อร้าน
    ```
 2. ติดตั้ง Dependencies:
    ```bash

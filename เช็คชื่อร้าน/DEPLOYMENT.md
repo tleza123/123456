@@ -82,7 +82,7 @@
    ```
 2. เชื่อมต่อ Vercel:
    - ไปที่แดชบอร์ด Vercel > กด **Add New Project** > นำเข้าจาก GitHub Repository
-   - ตั้งค่า **Root Directory**: `employee-attendance`
+   - ตั้งค่า **Root Directory**: `เช็คชื่อร้าน`
    - Framework Preset: **Next.js**
    - Node.js Version: 20.x
 3. กำหนด Environment Variables ตามตารางด้านบนให้ครบถ้วน

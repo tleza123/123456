@@ -18,7 +18,7 @@
 - `reopenLogs` (ประวัติการเปิดงวดแก้ไข)
 
 ### วิธีการรัน
-เปิด Terminal ในโฟลเดอร์ `employee-attendance` แล้วรันคำสั่ง:
+เปิด Terminal ในโฟลเดอร์ `เช็คชื่อร้าน` แล้วรันคำสั่ง:
 ```bash
 npm run backup
 ```

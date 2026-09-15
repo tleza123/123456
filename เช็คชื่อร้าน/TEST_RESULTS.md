@@ -6,7 +6,7 @@
 
 ## 1. ผลการทดสอบสูตรคำนวณค่าจ้าง (Payroll Engine Unit Tests)
 
-อ้างอิงชุดทดสอบใน [tests/payroll.test.ts](file:///c:/attendance-blueprint/employee-attendance/tests/payroll.test.ts) ซึ่งจำลองและครอบคลุมทั้ง 11 กรณีของ `verify.cjs`:
+อ้างอิงชุดทดสอบใน [tests/payroll.test.ts](file:///c:/attendance-blueprint/เช็คชื่อร้าน/tests/payroll.test.ts) ซึ่งจำลองและครอบคลุมทั้ง 11 กรณีของ `verify.cjs`:
 
 | กรณีทดสอบ | เงื่อนไขการทดสอบ | ผลลัพธ์ที่คาดหวัง | ผลการทดสอบ |
 |---|---|---|:---:|
@@ -26,7 +26,7 @@
 
 ## 2. ผลการทดสอบความปลอดภัยและโครงสร้างข้อมูล (API & Security Tests)
 
-อ้างอิงชุดทดสอบใน [tests/api.test.ts](file:///c:/attendance-blueprint/employee-attendance/tests/api.test.ts):
+อ้างอิงชุดทดสอบใน [tests/api.test.ts](file:///c:/attendance-blueprint/เช็คชื่อร้าน/tests/api.test.ts):
 
 | หัวข้อทดสอบ | รายละเอียด | ผลการทดสอบ |
 |---|---|:---:|
