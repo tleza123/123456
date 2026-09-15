@@ -14,6 +14,7 @@ import {
 import { getAdminFirestore } from '@/lib/firebase/admin';
 import { monthKey } from '@/lib/payroll/dates';
 import { moneySatang } from '@/lib/payroll/money';
+import { validateSatang } from '@/lib/payroll/engine';
 import { computePayloadHash, checkRequestReceipt, recordRequestReceipt } from '@/lib/server/idempotency';
 import { verifyFinanceGate } from '@/lib/server/finance-gate';
 
@@ -28,7 +29,9 @@ export async function POST(
     const { month: rawMonth } = await params;
     const targetMonth = monthKey(rawMonth);
     const body = await req.json();
-    const { employeeId, label, amount: rawAmount, requestId } = body;
+    const { employeeId, label, amount: rawAmount, requestId, type: rawType } = body;
+
+    const extraType: 'BONUS' | 'DEDUCTION' = rawType === 'DEDUCTION' ? 'DEDUCTION' : 'BONUS';
 
     if (!requestId || typeof requestId !== 'string') {
       return createErrorResponse('INVALID_INPUT', 'กรุณาระบุ requestId ให้ถูกต้อง', 422);
@@ -37,17 +40,35 @@ export async function POST(
       return createErrorResponse('INVALID_INPUT', 'กรุณาระบุ employeeId', 422);
     }
     if (!label || typeof label !== 'string' || label.trim().length === 0 || label.length > 80) {
-      return createErrorResponse('INVALID_INPUT', 'กรุณาระบุชื่อรายการเงินพิเศษ (ไม่เกิน 80 ตัวอักษร)', 422);
+      return createErrorResponse(
+        'INVALID_INPUT',
+        extraType === 'DEDUCTION'
+          ? 'กรุณาระบุชื่อรายการหักเงิน (ไม่เกิน 80 ตัวอักษร)'
+          : 'กรุณาระบุชื่อรายการเงินพิเศษ (ไม่เกิน 80 ตัวอักษร)',
+        422
+      );
     }
 
-    const amountSatang = typeof rawAmount === 'number' ? rawAmount : moneySatang(String(rawAmount));
+    const rawSatang = typeof rawAmount === 'number' ? rawAmount : moneySatang(String(rawAmount));
+    let amountSatang: number;
+    try {
+      amountSatang = validateSatang(rawSatang);
+    } catch {
+      return createErrorResponse(
+        'INVALID_INPUT',
+        extraType === 'DEDUCTION' ? 'จำนวนเงินหักไม่ถูกต้อง' : 'จำนวนเงินพิเศษไม่ถูกต้อง',
+        422
+      );
+    }
+
     const shopId = getShopId();
     const db = getAdminFirestore();
     const extraId = 'extra_' + crypto.randomUUID();
     const payloadHash = computePayloadHash(owner.uid, 'POST', `${targetMonth}:extra:${extraId}`, {
       employeeId,
       label: label.trim(),
-      amountSatang
+      amountSatang,
+      type: extraType
     });
 
     const requestRef = getRequestsCol(shopId).doc(requestId);
@@ -70,6 +91,7 @@ export async function POST(
         monthKey: targetMonth,
         label: label.trim(),
         amountSatang,
+        type: extraType,
         sourceTemplateId: null,
         sourceTemplateVersion: null,
         revision: 1,

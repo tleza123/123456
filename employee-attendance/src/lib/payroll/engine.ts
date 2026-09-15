@@ -2,6 +2,8 @@ import { requireCondition, validateSatang } from './money';
 import { dateKey, monthKey, monthDates } from './dates';
 import { isWorkday, resolveWeekdaysForDate, CalendarVersion } from './calendar';
 
+export { validateSatang };
+
 export type AttendanceStatus = 'FULL' | 'HALF' | 'ABSENT' | 'UNMARKED' | 'HOLIDAY';
 
 export interface EmployeeRecord {
@@ -28,6 +30,7 @@ export interface AttendanceRecord {
   employeeId: string;
   status: AttendanceStatus;
   advanceSatang?: number;
+  deductionSatang?: number;
   revision?: number;
 }
 
@@ -37,6 +40,7 @@ export interface MonthlyExtraRecord {
   monthKey: string;
   label: string;
   amountSatang: number;
+  type?: 'BONUS' | 'DEDUCTION';
   sourceTemplateId?: string | null;
   sourceTemplateVersion?: number;
   revision?: number;
@@ -48,6 +52,7 @@ export interface DailyResult {
   dailySatang?: number;
   amountSatang: number | null;
   advanceSatang?: number;
+  deductionSatang?: number;
 }
 
 export interface EmployeeMonthResult {
@@ -62,12 +67,14 @@ export interface EmployeeMonthResult {
   baseSatang: number;
   extraSatang: number;
   advanceSatang: number;
+  deductionSatang: number;
   grossSatang: number;
   totalSatang: number;
   days: DailyResult[];
-  extras: { extraId: string; label: string; amountSatang: number }[];
+  extras: { extraId: string; label: string; amountSatang: number; type?: 'BONUS' | 'DEDUCTION' }[];
   ratePeriods: { effectiveFrom: string; dailySatang: number }[];
 }
+
 
 export interface CalculateInput {
   month: string;
@@ -173,9 +180,13 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
     });
 
   let advanceSum = 0;
+  let dailyDeductionSum = 0;
   attendanceMap.forEach(att => {
     if (att.advanceSatang && att.advanceSatang > 0) {
       advanceSum += validateSatang(att.advanceSatang);
+    }
+    if (att.deductionSatang && att.deductionSatang > 0) {
+      dailyDeductionSum += validateSatang(att.deductionSatang);
     }
   });
 
@@ -191,6 +202,7 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
     baseSatang: 0,
     extraSatang: 0,
     advanceSatang: advanceSum,
+    deductionSatang: dailyDeductionSum,
     grossSatang: 0,
     totalSatang: 0,
     days: [],
@@ -211,13 +223,15 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
     const row = attendanceMap.get(date);
     const status: AttendanceStatus = row ? row.status : 'UNMARKED';
     const dayAdvance = row?.advanceSatang ? validateSatang(row.advanceSatang) : 0;
+    const dayDeduction = row?.deductionSatang ? validateSatang(row.deductionSatang) : 0;
 
     if (!workday) {
       result.days.push({
         dateKey: date,
         status: 'HOLIDAY',
         amountSatang: null,
-        advanceSatang: dayAdvance
+        advanceSatang: dayAdvance,
+        deductionSatang: dayDeduction
       });
       return;
     }
@@ -228,7 +242,8 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
         dateKey: date,
         status: 'UNMARKED',
         amountSatang: null,
-        advanceSatang: dayAdvance
+        advanceSatang: dayAdvance,
+        deductionSatang: dayDeduction
       });
       return;
     }
@@ -245,13 +260,15 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
       status,
       dailySatang: rate,
       amountSatang: amount,
-      advanceSatang: dayAdvance
+      advanceSatang: dayAdvance,
+      deductionSatang: dayDeduction
     });
   });
 
+  let monthlyDeductionSum = 0;
   const extraIds = new Set<string>();
   input.extras
-    .filter(x => x.employeeId === employee.employeeId && x.monthKey === input.month)
+    .filter(x => x.employeeId === employee.employeeId && (!x.monthKey || x.monthKey === input.month))
     .forEach(x => {
       requireCondition(
         typeof x.extraId === 'string' && x.extraId.length > 0 && !extraIds.has(x.extraId),
@@ -262,18 +279,25 @@ export function calculateEmployeeMonth(input: CalculateInput): EmployeeMonthResu
         'INVALID_EXTRA'
       );
       extraIds.add(x.extraId);
-      result.extraSatang += validateSatang(x.amountSatang);
+      const isDeduction = x.type === 'DEDUCTION';
+      if (isDeduction) {
+        monthlyDeductionSum += validateSatang(x.amountSatang);
+      } else {
+        result.extraSatang += validateSatang(x.amountSatang);
+      }
       result.extras.push({
         extraId: x.extraId,
         label: x.label.trim(),
-        amountSatang: x.amountSatang
+        amountSatang: x.amountSatang,
+        type: isDeduction ? 'DEDUCTION' : 'BONUS'
       });
     });
 
   result.workedDays = result.full + result.half;
   result.paidDayUnits = result.full + result.half / 2;
+  result.deductionSatang = dailyDeductionSum + monthlyDeductionSum;
   result.grossSatang = result.baseSatang + result.extraSatang;
-  result.totalSatang = result.grossSatang - result.advanceSatang;
+  result.totalSatang = result.grossSatang - result.advanceSatang - result.deductionSatang;
   requireCondition(Number.isSafeInteger(result.totalSatang), 'MONEY_OVERFLOW');
 
   return result;

@@ -16,6 +16,7 @@ interface AttendanceItem {
   attendance: {
     status: 'FULL' | 'HALF' | 'ABSENT' | 'UNMARKED';
     advanceSatang: number;
+    deductionSatang: number;
     revision: number;
     updatedAt: string | null;
     notes?: string;
@@ -37,6 +38,7 @@ export function AttendanceTab({
   const [selectedDate, setSelectedDate] = useState<string>(initialDate || serverToday);
   const [items, setItems] = useState<AttendanceItem[]>([]);
   const [advanceInputs, setAdvanceInputs] = useState<Record<string, string>>({});
+  const [deductionInputs, setDeductionInputs] = useState<Record<string, string>>({});
   const [isWorkday, setIsWorkday] = useState<boolean>(true);
   const [isClosed, setIsClosed] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -61,12 +63,17 @@ export function AttendanceTab({
           setIsWorkday(json.data.isWorkday);
           setIsClosed(json.data.isClosed);
           const advances: Record<string, string> = {};
+          const deductions: Record<string, string> = {};
           json.data.items.forEach((it: AttendanceItem) => {
             if (it.attendance.advanceSatang) {
               advances[it.employee.employeeId] = (it.attendance.advanceSatang / 100).toFixed(2);
             }
+            if (it.attendance.deductionSatang) {
+              deductions[it.employee.employeeId] = (it.attendance.deductionSatang / 100).toFixed(2);
+            }
           });
           setAdvanceInputs(advances);
+          setDeductionInputs(deductions);
         } else {
           setErrorMsg(json.error?.message || 'โหลดข้อมูลไม่สำเร็จ');
         }
@@ -87,7 +94,8 @@ export function AttendanceTab({
     employeeId: string,
     status: 'FULL' | 'HALF' | 'ABSENT' | 'UNMARKED',
     expectedRevision: number,
-    customAdvanceSatang?: number
+    customAdvanceSatang?: number,
+    customDeductionSatang?: number
   ) => {
     if (!idToken || isClosed) return;
     setPendingMap(prev => ({ ...prev, [employeeId]: true }));
@@ -105,6 +113,18 @@ export function AttendanceTab({
       }
     }
 
+    // Determine deductionSatang to send
+    let deductionToSend = customDeductionSatang;
+    if (deductionToSend === undefined) {
+      const inputVal = deductionInputs[employeeId];
+      if (inputVal !== undefined && inputVal.trim() !== '') {
+        const num = parseFloat(inputVal);
+        if (!isNaN(num) && num >= 0) {
+          deductionToSend = Math.round(num * 100);
+        }
+      }
+    }
+
     try {
       const res = await fetch('/api/attendance', {
         method: 'POST',
@@ -117,6 +137,7 @@ export function AttendanceTab({
           employeeId,
           status,
           advanceSatang: advanceToSend,
+          deductionSatang: deductionToSend,
           expectedRevision,
           requestId
         })
@@ -132,6 +153,7 @@ export function AttendanceTab({
                   attendance: {
                     status: json.data.status,
                     advanceSatang: json.data.advanceSatang || 0,
+                    deductionSatang: json.data.deductionSatang || 0,
                     revision: json.data.revision,
                     updatedAt: json.data.updatedAt,
                     notes: ''
@@ -144,6 +166,12 @@ export function AttendanceTab({
           setAdvanceInputs(prev => ({ ...prev, [employeeId]: (json.data.advanceSatang / 100).toFixed(2) }));
         } else if (advanceToSend === 0) {
           setAdvanceInputs(prev => ({ ...prev, [employeeId]: '' }));
+        }
+
+        if (json.data.deductionSatang) {
+          setDeductionInputs(prev => ({ ...prev, [employeeId]: (json.data.deductionSatang / 100).toFixed(2) }));
+        } else if (deductionToSend === 0) {
+          setDeductionInputs(prev => ({ ...prev, [employeeId]: '' }));
         }
       } else {
         alert(json.error?.message || 'บันทึกไม่สำเร็จ');
@@ -172,7 +200,25 @@ export function AttendanceTab({
       }
       satang = Math.round(num * 100);
     }
-    handleMark(employeeId, currentStatus, expectedRevision, satang);
+    handleMark(employeeId, currentStatus, expectedRevision, satang, undefined);
+  };
+
+  const handleSaveDeduction = (
+    employeeId: string,
+    currentStatus: 'FULL' | 'HALF' | 'ABSENT' | 'UNMARKED',
+    expectedRevision: number
+  ) => {
+    const rawVal = (deductionInputs[employeeId] || '').trim();
+    let satang = 0;
+    if (rawVal !== '') {
+      const num = parseFloat(rawVal);
+      if (isNaN(num) || num < 0) {
+        alert('กรุณากรอกจำนวนเงินหักเป็นตัวเลขที่ถูกต้อง');
+        return;
+      }
+      satang = Math.round(num * 100);
+    }
+    handleMark(employeeId, currentStatus, expectedRevision, undefined, satang);
   };
 
   const handleAddWorkday = async () => {
@@ -423,18 +469,59 @@ export function AttendanceTab({
                 )}
               </div>
 
+              {/* Deduction Input directly following advance */}
+              <div className={styles.deductionSection}>
+                <label className={styles.deductionLabel} htmlFor={`deduction-${emp.employeeId}`}>
+                  หักเงิน บาท
+                </label>
+                <div className={styles.advanceRow}>
+                  <input
+                    id={`deduction-${emp.employeeId}`}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0"
+                    className={styles.advanceInput}
+                    placeholder="ระบุจำนวนเงิน เช่น 100"
+                    value={deductionInputs[emp.employeeId] ?? (att.deductionSatang ? (att.deductionSatang / 100).toFixed(2) : '')}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setDeductionInputs(prev => ({ ...prev, [emp.employeeId]: val }));
+                    }}
+                    disabled={isPending || isClosed}
+                  />
+                  <button
+                    type="button"
+                    className={styles.deductionSaveBtn}
+                    disabled={isPending || isClosed}
+                    onClick={() => handleSaveDeduction(emp.employeeId, att.status, att.revision)}
+                  >
+                    บันทึกหัก
+                  </button>
+                </div>
+                {att.deductionSatang > 0 && (
+                  <div className={styles.deductionBadge}>
+                    หักเงินแล้ว {(att.deductionSatang / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท
+                  </div>
+                )}
+              </div>
+
               <div className={styles.cardFooter}>
                 <span className={styles.statusText}>
                   {isPending
                     ? 'กำลังบันทึก...'
                     : att.status !== 'UNMARKED'
                     ? `${statusLabel} · บันทึกแล้ว`
+                    : att.advanceSatang > 0 && att.deductionSatang > 0
+                    ? 'บันทึกเบิกและหักเงินแล้ว'
                     : att.advanceSatang > 0
                     ? 'บันทึกเบิกเงินแล้ว'
+                    : att.deductionSatang > 0
+                    ? 'บันทึกหักเงินแล้ว'
                     : 'ยังไม่เช็ค'}
                 </span>
 
-                {(att.status !== 'UNMARKED' || att.advanceSatang > 0) && !isClosed && (
+                {(att.status !== 'UNMARKED' || att.advanceSatang > 0 || att.deductionSatang > 0) && !isClosed && (
                   <div>
                     {isClearing ? (
                       <div className={styles.confirmBox}>
@@ -443,7 +530,7 @@ export function AttendanceTab({
                           type="button"
                           className={styles.textBtn}
                           disabled={isPending}
-                          onClick={() => handleMark(emp.employeeId, 'UNMARKED', att.revision, 0)}
+                          onClick={() => handleMark(emp.employeeId, 'UNMARKED', att.revision, 0, 0)}
                         >
                           ยืนยัน
                         </button>

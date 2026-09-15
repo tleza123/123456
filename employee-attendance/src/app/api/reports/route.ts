@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
           return {
             employeeId: doc.id,
             name: s.name,
+            nickname: s.nickname || '',
             position: s.position,
             full: s.counts.full,
             half: s.counts.half,
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
             baseSatang: s.baseSatang,
             extraSatang: s.extraSatang,
             advanceSatang: s.advanceSatang || 0,
+            deductionSatang: s.deductionSatang || 0,
             grossSatang: s.grossSatang ?? (s.baseSatang + s.extraSatang),
             totalSatang: s.totalSatang
           };
@@ -75,7 +77,10 @@ export async function GET(req: NextRequest) {
           closedAt: monthData.closedAt,
           closedBy: monthData.closedBy,
           closureId: monthData.currentClosureId,
-          totals: manifest.totalsSatang,
+          totals: {
+            ...manifest.totalsSatang,
+            deduction: manifest.totalsSatang?.deduction || 0
+          },
           pendingTotal: 0,
           employees: employeeReports
         });
@@ -130,6 +135,7 @@ export async function GET(req: NextRequest) {
     let totalBase = 0;
     let totalExtra = 0;
     let totalAdvance = 0;
+    let totalDeduction = 0;
     let totalGross = 0;
     let totalNet = 0;
     let totalPending = 0;
@@ -159,6 +165,7 @@ export async function GET(req: NextRequest) {
           totalBase += calc.baseSatang;
           totalExtra += calc.extraSatang;
           totalAdvance += calc.advanceSatang;
+          totalDeduction += calc.deductionSatang;
           totalGross += calc.grossSatang;
           totalNet += calc.totalSatang;
           totalPending += calc.pending;
@@ -177,6 +184,7 @@ export async function GET(req: NextRequest) {
             baseSatang: calc.baseSatang,
             extraSatang: calc.extraSatang,
             advanceSatang: calc.advanceSatang,
+            deductionSatang: calc.deductionSatang,
             grossSatang: calc.grossSatang,
             totalSatang: calc.totalSatang
           };
@@ -196,6 +204,7 @@ export async function GET(req: NextRequest) {
             baseSatang: 0,
             extraSatang: 0,
             advanceSatang: 0,
+            deductionSatang: 0,
             grossSatang: 0,
             totalSatang: 0,
             error: e.message
@@ -211,6 +220,7 @@ export async function GET(req: NextRequest) {
         base: totalBase,
         extra: totalExtra,
         advance: totalAdvance,
+        deduction: totalDeduction,
         gross: totalGross,
         total: totalNet
       },

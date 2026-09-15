@@ -74,6 +74,7 @@ export async function GET(req: NextRequest) {
         docId: doc.id,
         status: d.status,
         advanceSatang: typeof d.advanceSatang === 'number' ? d.advanceSatang : 0,
+        deductionSatang: typeof d.deductionSatang === 'number' ? d.deductionSatang : 0,
         revision: d.revision,
         updatedAt: d.updatedAt,
         notes: d.notes || ''
@@ -94,6 +95,7 @@ export async function GET(req: NextRequest) {
           ? {
               status: record.status,
               advanceSatang: record.advanceSatang || 0,
+              deductionSatang: record.deductionSatang || 0,
               revision: record.revision,
               updatedAt: record.updatedAt,
               notes: record.notes
@@ -101,6 +103,7 @@ export async function GET(req: NextRequest) {
           : {
               status: 'UNMARKED',
               advanceSatang: 0,
+              deductionSatang: 0,
               revision: 0,
               updatedAt: null,
               notes: ''
@@ -129,7 +132,7 @@ export async function POST(req: NextRequest) {
   try {
     const owner = await verifyOwner(req);
     const body = await req.json();
-    const { dateKey: rawDate, employeeId, status, expectedRevision, requestId, notes, advanceSatang } = body;
+    const { dateKey: rawDate, employeeId, status, expectedRevision, requestId, notes, advanceSatang, deductionSatang } = body;
 
     if (!requestId || typeof requestId !== 'string' || requestId.length < 10) {
       return createErrorResponse('INVALID_INPUT', 'กรุณาระบุ requestId ให้ถูกต้อง', 422);
@@ -154,6 +157,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let parsedDeduction: number | undefined = undefined;
+    if (deductionSatang !== undefined && deductionSatang !== null) {
+      const num = Number(deductionSatang);
+      try {
+        parsedDeduction = validateSatang(num);
+      } catch {
+        return createErrorResponse('INVALID_INPUT', 'จำนวนเงินหักไม่ถูกต้อง', 422);
+      }
+    }
+
     const targetDate = dateKey(rawDate);
     const today = getBangkokToday();
     if (targetDate > today && status !== 'UNMARKED') {
@@ -170,6 +183,7 @@ export async function POST(req: NextRequest) {
       status,
       expectedRevision,
       advanceSatang: parsedAdvance !== undefined ? parsedAdvance : undefined,
+      deductionSatang: parsedDeduction !== undefined ? parsedDeduction : undefined,
       notes: notes || ''
     });
 
@@ -231,11 +245,15 @@ export async function POST(req: NextRequest) {
       const currentAdvance = attSnap.exists ? (typeof attSnap.data()?.advanceSatang === 'number' ? attSnap.data()?.advanceSatang : 0) : 0;
       const finalAdvance = parsedAdvance !== undefined ? parsedAdvance : currentAdvance;
 
+      const currentDeduction = attSnap.exists ? (typeof attSnap.data()?.deductionSatang === 'number' ? attSnap.data()?.deductionSatang : 0) : 0;
+      const finalDeduction = parsedDeduction !== undefined ? parsedDeduction : currentDeduction;
+
       const attendanceData = {
         dateKey: targetDate,
         employeeId,
         status,
         advanceSatang: finalAdvance,
+        deductionSatang: finalDeduction,
         revision: newRevision,
         updatedAt: now,
         updatedBy: owner.uid,
@@ -264,9 +282,11 @@ export async function POST(req: NextRequest) {
         employeeId,
         status,
         advanceSatang: finalAdvance,
+        deductionSatang: finalDeduction,
         revision: newRevision,
         updatedAt: now
       };
+
 
       recordRequestReceipt(tx, requestRef, {
         requestId,

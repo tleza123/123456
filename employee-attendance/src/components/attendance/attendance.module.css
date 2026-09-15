@@ -340,3 +340,52 @@
   display: inline-block;
 }
 
+.deductionSection {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--team-border);
+}
+
+.deductionLabel {
+  display: block;
+  font-size: var(--team-secondary);
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 0.4rem;
+}
+
+.deductionSaveBtn {
+  min-height: var(--team-btn-height);
+  padding: 0 1.2rem;
+  border: 1px solid #dc2626;
+  border-radius: var(--team-radius-button);
+  background-color: #dc2626;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: var(--team-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease;
+}
+
+.deductionSaveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deductionBadge {
+  margin-top: 0.45rem;
+  font-size: var(--team-secondary);
+  color: #b91c1c;
+  font-weight: 700;
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--team-radius-small);
+  padding: 0.25rem 0.6rem;
+  display: inline-block;
+}
+
+

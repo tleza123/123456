@@ -286,4 +286,49 @@ test('Test 14: Employee with nickname-only is valid and calculated correctly', (
   assert.equal(snapshot.totalSatang, 250000);
 });
 
+test('Test 15: Deduction system correctly calculates daily and monthly deductions, updating snapshots and manifest', () => {
+  const f = fixture();
+  f.attendance = marks(5, 'FULL');
+  // Day 2 has advance 300 THB
+  f.attendance[1].advanceSatang = 30000;
+  // Day 3 has daily deduction 100 THB (e.g. fine / tardiness)
+  f.attendance[2].deductionSatang = 10000;
+
+  // Monthly extras: 1 bonus (500 THB) + 1 deduction (200 THB)
+  f.extras = [
+    { extraId: 'ex1', employeeId: f.employee.employeeId, monthKey: f.month, label: 'เบี้ยขยัน', amountSatang: 50000, type: 'BONUS' },
+    { extraId: 'ex2', employeeId: f.employee.employeeId, monthKey: f.month, label: 'หักค่าของเสียหาย', amountSatang: 20000, type: 'DEDUCTION' }
+  ];
+
+  const r = calculateEmployeeMonth(f);
+  assert.equal(r.baseSatang, 250000); // 5 * 500 THB = 2,500 THB
+  assert.equal(r.extraSatang, 50000); // 500 THB
+  assert.equal(r.grossSatang, 300000); // 3,000 THB
+  assert.equal(r.advanceSatang, 30000); // 300 THB
+  assert.equal(r.deductionSatang, 30000); // 100 THB daily + 200 THB monthly = 300 THB
+  assert.equal(r.totalSatang, 240000); // 300,000 - 30,000 - 30,000 = 240,000 Satang (2,400 THB)
+  assert.equal(formatMoney(r.totalSatang), '2,400.00');
+
+  // Verify daily deduction mapping
+  const day3 = r.days.find((d) => d.dateKey === '2026-09-03');
+  assert.equal(day3?.deductionSatang, 10000);
+
+  // Snapshot verification
+  const snapshot = buildEmployeeSnapshot(f.employee.name, f.employee.position, r);
+  assert.equal(snapshot.baseSatang, 250000);
+  assert.equal(snapshot.extraSatang, 50000);
+  assert.equal(snapshot.advanceSatang, 30000);
+  assert.equal(snapshot.deductionSatang, 30000);
+  assert.equal(snapshot.totalSatang, 240000);
+
+  // Closure manifest verification
+  const manifest = buildClosureManifest('closure_deduct', '2026-09', 1, [snapshot], 'owner_test');
+  assert.equal(manifest.totalsSatang.base, 250000);
+  assert.equal(manifest.totalsSatang.extra, 50000);
+  assert.equal(manifest.totalsSatang.advance, 30000);
+  assert.equal(manifest.totalsSatang.deduction, 30000);
+  assert.equal(manifest.totalsSatang.total, 240000);
+});
+
+
 

@@ -255,3 +255,44 @@
   gap: 0.6rem;
   margin-top: 1.2rem;
 }
+
+.typeSelector {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.typeBtn {
+  flex: 1;
+  min-height: var(--team-btn-height);
+  padding: 0.6rem;
+  border: 1px solid var(--team-border);
+  border-radius: var(--team-radius-button);
+  background-color: #f8fafc;
+  color: var(--team-text);
+  font-size: var(--team-secondary);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.typeBtnActiveBonus {
+  background-color: var(--team-primary);
+  color: #ffffff;
+  border-color: var(--team-primary);
+}
+
+.typeBtnActiveDeduction {
+  background-color: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.deductionItem {
+  color: #dc2626;
+}
+

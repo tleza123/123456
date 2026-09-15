@@ -15,10 +15,11 @@ export interface EmployeeSnapshot {
     paidDayUnits: number;
   };
   ratePeriods: { effectiveFrom: string; dailySatang: number }[];
-  extras: { extraId: string; label: string; amountSatang: number }[];
+  extras: { extraId: string; label: string; amountSatang: number; type?: 'BONUS' | 'DEDUCTION' }[];
   baseSatang: number;
   extraSatang: number;
   advanceSatang: number;
+  deductionSatang: number;
   totalSatang: number;
   days: {
     dateKey: string;
@@ -26,6 +27,7 @@ export interface EmployeeSnapshot {
     dailySatang?: number;
     amountSatang: number | null;
     advanceSatang?: number;
+    deductionSatang?: number;
   }[];
   checksum: string;
   partsCount: number;
@@ -41,6 +43,7 @@ export interface ClosureManifest {
     base: number;
     extra: number;
     advance: number;
+    deduction: number;
     total: number;
   };
   manifestHash: string;
@@ -82,6 +85,7 @@ export function buildEmployeeSnapshot(
     baseSatang: calc.baseSatang,
     extraSatang: calc.extraSatang,
     advanceSatang: calc.advanceSatang,
+    deductionSatang: calc.deductionSatang || 0,
     totalSatang: calc.totalSatang,
     days: calc.days,
     partsCount: 1
@@ -107,6 +111,7 @@ export function buildClosureManifest(
   let baseSum = 0;
   let extraSum = 0;
   let advanceSum = 0;
+  let deductionSum = 0;
   let totalSum = 0;
   const employeeIds: string[] = [];
 
@@ -115,6 +120,7 @@ export function buildClosureManifest(
     baseSum += s.baseSatang;
     extraSum += s.extraSatang;
     advanceSum += s.advanceSatang || 0;
+    deductionSum += s.deductionSatang || 0;
     totalSum += s.totalSatang;
   }
 
@@ -127,6 +133,7 @@ export function buildClosureManifest(
       base: baseSum,
       extra: extraSum,
       advance: advanceSum,
+      deduction: deductionSum,
       total: totalSum
     },
     algorithmVersion: ALGORITHM_VERSION,
@@ -143,3 +150,4 @@ export function buildClosureManifest(
     closedBy: actorUid
   };
 }
+

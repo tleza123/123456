@@ -20,6 +20,7 @@ interface EmployeeReportSummary {
   baseSatang: number;
   extraSatang: number;
   advanceSatang?: number;
+  deductionSatang?: number;
   grossSatang?: number;
   totalSatang: number;
   error?: string;
@@ -49,6 +50,7 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
   const [showReopenModal, setShowReopenModal] = useState<boolean>(false);
   const [reopenReason, setReopenReason] = useState<string>('');
   const [showExtrasModal, setShowExtrasModal] = useState<boolean>(false);
+  const [extraType, setExtraType] = useState<'BONUS' | 'DEDUCTION'>('BONUS');
   const [newExtraLabel, setNewExtraLabel] = useState<string>('');
   const [newExtraAmount, setNewExtraAmount] = useState<string>('');
 
@@ -247,15 +249,17 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
           employeeId: selectedEmployeeId,
           label: newExtraLabel.trim(),
           amount: newExtraAmount.trim(),
+          type: extraType,
           requestId
         })
       });
       const json = await res.json();
       if (json.ok) {
-        alert('บันทึกเงินพิเศษเดือนนี้เรียบร้อย');
+        alert(extraType === 'DEDUCTION' ? 'บันทึกรายการหักเงินเดือนนี้เรียบร้อย' : 'บันทึกเงินพิเศษเดือนนี้เรียบร้อย');
         setShowExtrasModal(false);
         setNewExtraLabel('');
         setNewExtraAmount('');
+        setExtraType('BONUS');
         fetchEmployeeDetail(selectedEmployeeId, selectedMonth);
         fetchMonthlyReport(selectedMonth);
       } else {
@@ -339,9 +343,12 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
               <button
                 type="button"
                 className={styles.backBtn}
-                onClick={() => setShowExtrasModal(true)}
+                onClick={() => {
+                  setExtraType('BONUS');
+                  setShowExtrasModal(true);
+                }}
               >
-                + แก้เงินพิเศษเดือนนี้
+                + เพิ่มเงินพิเศษหรือรายการหัก
               </button>
             )}
           </div>
@@ -352,25 +359,41 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
           </div>
 
           {detailData.extras && detailData.extras.length > 0 ? (
-            detailData.extras.map((x: any, i: number) => (
-              <div key={i} className={styles.lineItem}>
-                <span>{x.label}</span>
-                <span>{formatMoney(x.amountSatang)} บาท</span>
-              </div>
-            ))
+            detailData.extras.map((x: any, i: number) => {
+              const isDeduction = x.type === 'DEDUCTION';
+              return (
+                <div key={i} className={`${styles.lineItem} ${isDeduction ? styles.deductionItem : ''}`}>
+                  <span>{x.label}</span>
+                  <strong>{isDeduction ? `-${formatMoney(x.amountSatang)}` : `+${formatMoney(x.amountSatang)}`} บาท</strong>
+                </div>
+              );
+            })
           ) : (
             <div className={styles.lineItem}>
-              <span style={{ color: 'var(--team-muted)' }}>ไม่มีเงินพิเศษ</span>
+              <span style={{ color: 'var(--team-muted)' }}>ไม่มีเงินพิเศษหรือรายการหักเพิ่มเติม</span>
               <span>0.00 บาท</span>
             </div>
           )}
 
           {detailData.advanceSatang > 0 && (
-            <div className={styles.lineItem} style={{ color: 'var(--team-absent)' }}>
+            <div className={`${styles.lineItem} ${styles.deductionItem}`}>
               <span>หักเบิกเงินล่วงหน้ารวม</span>
               <strong>-{formatMoney(detailData.advanceSatang)} บาท</strong>
             </div>
           )}
+
+          {(() => {
+            const dailyDeductions = detailData.days?.reduce((sum: number, d: any) => sum + (d.deductionSatang || 0), 0) || 0;
+            if (dailyDeductions > 0) {
+              return (
+                <div className={`${styles.lineItem} ${styles.deductionItem}`}>
+                  <span>หักเงินรายวันรวม</span>
+                  <strong>-{formatMoney(dailyDeductions)} บาท</strong>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           <div className={styles.lineItem} style={{ borderTop: '2px solid var(--team-border)', marginTop: '0.4rem', paddingTop: '0.8rem' }}>
             <strong>ยอดสุทธิทั้งสิ้น</strong>
@@ -386,7 +409,7 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
               style={{ marginTop: '1rem' }}
               onClick={handleConfirmReview}
             >
-              ยืนยันการตรวจสอบเงินพิเศษ
+              ยืนยันการตรวจสอบเงินพิเศษและรายการหัก
             </button>
           )}
         </section>
@@ -413,6 +436,11 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
                           · เบิก {formatMoney(d.advanceSatang)} บาท
                         </span>
                       )}
+                      {d.deductionSatang > 0 && (
+                        <span style={{ color: '#dc2626', marginLeft: '0.5rem', fontWeight: 700 }}>
+                          · หัก {formatMoney(d.deductionSatang)} บาท
+                        </span>
+                      )}
                     </span>
                   </div>
                   <span>{d.amountSatang === null ? '—' : `${formatMoney(d.amountSatang)} บาท`}</span>
@@ -425,23 +453,42 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
         {showExtrasModal && (
           <div className={styles.modalOverlay}>
             <div className={styles.modalCard}>
-              <h3 className={styles.modalTitle}>เพิ่มเงินพิเศษเดือนนี้</h3>
+              <h3 className={styles.modalTitle}>
+                {extraType === 'DEDUCTION' ? 'เพิ่มรายการหักเงินเดือนนี้' : 'เพิ่มเงินพิเศษเดือนนี้'}
+              </h3>
               <p style={{ color: 'var(--team-muted)', fontSize: 'var(--team-secondary)' }}>
                 สำหรับ {detailData.nickname || detailData.name} เฉพาะเดือน {formatThaiMonth(selectedMonth)}
               </p>
 
-              <label className={styles.monthLabel} style={{ marginTop: '1rem' }}>
-                ชื่อรายการ (เช่น ค่าเดินทาง, ค่าอาหาร, ค่าตำแหน่ง)
+              <div className={styles.typeSelector}>
+                <button
+                  type="button"
+                  className={`${styles.typeBtn} ${extraType === 'BONUS' ? styles.typeBtnActiveBonus : ''}`}
+                  onClick={() => setExtraType('BONUS')}
+                >
+                  เงินเพิ่มพิเศษ
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.typeBtn} ${extraType === 'DEDUCTION' ? styles.typeBtnActiveDeduction : ''}`}
+                  onClick={() => setExtraType('DEDUCTION')}
+                >
+                  รายการหักเงิน
+                </button>
+              </div>
+
+              <label className={styles.monthLabel} style={{ marginTop: '0.6rem' }}>
+                {extraType === 'DEDUCTION' ? 'ชื่อรายการหัก' : 'ชื่อรายการพิเศษ'}
                 <input
                   className={styles.monthSelect}
                   value={newExtraLabel}
                   onChange={e => setNewExtraLabel(e.target.value)}
-                  placeholder="พิมพ์ชื่อรายการ..."
+                  placeholder={extraType === 'DEDUCTION' ? 'เช่น ค่าของเสียหาย, ค่าปรับมาสาย' : 'เช่น ค่าเดินทาง, ค่าอาหาร, ค่าตำแหน่ง'}
                 />
               </label>
 
               <label className={styles.monthLabel} style={{ marginTop: '0.8rem' }}>
-                จำนวนเงิน (บาท)
+                จำนวนเงิน บาท
                 <input
                   type="text"
                   inputMode="decimal"
@@ -506,7 +553,8 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
             <p className={styles.summarySub}>
               ค่าแรงสะสม {formatMoney(reportData.totals.base)} บาท
               {reportData.totals.extra > 0 && ` + เงินพิเศษ ${formatMoney(reportData.totals.extra)} บาท`}
-              {reportData.totals.advance > 0 && ` - หักเบิกเงินล่วงหน้า ${formatMoney(reportData.totals.advance)} บาท`}
+              {reportData.totals.advance > 0 && ` - หักเบิก ${formatMoney(reportData.totals.advance)} บาท`}
+              {reportData.totals.deduction > 0 && ` - หักเงิน ${formatMoney(reportData.totals.deduction)} บาท`}
             </p>
           </div>
 
@@ -554,6 +602,11 @@ export function ReportsTab({ initialMonth, serverToday }: ReportsTabProps) {
                   {emp.advanceSatang && emp.advanceSatang > 0 ? (
                     <span style={{ fontSize: 'var(--team-secondary)', color: 'var(--team-absent)', marginLeft: '0.6rem', fontWeight: 700 }}>
                       · หักเบิก {formatMoney(emp.advanceSatang)} บาท
+                    </span>
+                  ) : null}
+                  {emp.deductionSatang && emp.deductionSatang > 0 ? (
+                    <span style={{ fontSize: 'var(--team-secondary)', color: '#dc2626', marginLeft: '0.6rem', fontWeight: 700 }}>
+                      · หัก {formatMoney(emp.deductionSatang)} บาท
                     </span>
                   ) : null}
                 </div>
