@@ -27,6 +27,10 @@ export function getEmployeeRef(employeeId: string, shopId = getShopId()): admin.
   return getEmployeesCol(shopId).doc(employeeId);
 }
 
+export function getEmployeePhotoRef(employeeId: string, shopId = getShopId()): admin.firestore.DocumentReference {
+  return getShopDocRef(shopId).collection('employeePhotos').doc(employeeId);
+}
+
 export function getRatesCol(employeeId: string, shopId = getShopId()): admin.firestore.CollectionReference {
   return getEmployeeRef(employeeId, shopId).collection('rates');
 }

@@ -5,6 +5,7 @@ import { createSuccessResponse, createErrorResponse } from '@/lib/server/errors'
 import {
   getShopId,
   getEmployeeRef,
+  getEmployeePhotoRef,
   getRequestsCol,
   recordAudit
 } from '@/lib/server/repository';
@@ -22,34 +23,53 @@ export async function GET(
     const { id: employeeId } = await params;
     const shopId = getShopId();
 
+    // 1. First attempt: check Cloud Firestore (Primary storage)
+    const photoDoc = await getEmployeePhotoRef(employeeId, shopId).get();
+    if (photoDoc.exists) {
+      const photoData = photoDoc.data();
+      if (photoData?.data) {
+        const buffer = Buffer.from(photoData.data, 'base64');
+        return new NextResponse(new Uint8Array(buffer), {
+          status: 200,
+          headers: {
+            'Content-Type': photoData.contentType || 'image/jpeg',
+            'Cache-Control': 'private, max-age=86400, stale-while-revalidate=604800',
+            'Content-Length': buffer.length.toString()
+          }
+        });
+      }
+    }
+
+    // 2. Fallback: check Firebase Storage for legacy uploads (if configured)
     const empSnap = await getEmployeeRef(employeeId, shopId).get();
     if (!empSnap.exists) {
       return createErrorResponse('NOT_FOUND', 'ไม่พบพนักงาน', 404);
     }
 
     const emp = empSnap.data();
-    if (!emp?.photo?.objectPath) {
-      return createErrorResponse('NOT_FOUND', 'พนักงานไม่มีรูปภาพ', 404);
-    }
-
-    const storage = getAdminStorage();
-    const bucket = storage.bucket();
-    const file = bucket.file(emp.photo.objectPath);
-    const [exists] = await file.exists();
-    if (!exists) {
-      return createErrorResponse('NOT_FOUND', 'ไม่พบไฟล์รูปภาพในระบบจัดเก็บ', 404);
-    }
-
-    const [buffer] = await file.download();
-
-    return new NextResponse(new Uint8Array(buffer), {
-      status: 200,
-      headers: {
-        'Content-Type': 'image/jpeg',
-        'Cache-Control': 'private, no-store, no-cache, must-revalidate',
-        'Content-Length': buffer.length.toString()
+    if (emp?.photo?.objectPath && process.env.FIREBASE_STORAGE_BUCKET) {
+      try {
+        const storage = getAdminStorage();
+        const bucket = storage.bucket();
+        const file = bucket.file(emp.photo.objectPath);
+        const [exists] = await file.exists();
+        if (exists) {
+          const [buffer] = await file.download();
+          return new NextResponse(new Uint8Array(buffer), {
+            status: 200,
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Cache-Control': 'private, max-age=86400, stale-while-revalidate=604800',
+              'Content-Length': buffer.length.toString()
+            }
+          });
+        }
+      } catch {
+        // Fallback silently if storage is unavailable
       }
-    });
+    }
+
+    return createErrorResponse('NOT_FOUND', 'ไม่พบรูปภาพพนักงาน', 404);
   } catch (err: unknown) {
     const error = err as { code?: string; message?: string; statusCode?: number };
     return createErrorResponse(
@@ -84,11 +104,11 @@ export async function POST(
     const cleanBase64 = base64Data.replace(/^data:image\/[a-z]+;base64,/, '');
     const inputBuffer = Buffer.from(cleanBase64, 'base64');
 
-    if (inputBuffer.length > 1024 * 1024) {
-      return createErrorResponse('INVALID_INPUT', 'ขนาดไฟล์รูปภาพเกินกำหนด (ไม่เกิน 1 MB)', 422);
+    if (inputBuffer.length > 2 * 1024 * 1024) {
+      return createErrorResponse('INVALID_INPUT', 'ขนาดไฟล์รูปภาพเกินกำหนด (ไม่เกิน 2 MB)', 422);
     }
 
-    // Process image with sharp: strip metadata, rotate by EXIF, resize to thumbnail <= 192px and display <= 800px
+    // Process image with sharp: strip metadata, rotate by EXIF, resize to thumbnail <= 192px
     const image = sharp(inputBuffer);
     const metadata = await image.metadata();
 
@@ -103,35 +123,31 @@ export async function POST(
       .toBuffer();
 
     const thumbMeta = await sharp(thumbBuffer).metadata();
+    const thumbBase64 = thumbBuffer.toString('base64');
 
     const shopId = getShopId();
-    const storage = getAdminStorage();
-    const bucket = storage.bucket();
-    const objectPath = `shops/${shopId}/employees/${employeeId}/${requestId}/thumb.jpg`;
-    const file = bucket.file(objectPath);
+    const db = getAdminFirestore();
+    const photoRef = getEmployeePhotoRef(employeeId, shopId);
 
-    // 1. Upload to private Storage bucket first
-    await file.save(thumbBuffer, {
-      metadata: {
-        contentType: 'image/jpeg',
-        metadata: {
-          employeeId,
-          uploadedBy: owner.uid,
-          requestId
-        }
-      }
+    // Save compressed thumbnail directly into Firestore (no Firebase Storage bucket needed)
+    await photoRef.set({
+      data: thumbBase64,
+      contentType: 'image/jpeg',
+      width: thumbMeta.width || 192,
+      height: thumbMeta.height || 192,
+      updatedAt: new Date().toISOString(),
+      updatedBy: owner.uid
     });
 
-    const db = getAdminFirestore();
     const payloadHash = computePayloadHash(owner.uid, 'POST', `${employeeId}:photo`, {
-      objectPath,
+      storageType: 'firestore',
       expectedRevision
     });
 
     const requestRef = getRequestsCol(shopId).doc(requestId);
     const employeeRef = getEmployeeRef(employeeId, shopId);
 
-    // 2. Transaction to update photo pointer in employee document
+    // Transaction to update photo pointer and revision in employee document
     const result = await db.runTransaction(async tx => {
       const cached = await checkRequestReceipt(tx, requestRef, payloadHash);
       if (cached) return cached;
@@ -152,7 +168,7 @@ export async function POST(
       const now = new Date().toISOString();
 
       const photoData = {
-        objectPath,
+        storageType: 'firestore',
         width: thumbMeta.width || 192,
         height: thumbMeta.height || 192,
         version: newVersion,
@@ -192,9 +208,14 @@ export async function POST(
         createdAt: now
       });
 
-      // Cleanup old file asynchronously if path differs
-      if (previousObjectPath && previousObjectPath !== objectPath) {
-        bucket.file(previousObjectPath).delete().catch(() => {});
+      // Cleanup legacy Storage file if it existed
+      if (previousObjectPath && process.env.FIREBASE_STORAGE_BUCKET) {
+        try {
+          const storage = getAdminStorage();
+          storage.bucket().file(previousObjectPath).delete().catch(() => {});
+        } catch {
+          // ignore
+        }
       }
 
       return responsePayload;
@@ -232,6 +253,7 @@ export async function DELETE(
 
     const requestRef = getRequestsCol(shopId).doc(requestId);
     const employeeRef = getEmployeeRef(employeeId, shopId);
+    const photoRef = getEmployeePhotoRef(employeeId, shopId);
 
     const result = await db.runTransaction(async tx => {
       const cached = await checkRequestReceipt(tx, requestRef, payloadHash);
@@ -246,6 +268,9 @@ export async function DELETE(
       const previousObjectPath = current.photo?.objectPath;
       const newRevision = current.revision + 1;
       const now = new Date().toISOString();
+
+      // Delete photo document from Firestore
+      tx.delete(photoRef);
 
       tx.update(employeeRef, {
         photo: null,
@@ -280,9 +305,13 @@ export async function DELETE(
         createdAt: now
       });
 
-      if (previousObjectPath) {
-        const storage = getAdminStorage();
-        storage.bucket().file(previousObjectPath).delete().catch(() => {});
+      if (previousObjectPath && process.env.FIREBASE_STORAGE_BUCKET) {
+        try {
+          const storage = getAdminStorage();
+          storage.bucket().file(previousObjectPath).delete().catch(() => {});
+        } catch {
+          // ignore
+        }
       }
 
       return responsePayload;

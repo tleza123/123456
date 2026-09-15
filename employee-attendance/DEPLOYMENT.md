@@ -25,11 +25,8 @@
    - เลือกโหมด **Production Mode**
    - นำไฟล์ [firestore.rules](file:///c:/attendance-blueprint/employee-attendance/firestore.rules) ไป Publish (กฎจะเป็น `deny all` ป้องกันการเข้าถึงโดยตรงจาก client)
    - นำไฟล์ [firestore.indexes.json](file:///c:/attendance-blueprint/employee-attendance/firestore.indexes.json) ไป Deploy ผ่าน Firebase CLI หรือสร้าง Composite Indexes ใน Console ตามไฟล์
-3. **Firebase Storage**:
-   - ไปที่ **Storage** > **Get started**
-   - เลือก Location เดียวกับ Firestore (`asia-southeast1`)
-   - นำไฟล์ [storage.rules](file:///c:/attendance-blueprint/employee-attendance/storage.rules) ไป Publish (กฎจะเป็น `deny all` รูปทั้งหมดจะถูกดาวน์โหลดผ่าน Server Proxy เท่านั้น)
-4. **Service Account (สำหรับ Server Admin SDK)**:
+   - **ไม่ต้องเปิด Firebase Storage**: รูปถ่ายพนักงานจะถูกบีบอัดและจัดเก็บลง Cloud Firestore โดยตรง ทำให้ไม่ต้องเปิดบริการ Storage ไม่ต้องเสียค่าใช้จ่าย และไม่ต้องผูกบัตรเครดิต (Spark Plan ฟรี 100%)
+3. **Service Account (สำหรับ Server Admin SDK)**:
    - ไปที่ **Project settings** > **Service accounts**
    - กดปุ่ม **Generate new private key**
    - บันทึกไฟล์ JSON ไว้ในที่ปลอดภัย (ห้าม commit ลง Git)
@@ -59,7 +56,6 @@
 | `FIREBASE_PROJECT_ID` | Production, Preview, Dev | Project ID ฝั่ง Server จาก Service Account |
 | `FIREBASE_CLIENT_EMAIL` | Production, Preview, Dev | Service Account Email |
 | `FIREBASE_PRIVATE_KEY` | Production, Preview, Dev | Private Key (ขึ้นต้นด้วย `-----BEGIN PRIVATE KEY-----`) |
-| `FIREBASE_STORAGE_BUCKET` | Production, Preview, Dev | Storage Bucket สำหรับจัดเก็บรูปถ่ายพนักงาน |
 
 ### ตัวแปรเสริม (Optional - สำหรับเปิดระบบล็อกอินในอนาคตหากต้องการ)
 | ตัวแปร | Scope | คำอธิบาย |
@@ -111,11 +107,9 @@ npm run seed:demo
 
 - **Firebase Authentication**: ใช้งานฟรีไม่จำกัดสำหรับการล็อกอินด้วย Google Identity Platform
 - **Cloud Firestore**:
-  - โควตาฟรี (Spark Plan): อ่าน 50,000 ครั้ง/วัน, เขียน 20,000 ครั้ง/วัน, จัดเก็บข้อมูล 1 GB
-  - สำหรับร้านค้าขนาด 10–30 คน มีการเช็คชื่อวันละครั้งและดูรายงานสัปดาห์ละ 1–2 ครั้ง ปริมาณการใช้งานอยู่ที่ประมาณ **50–200 ครั้ง/วัน** ซึ่งอยู่ภายใต้โควตาฟรีอย่างสบาย
-- **Firebase Storage**:
-  - โควตาฟรี: จัดเก็บข้อมูล 5 GB, ดาวน์โหลด 1 GB/วัน
-  - รูปถ่ายพนักงานถูกย่อเหลือขนาดไม่เกิน 200 KB ต่อรูป สำหรับพนักงาน 20 คน ใช้พื้นที่เพียงประมาณ 4 MB
+  - โควตาฟรี (Spark Plan): อ่าน 50,000 ครั้ง/วัน, เขียน 20,000 ครั้ง/วัน, จัดเก็บข้อมูล 1 GB ฟรีตลอดชีพ
+  - จัดเก็บทั้งข้อมูลการเช็คชื่อ คำนวณเงิน และรูปโปรไฟล์พนักงาน (ขนาดประมาณ 10–15 KB/รูป) ครบจบในที่เดียว
+  - สำหรับร้านค้าขนาด 10–30 คน ปริมาณการใช้งานอยู่ที่ประมาณ **50–200 ครั้ง/วัน** ซึ่งอยู่ภายใต้โควตาฟรีอย่างสบาย
 - **Vercel**:
   - แผน Hobby (ฟรี): Bandwidth 100 GB/เดือน, Serverless Function Execution เพียงพอสำหรับการใช้งานคนเดียวอย่างเหลือเฟือ
-- **หมายเหตุ**: ไม่จำเป็นต้องเปิดบัตรเครดิตหรือ Upgrade เป็น Blaze Plan หากปริมาณการใช้งานไม่เกินโควตาฟรีข้างต้น อย่างไรก็ตาม ในอนาคตหากมีการขยายสาขาหรือเก็บข้อมูลต่อเนื่องหลายปี ควรหมั่นตรวจสอบการใช้งานในแดชบอร์ด
+- **หมายเหตุ**: ไม่จำเป็นต้องเปิดบัตรเครดิตหรือ Upgrade เป็น Blaze Plan ใดๆ ทั้งสิ้น เพราะระบบทำงานบน Cloud Firestore ฟรี 100% ภายใต้โควตา Spark Plan
