@@ -40,34 +40,39 @@
 
 ---
 
-## 2. การหาและกำหนด OWNER_UID
+## 2. การทำงานโหมดใช้งานคนเดียว (Single-User Mode - ไม่ต้องมีระบบล็อกอิน)
 
-1. ให้เจ้าของร้านเข้าสู่ระบบด้วยบัญชี Google ของตนเองในหน้า `/login`
-2. ไปที่ Firebase Console > **Authentication** > **Users**
-3. คัดลอกค่า **User UID** ของบัญชีเจ้าของร้าน (เช่น `abc123XYZ...`)
-4. นำค่านั้นมากำหนดลงในตัวแปรสิ่งแวดล้อม `OWNER_UID` บน Vercel
-5. เมื่อตั้งค่านี้แล้ว ระบบจะอนุญาตเฉพาะบัญชีที่มี UID ตรงกับค่านี่เท่านั้นในการเรียกใช้ API และจัดการข้อมูล
+ระบบได้รับการออกแบบให้เจ้าของร้านใช้งานคนเดียวได้อย่างสะดวกรวดเร็วที่สุด:
+* **เปิดเว็บแล้วเข้าใช้งานได้ทันที**: ไม่ต้องผ่านหน้าล็อกอิน ไม่ต้องกด Google Sign-In และไม่มีขั้นตอนยืนยันตัวตนที่ยุ่งยาก
+* **เข้าถึงได้จากทุกอุปกรณ์ของเจ้าของร้าน**: ทั้งมือถือ แท็บเล็ต หรือคอมพิวเตอร์ เพียงเปิดลิงก์ URL ของเว็บก็เริ่มเช็คชื่อ ดูรายงาน และตั้งค่าได้ทันที
+* **ตัวเลือกเสริม (Optional Authentication)**: หากในอนาคตต้องการเปิดระบบล็อกอินด้วย Google เพื่อจำกัดสิทธิ์เฉพาะบัญชีตนเอง สามารถทำได้โดยกำหนดตัวแปร `REQUIRE_AUTH=true` และระบุ `OWNER_UID` บน Vercel
 
 ---
 
 ## 3. ตัวแปรสิ่งแวดล้อม (Environment Variables)
 
-กำหนดตัวแปรสิ่งแวดล้อมบน Vercel (Settings > Environment Variables) โดยแยก Scope ให้ชัดเจน:
+กำหนดตัวแปรสิ่งแวดล้อมบน Vercel (Settings > Environment Variables):
 
+### ตัวแปรหลักที่จำเป็น (สำหรับการบันทึกข้อมูลและคำนวณเงิน)
 | ตัวแปร | Scope | คำอธิบาย |
 |---|---|---|
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Production, Preview, Dev | Web API Key จาก Firebase Config |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Production, Preview, Dev | Auth Domain จาก Firebase Config |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Production, Preview, Dev | Project ID |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Production, Preview, Dev | Storage Bucket Domain |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Production, Preview, Dev | Web App ID |
-| `FIREBASE_PROJECT_ID` | Production, Preview, Dev | Project ID ฝั่ง Server |
+| `FIREBASE_PROJECT_ID` | Production, Preview, Dev | Project ID ฝั่ง Server จาก Service Account |
 | `FIREBASE_CLIENT_EMAIL` | Production, Preview, Dev | Service Account Email |
 | `FIREBASE_PRIVATE_KEY` | Production, Preview, Dev | Private Key (ขึ้นต้นด้วย `-----BEGIN PRIVATE KEY-----`) |
-| `FIREBASE_STORAGE_BUCKET` | Production, Preview, Dev | Storage Bucket สำหรับ Admin SDK |
-| `OWNER_UID` | Production, Preview, Dev | Firebase User UID ของเจ้าของร้าน |
+| `FIREBASE_STORAGE_BUCKET` | Production, Preview, Dev | Storage Bucket สำหรับจัดเก็บรูปถ่ายพนักงาน |
 
-> **คำเตือนความปลอดภัย**: ตัวแปรของฝั่ง PROD ต้องกรอกเฉพาะใน Environment: `Production` บน Vercel เท่านั้น ส่วน `Preview` และ `Development` ให้กรอกข้อมูลของโครงการ DEV
+### ตัวแปรเสริม (Optional - สำหรับเปิดระบบล็อกอินในอนาคตหากต้องการ)
+| ตัวแปร | Scope | คำอธิบาย |
+|---|---|---|
+| `REQUIRE_AUTH` | Production, Preview, Dev | ตั้งเป็น `true` หากต้องการบังคับล็อกอิน Google (ค่าเริ่มต้นคือ `false` ไม่ต้องล็อกอิน) |
+| `OWNER_UID` | Production, Preview, Dev | Firebase User UID ของเจ้าของร้าน (ใช้เมื่อเปิด `REQUIRE_AUTH=true`) |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Production, Preview, Dev | Web API Key จาก Firebase Config (ใช้เมื่อเปิด `REQUIRE_AUTH=true`) |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Production, Preview, Dev | Auth Domain จาก Firebase Config (ใช้เมื่อเปิด `REQUIRE_AUTH=true`) |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Production, Preview, Dev | Project ID ฝั่ง Client |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Production, Preview, Dev | Web App ID ฝั่ง Client |
+
+> **คำเตือนความปลอดภัย**: ตัวแปร Service Account (`FIREBASE_PRIVATE_KEY`) ต้องเก็บเป็นความลับ ห้ามนำไปใส่คำนำหน้า `NEXT_PUBLIC_` โดยเด็ดขาด
+
 
 ---
 

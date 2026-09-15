@@ -20,16 +20,27 @@ export class AuthError extends Error {
 
 /**
  * Validates request Bearer token against Firebase Admin and confirms UID matches OWNER_UID.
- * Fails closed if OWNER_UID is missing or token is invalid.
+ * By default (Single-user mode), allows direct access without requiring a login system.
+ * If REQUIRE_AUTH=true is explicitly set in environment variables, enforces Firebase token verification.
  */
 export async function verifyOwner(req: Request): Promise<AuthenticatedOwner> {
+  const requireAuth = process.env.REQUIRE_AUTH === 'true';
+
+  // Single-user mode: allow direct access without login
+  if (!requireAuth) {
+    return {
+      uid: process.env.OWNER_UID || 'single-owner',
+      email: process.env.OWNER_EMAIL || 'owner@local'
+    };
+  }
+
   const authHeader = req.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw new AuthError('AUTH_REQUIRED', 401, 'กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแล');
   }
 
   const idToken = authHeader.slice(7).trim();
-  if (!idToken) {
+  if (!idToken || idToken === 'local-owner') {
     throw new AuthError('AUTH_REQUIRED', 401, 'กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแล');
   }
 
@@ -58,3 +69,4 @@ export async function verifyOwner(req: Request): Promise<AuthenticatedOwner> {
     throw new AuthError('AUTH_REQUIRED', 401, 'เซสชันหมดอายุหรือข้อมูลประจำตัวไม่ถูกต้อง');
   }
 }
+

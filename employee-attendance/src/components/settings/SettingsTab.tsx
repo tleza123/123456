@@ -5,7 +5,6 @@ import { useAuth } from '@/features/auth/AuthContext';
 import {
   Plus,
   User,
-  LogOut,
   ChevronDown,
   ChevronUp,
   Trash2,
@@ -54,7 +53,7 @@ interface SettingsTabProps {
 const DAY_NAMES = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
 
 export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {}) {
-  const { user, idToken, logout } = useAuth();
+  const { idToken } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filterActive, setFilterActive] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
@@ -978,12 +977,6 @@ export default function SettingsTab({ onUpdateShopName }: SettingsTabProps = {})
               </div>
             )}
           </div>
-
-          {/* Sign Out Button */}
-          <button className={styles.logoutBtn} onClick={() => logout()}>
-            <LogOut size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />
-            ออกจากระบบ
-          </button>
         </div>
       )}
 
