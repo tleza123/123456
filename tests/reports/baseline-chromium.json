@@ -1,0 +1,67 @@
+{
+  "engine": "chromium",
+  "mode": "baseline",
+  "measurements": [
+    {
+      "file": "index.html",
+      "coldLoadMs": 508,
+      "cls": 0,
+      "lcp": 496,
+      "longTasks": [
+        67
+      ]
+    },
+    {
+      "file": "index.html",
+      "navigationPairMaxMs": 6.3999998569488525,
+      "navigationPairMeanMs": 2.8
+    },
+    {
+      "file": "index.html",
+      "warm": {
+        "cls": 0,
+        "lcp": 0,
+        "longTasks": []
+      }
+    },
+    {
+      "file": "admin.html",
+      "coldLoadMs": 409,
+      "cls": 0,
+      "lcp": 92,
+      "longTasks": []
+    },
+    {
+      "file": "admin.html",
+      "bookingsLoaded": 300
+    },
+    {
+      "file": "admin.html",
+      "navigationPairMaxMs": 0.20000004768371582,
+      "navigationPairMeanMs": 0.045000004768371585
+    },
+    {
+      "file": "admin.html",
+      "warm": {
+        "cls": 0,
+        "lcp": 80,
+        "longTasks": []
+      }
+    }
+  ],
+  "checks": [
+    {
+      "file": "index.html",
+      "overflows": [],
+      "errors": []
+    },
+    {
+      "file": "admin.html",
+      "overflows": [],
+      "errors": [
+        "filterDebounceTimer is not defined",
+        "filterDebounceTimer is not defined"
+      ]
+    }
+  ]
+}
