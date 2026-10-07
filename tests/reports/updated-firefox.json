@@ -1,0 +1,82 @@
+{
+  "engine": "firefox",
+  "browserVersion": "153.0",
+  "platform": "win32",
+  "fixtureOrders": 650,
+  "mode": "updated",
+  "environment": "Local HTTP with mocked Firebase SDK and in-memory data; 2 Mbps / 150ms for static assets and 150ms mock database latency",
+  "measurements": [
+    {
+      "file": "index.html",
+      "coldLoadMs": 675,
+      "cls": 0,
+      "lcp": 315,
+      "longTasks": []
+    },
+    {
+      "file": "index.html",
+      "navigationPairMaxMs": 1,
+      "navigationPairMeanMs": 0.15
+    },
+    {
+      "file": "index.html",
+      "warm": {
+        "cls": 0,
+        "lcp": 0,
+        "longTasks": []
+      }
+    },
+    {
+      "file": "admin.html",
+      "coldLoadMs": 443,
+      "cls": 0,
+      "lcp": 66,
+      "longTasks": []
+    },
+    {
+      "file": "admin.html",
+      "bookingsLoaded": 650
+    },
+    {
+      "file": "admin.html",
+      "navigationPairMaxMs": 1,
+      "navigationPairMeanMs": 0.05
+    },
+    {
+      "file": "admin.html",
+      "warm": {
+        "cls": 0,
+        "lcp": 65,
+        "longTasks": []
+      }
+    }
+  ],
+  "checks": [
+    {
+      "file": "index.html",
+      "dataIntegrity": "prices, duplicate submits, slip merge, account race, cache recovery, API acknowledgment passed"
+    },
+    {
+      "file": "index.html",
+      "overflows": [],
+      "errors": []
+    },
+    {
+      "file": "index.html",
+      "responsive": "all sections at eight widths, reduced motion and keyboard checks passed"
+    },
+    {
+      "file": "admin.html",
+      "dataIntegrity": "650 totals, 50 rows, global search, partial failure, payment amounts, role guard and concurrent save passed"
+    },
+    {
+      "file": "admin.html",
+      "overflows": [],
+      "errors": []
+    },
+    {
+      "file": "admin.html",
+      "responsive": "all sections at eight widths, reduced motion and keyboard checks passed"
+    }
+  ]
+}

@@ -6,6 +6,8 @@
 
 ## 1. Executive Architecture Summary
 
+ผลปรับประสิทธิภาพปัจจุบันและข้อจำกัดการทดสอบอยู่ใน [PERFORMANCE_REPORT.md](PERFORMANCE_REPORT.md) ให้ใช้ผลวัดในรายงานนี้แทนตัวเลขประมาณการเดิม เส้นทางหลักคือ `config/main`, `activities` และ `bookings` ราคาเดิมคือ 379 บาท เพิ่มไซส์พิเศษ 30 บาท และส่วนลดรวม 10 บาทตั้งแต่สองตัว
+
 ### ประวัติการใช้งานนักศึกษา
 - เมนูประวัติการใช้งานรวมข้อมูลของรหัสนักศึกษาปัจจุบันจาก `bookings`, `orders_shirts`, `votes`, `comments`, `dynamic_submissions` และ `inquiries` โดยเรียงวันเวลาใหม่ไปเก่าและแสดงครั้งละ 20 รายการ
 - การจองแสดงไซส์ ยอดสั่งซื้อ สถานะ ยอดชำระที่มีการบันทึกจริง และสลิปเดี่ยวหรือหลายใบพร้อมเวลาโอน ไม่อนุมานยอดชำระจากยอดสั่งซื้อเมื่อไม่มี `paidAmount`
@@ -19,10 +21,10 @@
 ### 1.1 เทคโนโลยีหลัก (Tech Stack & Core Runtime)
 - **Frontend Architecture**: Single Page Web Application (Vanilla HTML5, Vanilla CSS3, Vanilla JavaScript ES6+) ทำงานได้โดยไม่ต้องผ่าน Bundler หรือ Node.js Runtime ขณะเปิดใช้งานจริง
 - **Styling Architecture**: Vanilla CSS Custom Properties (CSS Variables Design Tokens) รองรับการแสดงผลแบบ Fluid Responsive และ Dark Theme สำหรับหลังบ้าน
-- **Typography Engine**: ฟอนต์ **Ekkamai New** (Regular 400 และ Bold 700) ผ่าน `@font-face` ภายในเครื่อง (WOFF2) ร่วมกับ Google Fonts **Prompt** เป็นระบบสำรอง (Fallback)
+- **Typography Engine**: ฟอนต์ **Ekkamai New** (Regular 400 และ Bold 700) ผ่าน `@font-face` ภายในเครื่อง (WOFF2) ร่วมกับ **Prompt** และ sans-serif เป็น fallback โดยไม่โหลด Google Fonts CDN
 - **Database & Identity**:
   - Firebase Client SDK (Compat v10.12.0): `firebase-app-compat.js` และ `firebase-firestore-compat.js`
-  - Offline Persistence: เปิดใช้งาน `db.enablePersistence({ synchronizeTabs: true })` เพื่อการเข้าถึงข้อมูลแบบ 0ms และรองรับการใช้งานออฟไลน์/เน็ตช้า
+  - Offline Persistence: เปิดใช้งาน `db.enablePersistence({ synchronizeTabs: true })` เพื่อลดเวลาอ่านข้อมูลซ้ำและรองรับการใช้งานออฟไลน์/เน็ตช้า โดยไม่รับรองเวลาโหลด 0 ms
 - **External Services & Integrations**:
   - Google Apps Script Webhook: ซิงค์ข้อมูลคำสั่งซื้อและการจองเสื้อลง Google Sheets อัตโนมัติ รองรับข้อมูลสลิปหลายใบ (Multi-slip) พร้อมวันเวลาโอน
   - Client-Side Image Compression: แปลงและบีบอัดภาพสลิปโอนเงินผ่าน HTML5 Canvas ให้เป็น WebP/JPEG Base64 คุณภาพสูงแต่ขนาดกะทัดรัดก่อนบันทึกเข้า Firestore
@@ -187,3 +189,4 @@
 | **โพสต์กระดานพูดคุย (Live Comments)** | **10,000** | **600,000** | **1,000,000** | Firestore Write Throughput | Auto-ID Document writes + Canvas compression |
 | **ส่งแบบฟอร์ม & สอบถามสด (Inquiries)** | **10,000** | **600,000** | **1,000,000** | Firestore Write Throughput | Auto-ID Document writes |
 | **อัปโหลดสลิป & ยืนยันผ่าน Google Apps Script** | **30 – 50** | **1,800 – 3,000** | **1,000,000** | Google Apps Script Concurrent Executions | Exponential Backoff Retry (2 รอบ) + บันทึก Firestore สำรองทันที |
+

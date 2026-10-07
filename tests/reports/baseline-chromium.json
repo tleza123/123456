@@ -1,20 +1,33 @@
 {
   "engine": "chromium",
+  "browserVersion": "154.0.4258.53",
+  "platform": "win32",
+  "fixtureOrders": 650,
   "mode": "baseline",
+  "environment": "Local HTTP with mocked Firebase SDK and in-memory data; 2 Mbps / 150ms for static assets and 150ms mock database latency",
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 508,
+      "coldLoadMs": 544,
       "cls": 0,
-      "lcp": 496,
+      "lcp": 468,
       "longTasks": [
-        67
+        83
       ]
     },
     {
       "file": "index.html",
-      "navigationPairMaxMs": 6.3999998569488525,
-      "navigationPairMeanMs": 2.8
+      "navigationPairMaxMs": 7.1000001430511475,
+      "navigationPairMeanMs": 3.2050000071525573
+    },
+    {
+      "file": "index.html",
+      "slowNetworkLoadMs": 1344,
+      "slowNetworkMetrics": {
+        "cls": 0.00019575120608011882,
+        "lcp": 632,
+        "longTasks": []
+      }
     },
     {
       "file": "index.html",
@@ -26,7 +39,7 @@
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 409,
+      "coldLoadMs": 402,
       "cls": 0,
       "lcp": 92,
       "longTasks": []
@@ -38,13 +51,22 @@
     {
       "file": "admin.html",
       "navigationPairMaxMs": 0.20000004768371582,
-      "navigationPairMeanMs": 0.045000004768371585
+      "navigationPairMeanMs": 0.05500000715255737
+    },
+    {
+      "file": "admin.html",
+      "slowNetworkLoadMs": 1910,
+      "slowNetworkMetrics": {
+        "cls": 0.0006682402292887369,
+        "lcp": 384,
+        "longTasks": []
+      }
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 80,
+        "lcp": 60,
         "longTasks": []
       }
     }

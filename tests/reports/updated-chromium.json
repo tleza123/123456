@@ -1,0 +1,116 @@
+{
+  "engine": "chromium",
+  "browserVersion": "154.0.4258.53",
+  "platform": "win32",
+  "fixtureOrders": 650,
+  "mode": "updated",
+  "environment": "Local HTTP with mocked Firebase SDK and in-memory data; 2 Mbps / 150ms for static assets and 150ms mock database latency",
+  "measurements": [
+    {
+      "file": "index.html",
+      "coldLoadMs": 492,
+      "cls": 0,
+      "lcp": 332,
+      "longTasks": [
+        50
+      ]
+    },
+    {
+      "file": "index.html",
+      "navigationPairMaxMs": 0.6999998092651367,
+      "navigationPairMeanMs": 0.07000000476837158
+    },
+    {
+      "file": "index.html",
+      "slowNetworkLoadMs": 1560,
+      "slowNetworkMetrics": {
+        "cls": 0,
+        "lcp": 844,
+        "longTasks": []
+      }
+    },
+    {
+      "file": "index.html",
+      "scrollFrameP95Ms": 7,
+      "scrollFrameMaxMs": 7,
+      "traceTaskMaxMs": 7.029,
+      "traceFunctionMaxMs": 0.231
+    },
+    {
+      "file": "index.html",
+      "warm": {
+        "cls": 0,
+        "lcp": 76,
+        "longTasks": []
+      }
+    },
+    {
+      "file": "admin.html",
+      "coldLoadMs": 446,
+      "cls": 0,
+      "lcp": 116,
+      "longTasks": []
+    },
+    {
+      "file": "admin.html",
+      "bookingsLoaded": 650
+    },
+    {
+      "file": "admin.html",
+      "navigationPairMaxMs": 0.10000014305114746,
+      "navigationPairMeanMs": 0.025000011920928954
+    },
+    {
+      "file": "admin.html",
+      "slowNetworkLoadMs": 2558,
+      "slowNetworkMetrics": {
+        "cls": 0,
+        "lcp": 856,
+        "longTasks": []
+      }
+    },
+    {
+      "file": "admin.html",
+      "scrollFrameP95Ms": 7,
+      "scrollFrameMaxMs": 7.099999999999909,
+      "traceTaskMaxMs": 8.698,
+      "traceFunctionMaxMs": 0.677
+    },
+    {
+      "file": "admin.html",
+      "warm": {
+        "cls": 0,
+        "lcp": 72,
+        "longTasks": []
+      }
+    }
+  ],
+  "checks": [
+    {
+      "file": "index.html",
+      "dataIntegrity": "prices, duplicate submits, slip merge, account race, cache recovery, API acknowledgment passed"
+    },
+    {
+      "file": "index.html",
+      "overflows": [],
+      "errors": []
+    },
+    {
+      "file": "index.html",
+      "responsive": "all sections at eight widths, reduced motion and keyboard checks passed"
+    },
+    {
+      "file": "admin.html",
+      "dataIntegrity": "650 totals, 50 rows, global search, partial failure, payment amounts, role guard and concurrent save passed"
+    },
+    {
+      "file": "admin.html",
+      "overflows": [],
+      "errors": []
+    },
+    {
+      "file": "admin.html",
+      "responsive": "all sections at eight widths, reduced motion and keyboard checks passed"
+    }
+  ]
+}
