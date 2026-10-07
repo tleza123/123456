@@ -8,45 +8,45 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 418,
+      "coldLoadMs": 423,
       "cls": 0,
-      "lcp": 224,
+      "lcp": 220,
       "longTasks": []
     },
     {
       "file": "index.html",
-      "navigationPairMaxMs": 0.7000000476837158,
-      "navigationPairMeanMs": 0.09000000953674317
+      "navigationPairMaxMs": 1,
+      "navigationPairMeanMs": 0.11500000953674316
     },
     {
       "file": "index.html",
-      "slowNetworkLoadMs": 1631,
+      "slowNetworkLoadMs": 1590,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 896,
+        "lcp": 828,
         "longTasks": []
       }
     },
     {
       "file": "index.html",
       "scrollFrameP95Ms": 7.099999999999909,
-      "scrollFrameMaxMs": 7.099999999999909,
-      "traceTaskMaxMs": 7.144,
-      "traceFunctionMaxMs": 0.197
+      "scrollFrameMaxMs": 7.100000000000136,
+      "traceTaskMaxMs": 6.989,
+      "traceFunctionMaxMs": 0.116
     },
     {
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 92,
+        "lcp": 80,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 426,
+      "coldLoadMs": 425,
       "cls": 0,
-      "lcp": 84,
+      "lcp": 68,
       "longTasks": []
     },
     {
@@ -55,30 +55,30 @@
     },
     {
       "file": "admin.html",
-      "navigationPairMaxMs": 0.20000004768371582,
-      "navigationPairMeanMs": 0.03999999761581421
+      "navigationPairMaxMs": 0.10000014305114746,
+      "navigationPairMeanMs": 0.025
     },
     {
       "file": "admin.html",
-      "slowNetworkLoadMs": 2567,
+      "slowNetworkLoadMs": 2546,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 852,
+        "lcp": 832,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
       "scrollFrameP95Ms": 7,
-      "scrollFrameMaxMs": 7,
-      "traceTaskMaxMs": 10.349,
-      "traceFunctionMaxMs": 0.605
+      "scrollFrameMaxMs": 7.100000000000364,
+      "traceTaskMaxMs": 11.327,
+      "traceFunctionMaxMs": 0.49
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 68,
+        "lcp": 76,
         "longTasks": []
       }
     }

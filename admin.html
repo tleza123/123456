@@ -44,32 +44,11 @@
     <div class="box-title">
       <span>เข้าสู่ระบบ Admin Dashboard</span>
     </div>
-    <p style="color: var(--text-muted); font-size: 0.8125rem; margin: 0 0 1rem 0;">
-      กรุณาเลือกระดับการเข้าใช้งานและกรอกข้อมูลเพื่อเข้าสู่ระบบจัดการ
-    </p>
-
-    <div style="display:flex; border-bottom:0.125rem solid #e2e8f0; margin-bottom:1.125rem;">
-      <button id="loginTabMaster" type="button" onclick="setAdminLoginMode('master')" style="flex:1; padding:0.625rem; background:white; border:none; border-bottom:0.125rem solid var(--main-blue); color:var(--main-blue); font-weight:700; cursor:pointer; font-family:inherit; font-size:0.875rem;">
-        แอดมินหลัก
-      </button>
-      <button id="loginTabStudent" type="button" onclick="setAdminLoginMode('student')" style="flex:1; padding:0.625rem; background:white; border:none; border-bottom:0.125rem solid transparent; color:#64748b; font-weight: 400; cursor:pointer; font-family:inherit; font-size:0.875rem;">
-        ผู้ดูแลทั่วไป
-      </button>
-    </div>
-
-    <!-- Mode 1: Master Admin -->
-    <div id="loginFormMaster">
-      <label>รหัสผ่านแอดมินเดิม:</label>
-      <input type="password" id="adminPassInput" placeholder="กรอกรหัสผ่านแอดมินหลัก..." autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
-    </div>
-
-    <!-- Mode 2: Student Admin -->
-    <div id="loginFormStudent" style="display:none;">
-      <label>รหัสนักศึกษาผู้ดูแลระบบ:</label>
-      <input type="text" id="adminStudentIdInput" placeholder="ระบุรหัสนักศึกษา 13 หลัก..." onkeypress="if(event.key==='Enter') attemptLogin()">
-    </div>
-
-    <button onclick="attemptLogin()" style="width: 100%; margin-top:0.875rem;">เข้าสู่ระบบจัดการ →</button>
+    <form id="adminLoginForm" onsubmit="event.preventDefault(); attemptLogin()">
+      <label for="adminLoginInput">รหัสนักศึกษา</label>
+      <input type="password" id="adminLoginInput" placeholder="รหัสนักศึกษา" autocomplete="current-password" required>
+      <button type="submit" style="width:100%; margin-top:.875rem;">เข้าสู่ระบบ</button>
+    </form>
     <div id="loginMsg"></div>
   </div>
 

@@ -25,37 +25,12 @@
   let currentAdminRole = 'subadmin'; // 'master' | 'subadmin'
   let currentAdminId = '';
   let currentAdminName = '';
-  let currentLoginMode = 'master'; // 'master' | 'student'
   let currentSizeView = 'paid'; // 'paid' | 'all' | 'pending'
   let currentAggregatedSizeStats = {
     all: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
     paid: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} },
     pending: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, other: 0, totalShirts: 0, totalIncome: 0, orders: 0, customMap: {} }
   };
-
-  function setAdminLoginMode(mode) {
-    currentLoginMode = mode;
-    const btnM = document.getElementById('loginTabMaster');
-    const btnS = document.getElementById('loginTabStudent');
-    const formM = document.getElementById('loginFormMaster');
-    const formS = document.getElementById('loginFormStudent');
-    const msgEl = document.getElementById('loginMsg');
-    if (msgEl) msgEl.innerHTML = '';
-
-    if (mode === 'master') {
-      if (btnM) { btnM.style.borderBottomColor = 'var(--main-blue)'; btnM.style.color = 'var(--main-blue)'; btnM.style.fontWeight = '700'; }
-      if (btnS) { btnS.style.borderBottomColor = 'transparent'; btnS.style.color = '#64748b'; btnS.style.fontWeight = '400'; }
-      if (formM) formM.style.display = 'block';
-      if (formS) formS.style.display = 'none';
-      setTimeout(() => { const el = document.getElementById('adminPassInput'); if (el) el.focus(); }, 50);
-    } else {
-      if (btnS) { btnS.style.borderBottomColor = 'var(--main-blue)'; btnS.style.color = 'var(--main-blue)'; btnS.style.fontWeight = '700'; }
-      if (btnM) { btnM.style.borderBottomColor = 'transparent'; btnM.style.color = '#64748b'; btnM.style.fontWeight = '400'; }
-      if (formM) formM.style.display = 'none';
-      if (formS) formS.style.display = 'block';
-      setTimeout(() => { const el = document.getElementById('adminStudentIdInput'); if (el) el.focus(); }, 50);
-    }
-  }
 
   function applyRolePermissionsToUI() {
     const adminTabBtn = document.getElementById('nav-tab-admins');
@@ -155,7 +130,7 @@
       DE06.session.removeItem('de06_admin_auth');
       isAdminAuthenticated = false;
       logoutAdmin();
-      setAdminLoginMode('student');
+      document.getElementById('adminLoginInput').focus();
       document.getElementById('loginMsg').textContent = e.message;
     }
   }
@@ -169,52 +144,27 @@
     msgEl.innerHTML = '<div class="msg-box msg-loading">กำลังตรวจสอบสิทธิ์...</div>';
 
     try {
+      const credential = document.getElementById('adminLoginInput').value.trim();
+      if (!credential) { msgEl.textContent = 'กรุณากรอกรหัสนักศึกษา'; return; }
       const configDoc = await db.collection('config').doc('main').get({ source: 'server' });
       if (!configDoc.exists) throw new Error('ไม่พบการตั้งค่าสิทธิ์ผู้ดูแล');
       if (configDoc.exists) {
         appConfig = configDoc.data() || {};
       }
 
-      if (currentLoginMode === 'master') {
-        const inputPass = document.getElementById('adminPassInput').value.trim();
-        if (!inputPass) {
-          msgEl.innerHTML = '<div class="msg-box msg-error">กรุณากรอกรหัสผ่านแอดมินหลักก่อนเข้าใช้งาน</div>';
-          return;
-        }
-
-        const savedPass = appConfig.ADMIN_PASSWORD || '';
-        if (inputPass !== savedPass && inputPass !== 'de06admin') {
-          msgEl.innerHTML = '<div class="msg-box msg-error">รหัสผ่านแอดมินหลักไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>';
-          recordAdminAccessLog('failed');
-          return;
-        }
-
-        isAdminAuthenticated = true;
-        currentAdminRole = 'master';
-        currentAdminId = 'master';
-        currentAdminName = 'แอดมินหลัก';
+      const savedPass = appConfig.ADMIN_PASSWORD || '';
+      if (credential === savedPass || credential === 'de06admin') {
+        currentAdminRole = 'master'; currentAdminId = 'master'; currentAdminName = 'แอดมินหลัก';
       } else {
-        // Student Admin Mode
-        const studentId = document.getElementById('adminStudentIdInput').value.trim();
-
-        if (!studentId) {
-          msgEl.innerHTML = '<div class="msg-box msg-error">กรุณากรอกรหัสนักศึกษา</div>';
-          return;
-        }
-
-        const studentAdmin = studentAdministrator(studentId);
-
+        const studentAdmin = studentAdministrator(credential);
         if (!studentAdmin) {
-          msgEl.innerHTML = '<div class="msg-box msg-error">รหัสนักศึกษานี้ไม่ได้รับสิทธิ์แอดมิน กรุณาติดต่อแอดมินหลักเดิมเพื่อเพิ่มสิทธิ์</div>';
-          recordAdminAccessLog('failed');
-          return;
+          msgEl.textContent = 'รหัสไม่ถูกต้องหรือไม่ได้รับสิทธิ์ผู้ดูแล';
+          recordAdminAccessLog('failed'); return;
         }
-
-        isAdminAuthenticated = true;
-        currentAdminRole = 'subadmin';
-        currentAdminId = studentAdmin.studentId;
-        currentAdminName = studentAdmin.name || ('นักศึกษา ' + studentAdmin.studentId);
+        currentAdminRole = 'subadmin'; currentAdminId = String(studentAdmin.studentId);
+        currentAdminName = studentAdmin.name || 'ผู้ดูแล';
       }
+      isAdminAuthenticated = true;
 
       persistAdminSession();
       DE06.session.setItem('de06_admin_logged_session', 'true');
@@ -252,8 +202,7 @@
     DE06.session.removeItem('de06_admin_name');
     DE06.session.removeItem('de06_admin_logged_session');
 
-    document.getElementById('adminPassInput').value = '';
-    document.getElementById('adminStudentIdInput').value = '';
+    document.getElementById('adminLoginInput').value = '';
     DE06.session.setItem('de06_admin_signed_out', 'true');
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('headerLogoutBtn').style.display = 'none';

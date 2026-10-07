@@ -21,22 +21,24 @@ module.exports = async function auditAdminFrontend(browser, base, init, original
       const legacy = await createPage(loginData);
       try {
         await legacy.goto(base + '/admin.html');
-        await legacy.locator('#adminPassInput').fill('incorrect-fixture');
-        await legacy.locator('#adminPassInput').press('Enter');
+        await legacy.locator('#adminLoginInput').fill('incorrect-fixture');
+        await legacy.locator('#adminLoginInput').press('Enter');
         await legacy.waitForFunction(() => document.getElementById('loginMsg').textContent.includes('ไม่ถูกต้อง'));
         assert.equal(await legacy.evaluate(() => isAdminAuthenticated), false);
-        await legacy.locator('#adminPassInput').fill('');
-        await legacy.locator('#adminPassInput').press('Enter');
+        await legacy.locator('#adminLoginInput').fill('');
+        await legacy.evaluate(() => attemptLogin());
         await legacy.waitForFunction(() => document.getElementById('loginMsg').textContent.includes('กรุณากรอก'));
         assert.equal(await legacy.evaluate(() => isAdminAuthenticated), false);
-        await legacy.locator('#adminPassInput').fill('de06admin');
-        await legacy.locator('#adminPassInput').press('Enter');
+        await legacy.locator('#adminLoginInput').fill('de06admin');
+        await legacy.locator('#adminLoginInput').press('Enter');
         await legacy.waitForFunction(() => isAdminAuthenticated && currentAdminRole === 'master');
       } finally { await legacy.close(); }
     }
     await admin.goto(base + '/admin.html');
-    await admin.locator('#adminPassInput').fill('fixture-master');
-    await admin.locator('#adminPassInput').press('Enter');
+    assert.equal(await admin.locator('#loginBox input').count(), 1);
+    assert.equal(await admin.locator('#loginTabMaster, #loginTabStudent').count(), 0);
+    await admin.locator('#adminLoginInput').fill('fixture-master');
+    await admin.locator('#adminLoginInput').press('Enter');
     await admin.waitForFunction(() => isAdminAuthenticated && appActivities.length === 6);
     assert.equal(await admin.locator('.activity-editor[open]').count(), 0);
     const added = {};
@@ -182,16 +184,14 @@ module.exports = async function auditAdminFrontend(browser, base, init, original
     const direct = await createPage();
     try {
       await direct.goto(base + '/admin.html');
-      await direct.locator('#loginTabStudent').click();
-      await direct.locator('#adminStudentIdInput').fill('66000000');
-      await direct.locator('#adminStudentIdInput').press('Enter');
+      await direct.locator('#adminLoginInput').fill('66000000');
+      await direct.locator('#adminLoginInput').press('Enter');
       await direct.waitForFunction(() => isAdminAuthenticated && currentAdminRole === 'subadmin');
       await direct.locator('#headerLogoutBtn').click();
       await direct.reload();
       assert.equal(await direct.evaluate(() => isAdminAuthenticated), false);
-      await direct.locator('#loginTabStudent').click();
-      await direct.locator('#adminStudentIdInput').fill('unauthorized');
-      await direct.locator('#adminStudentIdInput').press('Enter');
+      await direct.locator('#adminLoginInput').fill('unauthorized');
+      await direct.locator('#adminLoginInput').press('Enter');
       await direct.waitForFunction(() => document.getElementById('loginMsg').textContent.includes('ไม่ได้รับสิทธิ์'));
       assert.equal(await direct.evaluate(() => isAdminAuthenticated), false);
       await direct.goto(base + '/index.html');
