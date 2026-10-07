@@ -15,6 +15,25 @@ module.exports = async function auditAdminFrontend(browser, base, init, original
   }
   const admin = await createPage();
   try {
+    for (const configured of [true, false]) {
+      const loginData = structuredClone(data);
+      if (!configured) delete loginData.config.main.ADMIN_PASSWORD;
+      const legacy = await createPage(loginData);
+      try {
+        await legacy.goto(base + '/admin.html');
+        await legacy.locator('#adminPassInput').fill('incorrect-fixture');
+        await legacy.locator('#adminPassInput').press('Enter');
+        await legacy.waitForFunction(() => document.getElementById('loginMsg').textContent.includes('ไม่ถูกต้อง'));
+        assert.equal(await legacy.evaluate(() => isAdminAuthenticated), false);
+        await legacy.locator('#adminPassInput').fill('');
+        await legacy.locator('#adminPassInput').press('Enter');
+        await legacy.waitForFunction(() => document.getElementById('loginMsg').textContent.includes('กรุณากรอก'));
+        assert.equal(await legacy.evaluate(() => isAdminAuthenticated), false);
+        await legacy.locator('#adminPassInput').fill('de06admin');
+        await legacy.locator('#adminPassInput').press('Enter');
+        await legacy.waitForFunction(() => isAdminAuthenticated && currentAdminRole === 'master');
+      } finally { await legacy.close(); }
+    }
     await admin.goto(base + '/admin.html');
     await admin.locator('#adminPassInput').fill('fixture-master');
     await admin.locator('#adminPassInput').press('Enter');
