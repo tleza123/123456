@@ -18,7 +18,7 @@ function mockGetSafeQuantity(val) {
   return parsed;
 }
 
-function calculatePrice(xs, s, m, l, xl, xxl, otherNum, pricePerShirt = 300, extraPrice = 50) {
+function calculatePrice(xs, s, m, l, xl, xxl, otherNum, pricePerShirt = 379, extraPrice = 30) {
   xs = mockGetSafeQuantity(xs);
   s = mockGetSafeQuantity(s);
   m = mockGetSafeQuantity(m);
@@ -37,14 +37,14 @@ function calculatePrice(xs, s, m, l, xl, xxl, otherNum, pricePerShirt = 300, ext
 
 // Test cases
 const boundaryCases = [
-  { name: 'Normal 1 Shirt (M)', input: [0, 0, 1, 0, 0, 0, 0], expectedQty: 1, expectedPrice: 300 },
-  { name: 'Normal 2 Shirts (Discount -10)', input: [0, 1, 1, 0, 0, 0, 0], expectedQty: 2, expectedPrice: 590 },
+  { name: 'Normal 1 Shirt (M)', input: [0, 0, 1, 0, 0, 0, 0], expectedQty: 1, expectedPrice: 379 },
+  { name: 'Normal 2 Shirts (Discount -10)', input: [0, 1, 1, 0, 0, 0, 0], expectedQty: 2, expectedPrice: 748 },
   { name: 'Negative Values (-5 M, -10 XL)', input: [0, 0, -5, 0, -10, 0, 0], expectedQty: 0, expectedPrice: 0 },
   { name: 'String Garbage ("abc", "NaN")', input: ['abc', 'NaN', undefined, null, 'one', 0, 0], expectedQty: 0, expectedPrice: 0 },
   { name: 'XSS injection inside value', input: ['<script>alert(1)</script>', 0, 0, 0, 0, 0, 0], expectedQty: 0, expectedPrice: 0 },
   { name: 'SQL Injection string', input: ["'; DROP TABLE bookings;--", 0, 0, 0, 0, 0, 0], expectedQty: 0, expectedPrice: 0 },
-  { name: 'Overflow limit test (9999999 clamped to 999)', input: [9999999, 0, 0, 0, 0, 0, 0], expectedQty: 999, expectedPrice: (999 * 300) - 10 },
-  { name: 'Special Custom Size (+50 THB each)', input: [0, 0, 0, 0, 0, 0, 2], expectedQty: 2, expectedPrice: (2 * 350) - 10 }
+  { name: 'Overflow limit test (9999999 clamped to 999)', input: [9999999, 0, 0, 0, 0, 0, 0], expectedQty: 999, expectedPrice: (999 * 379) - 10 },
+  { name: 'Special Custom Size (+30 THB each)', input: [0, 0, 0, 0, 0, 0, 2], expectedQty: 2, expectedPrice: (2 * 409) - 10 }
 ];
 
 boundaryCases.forEach((tc, idx) => {
@@ -176,8 +176,8 @@ class MockSubmissionEngine {
 
   // 5. TEST SUITE: THAI TYPOGRAPHY & LETTER-SPACING AUDIT
   console.log('\n--- [TEST 5] Checking HTML & CSS Thai Typography Rules ---');
-  const indexHtml = fs.readFileSync('index.html', 'utf8');
-  const adminHtml = fs.readFileSync('admin.html', 'utf8');
+  const indexHtml = require('./application_source.cjs')('index.html');
+  const adminHtml = require('./application_source.cjs')('admin.html');
 
   [ { name: 'index.html', content: indexHtml }, { name: 'admin.html', content: adminHtml } ].forEach(f => {
     // Check no negative letter-spacing

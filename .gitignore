@@ -1,0 +1,4 @@
+.cache/
+tests/reports/*.png
+tests/reports/*.zip
+tests/reports/*-trace.json

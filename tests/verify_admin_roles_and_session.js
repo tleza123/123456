@@ -14,13 +14,13 @@ console.log('====================================================');
 
 // --- TEST 1: index.html Session Persistence Code Verification ---
 console.log('\n--- [TEST 1] index.html Session Persistence Checks ---');
-const indexContent = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const indexContent = require('./application_source.cjs')(path.join(__dirname, '..', 'index.html'));
 
 assert(indexContent.includes('restoreStudentSession'), 'index.html must define restoreStudentSession');
 assert(indexContent.includes('de06_current_session'), 'index.html must use de06_current_session in localStorage');
-assert(indexContent.includes("sessionStorage.getItem('de06_student')"), 'index.html must check sessionStorage as fallback');
-assert(indexContent.includes('localStorage.setItem(\'de06_current_session\''), 'index.html must persist session on student login');
-assert(indexContent.includes('localStorage.removeItem(\'de06_current_session\')'), 'index.html must clear session on logout');
+assert(indexContent.includes("DE06.session.getItem('de06_student')"), 'index.html must check sessionStorage as fallback');
+assert(indexContent.includes('DE06.storage.setItem(\'de06_current_session\''), 'index.html must persist session on student login');
+assert(indexContent.includes('DE06.storage.removeItem(\'de06_current_session\')'), 'index.html must clear session on logout');
 
 // Simulate session restore behavior
 const mockLocalStorage = {};
@@ -49,7 +49,7 @@ console.log('  Passed: Session data correctly survives simulated page reload and
 
 // --- TEST 2: admin.html Role Separation & Security Checks ---
 console.log('\n--- [TEST 2] admin.html Role Separation Checks ---');
-const adminContent = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
+const adminContent = require('./application_source.cjs')(path.join(__dirname, '..', 'admin.html'));
 
 assert(adminContent.includes('currentAdminRole'), 'admin.html must track currentAdminRole');
 assert(adminContent.includes('applyRolePermissionsToUI'), 'admin.html must have applyRolePermissionsToUI');
@@ -88,7 +88,7 @@ console.log('  Passed: All critical admin actions are instrumented with recordAu
 
 // --- TEST 4: firestore.rules Permission Checks ---
 console.log('\n--- [TEST 4] firestore.rules Security Rules Check ---');
-const rulesContent = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
+const rulesContent = require('./application_source.cjs')(path.join(__dirname, '..', 'firestore.rules'));
 assert(rulesContent.includes('match /admin_audit_logs/{document=**}'), 'firestore.rules must allow admin_audit_logs');
 console.log('  Passed: firestore.rules includes admin_audit_logs collection.');
 

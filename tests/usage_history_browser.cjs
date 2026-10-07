@@ -2,7 +2,7 @@ const fs = require('fs');
 const assert = require('assert');
 const http = require('http');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const html = fs.readFileSync('index.html', 'utf8');
+const html = require('./application_source.cjs')('index.html');
 const script = html.slice(html.indexOf('  var usageHistory ='), html.indexOf('  async function goToReuploadSlips()'));
 const server = http.createServer((req, res) => {
   if (req.url.startsWith('/fonts/')) { res.end(fs.readFileSync('.' + req.url)); return; }

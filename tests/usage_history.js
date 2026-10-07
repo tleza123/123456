@@ -1,7 +1,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
-const html = fs.readFileSync('index.html', 'utf8');
+const html = require('./application_source.cjs')('index.html');
 const code = html.slice(html.indexOf('  var usageHistory ='), html.indexOf('  async function goToReuploadSlips()'));
 const elements = {};
 const element = id => elements[id] ||= { innerHTML: '', textContent: '', setAttribute() {} };

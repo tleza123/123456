@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 function testHtmlScripts(filename) {
-  const html = fs.readFileSync(filename, 'utf8');
+  const html = require('./application_source.cjs')(filename);
   const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
   let match;
   let scriptIdx = 0;
