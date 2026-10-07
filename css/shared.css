@@ -1,5 +1,15 @@
 /* Shared typography, interaction and loading standards. */
 html { letter-spacing: normal; scrollbar-gutter: stable; }
+:root { --page-gutter: clamp(.75rem, 2.5vw, 2rem); --surface-padding: clamp(1rem, 2.5vw, 2rem); --control-gap: .75rem; }
+body { padding-left: max(var(--page-gutter), env(safe-area-inset-left, 0px)); padding-right: max(var(--page-gutter), env(safe-area-inset-right, 0px)); }
+.container { padding-inline: var(--surface-padding); }
+.box { padding: var(--surface-padding); }
+.field-row > div, .responsive-two-col > div, .task-card-title-group { min-width: 0; }
+.size-grid-container { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); }
+.size-row { min-width: 0; }
+.size-row input { min-width: 0; }
+.upload-btn-label, label:has(input[type="checkbox"]) { min-height: 2.9375rem; align-content: center; }
+[hidden] { display: none !important; }
 body { min-height: 100dvh; }
 button, a, [role="button"], summary { touch-action: manipulation; }
 button, [role="button"] { user-select: none; -webkit-tap-highlight-color: transparent; }

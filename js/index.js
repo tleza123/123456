@@ -305,7 +305,7 @@
                 </label>
                 <textarea id="comment-input-${escapeHtml(task.id)}" placeholder="พิมพ์ความคิดเห็นหรือข้อเสนอแนะที่นี่..." style="min-height:5.625rem; margin-bottom:0.625rem;"></textarea>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                <div style="display:${task.allowImageInComment === false ? 'none' : 'flex'}; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
                   <label style="display:inline-flex; align-items:center; gap:0.375rem; cursor:pointer; font-size:0.8125rem; color:var(--main-blue); font-weight: 400; margin:0; background:#f1f5f9; padding:0.375rem 0.75rem; border-radius:0.5rem; border:1px solid #cbd5e1;">
                     <span style="display:inline-flex; align-items:center; gap:0.25rem;">${Icons.camera} แนบรูปภาพ</span>
                     <input type="file" id="comment-file-${escapeHtml(task.id)}" accept="image/*" style="display:none;" onchange="handleCommentImageSelect(${DE06.arg(task.id)}, this)">
@@ -515,6 +515,11 @@
   }
 
   function switchSection(sectionId) {
+    if (sectionId.startsWith('dynamic-')) {
+      var destinationTask = allTasks.find(function(task) { return 'dynamic-' + task.id === sectionId; });
+      if (!activityIsOpen(destinationTask)) { alert('กิจกรรมนี้ปิดรับแล้ว'); sectionId = 'home-section'; }
+      else if (destinationTask.type === 'booking') sectionId = 'booking-section';
+    }
     var previous = document.querySelector('.section.active');
     if (previous && previous.id === sectionId) return;
     stopActivityListener();
@@ -581,6 +586,7 @@
       else { commentDataCache['comments_' + task.id] = { time: Date.now(), data: rows }; renderCommentList(task, rows); }
     }, function() { stopActivityListener(); });
   }
+  function activityIsOpen(task) { return !!task && task.active !== false && (!task.endDate || parseSafeDate(task.endDate).getTime() > Date.now()); }
   function syncCountdown() {
     if (countdownHandle) { clearTimeout(countdownHandle); countdownHandle = null; }
     if (document.hidden || !document.getElementById('home-section').classList.contains('active') || !timerRegistry.some(function(t) { return t.endTime > Date.now(); })) return;
@@ -597,6 +603,8 @@
   });
 
   function logout() {
+    eligibleAdminStudentId = '';
+    if (DE06.session.getItem('de06_admin_role') === 'subadmin') ['de06_admin_auth', 'de06_admin_role', 'de06_admin_id', 'de06_admin_name', 'de06_admin_logged_session'].forEach(function(key) { DE06.session.removeItem(key); });
     stopActivityListener();
     document.querySelectorAll('.dynamic-section').forEach(function(section) { section.remove(); });
     ['contact-phone', 'contact-email', 'inquiryMessage', 'inquiryContact'].forEach(function(id) { var input = document.getElementById(id); if (input) input.value = ''; });
@@ -621,8 +629,32 @@
   //  Active Activities Engine (Only shows ongoing activities)
   // =============================================
   var renderHomeTasksSignature = '';
+  var eligibleAdminStudentId = '';
+  function adminAccessCard() {
+    return eligibleAdminStudentId === currentStudentId && currentStudentId ? '<div class="task-card admin-access-card"><div><div class="task-title">จัดการระบบ DE 06</div><div class="task-desc">ผู้ดูแลระบบ</div></div><button class="task-btn" onclick="openAdminFromHome(this)">เข้าหลังบ้าน</button></div>' : '';
+  }
+  async function openAdminFromHome(button) {
+    var identity = currentStudentId;
+    if (!identity || !DE06.lock('admin:handoff')) return;
+    if (button) button.disabled = true;
+    try {
+      var doc = await db.collection('config').doc('main').get({ source: 'server' });
+      var admins = doc.exists && doc.data().ADMIN_STUDENTS;
+      if (identity !== currentStudentId) return;
+      if (!Array.isArray(admins) || !admins.some(function(admin) { return String(admin.studentId) === identity; })) {
+        eligibleAdminStudentId = ''; renderHomeTasks(); return alert('บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ');
+      }
+      DE06.session.setItem('de06_student', JSON.stringify({ studentId: identity, name: currentStudentName }));
+      ['de06_admin_auth', 'de06_admin_role', 'de06_admin_id', 'de06_admin_name', 'de06_admin_logged_session'].forEach(function(key) { DE06.session.removeItem(key); });
+      DE06.session.removeItem('de06_admin_signed_out');
+      location.assign('admin.html');
+    } catch (error) { alert('ตรวจสอบสิทธิ์ไม่สำเร็จ กรุณาลองใหม่'); }
+    finally { DE06.unlock('admin:handoff'); if (button) button.disabled = false; }
+  }
   function renderHomeTasks() {
-    var signature = JSON.stringify(allTasks) + currentStudentId + allTasks.filter(function(t) { return t.endDate && parseSafeDate(t.endDate).getTime() <= Date.now(); }).map(function(t) { return t.id; }).join(',');
+    var admins = appConfig.ADMIN_STUDENTS;
+    eligibleAdminStudentId = currentStudentId && Array.isArray(admins) && admins.some(function(admin) { return String(admin.studentId) === currentStudentId; }) ? currentStudentId : '';
+    var signature = JSON.stringify(allTasks) + currentStudentId + eligibleAdminStudentId + allTasks.filter(function(t) { return t.endDate && parseSafeDate(t.endDate).getTime() <= Date.now(); }).map(function(t) { return t.id; }).join(',');
     if (renderHomeTasksSignature === signature) return;
     renderHomeTasksSignature = signature;
     var container = document.getElementById('active-tasks-container');
@@ -643,7 +675,7 @@
     var countEl = document.getElementById('active-tasks-count');
     if (countEl) countEl.innerText = activeTasks.length + ' รายการ';
 
-    if (activeTasks.length === 0) {
+    if (activeTasks.length === 0 && !adminAccessCard()) {
       container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:2.8125rem 1.25rem; color:#64748b; background:white; border-radius:1.125rem; border:1px dashed #cbd5e1;"><div style="font-weight:700; font-size:1rem; color:var(--main-blue); margin-bottom:0.375rem;">ขณะนี้ยังไม่มีกิจกรรมที่เปิดดำเนินการ</div><div style="font-size:0.8125rem; color:var(--text-muted);">เมื่อมีกิจกรรมใหม่หรือเปิดระบบ จะแสดงขึ้นที่นี่โดยอัตโนมัติ</div></div>';
       timerRegistry = [];
       return;
@@ -692,7 +724,7 @@
           </div>
         </div>
       `;
-    }).join('');
+    }).join('') + adminAccessCard();
 
     // Pre-cache DOM elements for zero-overhead timer loop
     timerRegistry = activeTasks.filter(function(t) { return !!t.endDate; }).map(function(t) {
@@ -959,14 +991,14 @@
         var optImg = optionImages[idx] || '';
         return `
           <div id="poll-opt-${escapeHtml(task.id)}-${idx}" class="poll-option-card" role="button" tabindex="0" onclick="selectPollOption(${DE06.arg(task.id)}, ${idx})">
-            <div id="poll-bar-${escapeHtml(task.id)}-${idx}" class="poll-bar-bg" style="width: 100%; transform: scaleX(0);"></div>
+            <div id="poll-bar-${escapeHtml(task.id)}-${idx}" ${task.showResults === false ? 'hidden' : ''} class="poll-bar-bg" style="width: 100%; transform: scaleX(0);"></div>
             <div class="poll-option-content">
               <span style="display:flex; align-items:center; gap:0.625rem;">
                 ${optImg ? `<img src="${DE06.image(optImg)}" class="poll-opt-thumb" loading="lazy" onclick="event.stopPropagation(); openLightbox(${DE06.arg(optImg)})" alt="ภาพประกอบ DE 06" role="button" tabindex="0">` : ''}
                 <span style="color:#64748b;">${idx + 1}.</span>
                 <span>${escapeHtml(opt)}</span>
               </span>
-              <span id="poll-stat-${escapeHtml(task.id)}-${idx}" class="poll-status-tag">0 โหวต (0%)</span>
+              <span id="poll-stat-${escapeHtml(task.id)}-${idx}" ${task.showResults === false ? 'hidden' : ''} class="poll-status-tag">0 โหวต</span>
             </div>
           </div>
         `;
@@ -1021,15 +1053,15 @@
 
     var total = votes.length;
     var totalEl = document.getElementById('poll-total-' + task.id);
-    if (totalEl) totalEl.innerText = 'โหวตแล้วทั้งหมด ' + total + ' คน';
+    if (totalEl) totalEl.innerText = task.showResults === false ? 'ไม่เปิดแสดงผลคะแนน' : 'โหวตแล้วทั้งหมด ' + total + ' คน';
 
     options.forEach(function(_, i) {
       var count = counts[i] || 0;
       var pct = total > 0 ? Math.round((count / total) * 100) : 0;
       var barEl = document.getElementById('poll-bar-' + task.id + '-' + i);
       var statEl = document.getElementById('poll-stat-' + task.id + '-' + i);
-      if (barEl) barEl.style.transform = 'scaleX(' + (pct / 100) + ')';
-      if (statEl) statEl.innerText = count + ' โหวต (' + pct + '%)';
+      if (barEl) { barEl.hidden = task.showResults === false; barEl.style.transform = 'scaleX(' + (pct / 100) + ')'; }
+      if (statEl) { statEl.hidden = task.showResults === false; statEl.innerText = count + ' โหวต · ' + pct + '%'; }
     });
 
     var msgEl = document.getElementById('poll-msg-' + task.id);
@@ -1049,6 +1081,8 @@
   }
 
   function selectPollOption(actId, optIdx) {
+    var configuredTask = allTasks.find(function(t) { return t.id === actId; });
+    if (!activityIsOpen(configuredTask) || configuredTask.allowChangeVote === false && studentCurrentVoteMap[actId] !== undefined) return;
     selectedVoteOption[actId] = optIdx;
     highlightSelectedPollCard(actId, optIdx);
   }
@@ -1085,6 +1119,9 @@
 
     var task = allTasks.find(function(t) { return t.id === actId; });
     if (!task) return;
+    if (!activityIsOpen(task)) return alert('กิจกรรมนี้ปิดรับแล้ว');
+    if (task.allowChangeVote === false && studentCurrentVoteMap[actId] !== undefined) return alert('กิจกรรมนี้ไม่อนุญาตให้เปลี่ยนผลโหวต');
+    if (!Number.isInteger(optIdx) || !task.pollOptions || optIdx < 0 || optIdx >= task.pollOptions.length) return;
     var optText = task.pollOptions[optIdx] || '';
 
     var btn = document.getElementById('btn-vote-' + actId);
@@ -1105,7 +1142,13 @@
       };
 
       try {
-        await db.collection('votes').doc(voteDocId).set(voteData);
+        await db.runTransaction(async function(transaction) {
+          var ref = db.collection('votes').doc(voteDocId);
+          var oldVote = await transaction.get(ref);
+          if (identity !== currentStudentId || !activityIsOpen(task)) throw new Error('กิจกรรมหรือบัญชีเปลี่ยนแล้ว');
+          if (oldVote.exists && task.allowChangeVote === false) throw new Error('กิจกรรมนี้ไม่อนุญาตให้เปลี่ยนผลโหวต');
+          transaction.set(ref, voteData);
+        });
       } catch (voteErr) {
         if (voteErr.code === 'permission-denied' || (voteErr.message && voteErr.message.includes('permissions'))) {
           // Self-healing fallback to 100% permitted collection: dynamic_submissions
@@ -1117,6 +1160,7 @@
 
       // Optimistically update local cache
       if (identity !== currentStudentId) return;
+      studentCurrentVoteMap[actId] = optIdx;
       var cacheKey = 'poll_' + actId;
       if (pollDataCache[cacheKey]) {
         var existingIdx = pollDataCache[cacheKey].data.findIndex(function(v) { return v.studentId === currentStudentId; });
@@ -1132,7 +1176,7 @@
     } catch(err) {
       alert('เกิดข้อผิดพลาด: ' + err.message);
     } finally {
-      if (btn) btn.disabled = false;
+      if (btn) btn.disabled = task.allowChangeVote === false && studentCurrentVoteMap[actId] !== undefined;
     }
   }
 
@@ -1235,6 +1279,9 @@
   }
 
   function handleCommentImageSelect(actId, input) {
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    if (!activityIsOpen(task) || task.allowImageInComment === false) { input.value = ''; return; }
+    var identity = currentStudentId;
     var file = input.files[0];
     if (file && (!/^image\/(jpeg|png|webp|gif)$/.test(file.type) || file.size > 12 * 1024 * 1024)) { alert('กรุณาเลือกภาพขนาดไม่เกิน 12 MB'); input.value = ''; return; }
     if (!file) return;
@@ -1245,6 +1292,7 @@
     reader.onload = function(e) {
       var img = new Image();
       img.onload = function() {
+        if (identity !== currentStudentId || !activityIsOpen(task) || task.allowImageInComment === false) return;
         var canvas = document.createElement('canvas');
         var maxDim = 800;
         var width = img.width;
@@ -1294,7 +1342,9 @@
     if (!currentStudentId) return alert('กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็นครับ');
     var input = document.getElementById('comment-input-' + actId);
     var text = input.value.trim();
-    var attachedImg = commentImageBlobMap[actId] || '';
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    if (!activityIsOpen(task)) return alert('กิจกรรมนี้ปิดรับแล้ว');
+    var attachedImg = task.allowImageInComment === false ? '' : commentImageBlobMap[actId] || '';
 
     if (!text && !attachedImg) return alert('กรุณาพิมพ์ข้อความหรือแนบรูปภาพก่อนกดส่งครับ');
 
@@ -1354,12 +1404,21 @@
 
   async function deleteMyComment(docId, actId) {
     var identity = currentStudentId;
+    var task = allTasks.find(function(t) { return t.id === actId; });
+    if (!identity || !task || task.allowDeleteOwn === false) return;
     if (!confirm('ต้องการลบความคิดเห็นของคุณใช่หรือไม่?')) return;
     try {
       try {
-        await db.collection('comments').doc(docId).delete();
+        var ref = db.collection('comments').doc(docId);
+        var doc = await ref.get();
+        if (!doc.exists || doc.data().studentId !== identity || doc.data().activityId !== actId || identity !== currentStudentId) return;
+        await ref.delete();
       } catch (delErr) {
-        await db.collection('dynamic_submissions').doc(docId).delete();
+        if (delErr.code !== 'permission-denied') throw delErr;
+        var legacyRef = db.collection('dynamic_submissions').doc(docId);
+        var legacyDoc = await legacyRef.get();
+        if (!legacyDoc.exists || legacyDoc.data().studentId !== identity || legacyDoc.data().activityId !== actId || identity !== currentStudentId) return;
+        await legacyRef.delete();
       }
       if (identity !== currentStudentId) return;
       var cacheKey = 'comments_' + actId;
@@ -1410,6 +1469,8 @@
     var answers = {};
     var task = allTasks.find(function(t) { return t.id === actId; });
     var questions = (task && task.formQuestions) || [];
+    if (!activityIsOpen(task)) return alert('กิจกรรมนี้ปิดรับแล้ว');
+    if (!form.reportValidity()) return;
 
     questions.forEach(function(q, idx) {
       var val = formData.get('q_' + idx);

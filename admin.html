@@ -53,7 +53,7 @@
         แอดมินหลัก
       </button>
       <button id="loginTabStudent" type="button" onclick="setAdminLoginMode('student')" style="flex:1; padding:0.625rem; background:white; border:none; border-bottom:0.125rem solid transparent; color:#64748b; font-weight: 400; cursor:pointer; font-family:inherit; font-size:0.875rem;">
-        นักศึกษาผู้ดูแล
+        ผู้ดูแลทั่วไป
       </button>
     </div>
 
@@ -67,8 +67,6 @@
     <div id="loginFormStudent" style="display:none;">
       <label>รหัสนักศึกษาผู้ดูแลระบบ:</label>
       <input type="text" id="adminStudentIdInput" placeholder="ระบุรหัสนักศึกษา 13 หลัก..." onkeypress="if(event.key==='Enter') attemptLogin()">
-      <label style="margin-top:0.5rem;">รหัสผ่านเฉพาะตัว:</label>
-      <input type="password" id="adminStudentPinInput" placeholder="กรอกรหัสผ่าน หรือเว้นว่างหากไม่ได้ตั้งรหัส..." autocomplete="current-password" onkeypress="if(event.key==='Enter') attemptLogin()">
     </div>
 
     <button onclick="attemptLogin()" style="width: 100%; margin-top:0.875rem;">เข้าสู่ระบบจัดการ →</button>
@@ -80,14 +78,14 @@
 
     <!-- Navigation Tabs -->
     <div class="nav-tabs">
-      <div class="nav-tab active" onclick="switchTab('tab-activities')">จัดการกิจกรรม</div>
-      <div class="nav-tab" onclick="switchTab('tab-announcement')">ประกาศด่วนหน้าหลัก</div>
-      <div class="nav-tab" onclick="switchTab('tab-responses')">ดูผลตอบรับและส่งออกชีต</div>
-      <div class="nav-tab" onclick="switchTab('tab-bookings')">ตรวจสอบการจองเสื้อและสลิป</div>
-      <div class="nav-tab" onclick="switchTab('tab-inquiries')">ข้อความสอบถาม</div>
-      <div class="nav-tab" id="nav-tab-admins" onclick="switchTab('tab-admins')">จัดการแอดมิน</div>
-      <div class="nav-tab" id="nav-tab-settings" onclick="switchTab('tab-settings')">ตั้งค่าระบบและรหัสผ่าน</div>
-      <div class="nav-tab" id="nav-tab-logs" onclick="switchTab('tab-logs')">ประวัติการทำงาน</div>
+      <button type="button" class="nav-tab active" onclick="switchTab('tab-activities')">จัดการกิจกรรม</button>
+      <button type="button" class="nav-tab" onclick="switchTab('tab-announcement')">ประกาศด่วนหน้าหลัก</button>
+      <button type="button" class="nav-tab" onclick="switchTab('tab-responses')">ดูผลตอบรับและส่งออกชีต</button>
+      <button type="button" class="nav-tab" onclick="switchTab('tab-bookings')">ตรวจสอบการจองเสื้อและสลิป</button>
+      <button type="button" class="nav-tab" onclick="switchTab('tab-inquiries')">ข้อความสอบถาม</button>
+      <button type="button" class="nav-tab" id="nav-tab-admins" onclick="switchTab('tab-admins')">จัดการแอดมิน</button>
+      <button type="button" class="nav-tab" id="nav-tab-settings" onclick="switchTab('tab-settings')">ตั้งค่าระบบและรหัสผ่าน</button>
+      <button type="button" class="nav-tab" id="nav-tab-logs" onclick="switchTab('tab-logs')">ประวัติการทำงาน</button>
     </div>
 
     <!-- TAB 1: จัดการกิจกรรม -->
@@ -95,25 +93,16 @@
       <div class="box">
         <div class="box-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
           <span>รายการกิจกรรมทั้งหมดในระบบ</span>
-          <div style="display:flex; gap:0.375rem; flex-wrap:wrap;">
-            <button class="btn-secondary btn-sm" onclick="addNewActivity('poll')">+ โพลล์</button>
-            <button class="btn-secondary btn-sm" onclick="addNewActivity('form')">+ แบบฟอร์ม</button>
-            <button class="btn-secondary btn-sm" onclick="addNewActivity('comment')">+ พูดคุย</button>
-            <button class="btn-secondary btn-sm" onclick="addNewActivity('booking')">+ สั่งจอง</button>
-            <button class="btn-success btn-sm" onclick="addNewActivity()">+ เพิ่มกิจกรรม</button>
+          <div class="activity-toolbar">
+            <button class="btn-success" onclick="openActivityChooser()">เพิ่มกิจกรรม</button>
           </div>
         </div>
-        <p style="color: var(--text-muted); font-size: 0.8125rem; margin-top: -0.375rem; margin-bottom: 1.25rem;">
-          เพิ่ม แก้ไข หรือคัดลอกกิจกรรมชนิดเดียวกันได้หลายอัน เช่น โพลล์หลายหัวข้อ แบบฟอร์มหลายชุด หรือกระดานพูดคุย โดยไม่ต้องเขียน HTML
-        </p>
+        <p id="activitySaveStatus" class="data-status" aria-live="polite"></p>
 
         <div id="activitiesContainer">
           <!-- Activities Rendered Here -->
         </div>
 
-        <button class="btn-success" onclick="addNewActivity()" style="width: 100%; margin-top: 0.625rem;">
-          + เพิ่มกิจกรรมใหม่
-        </button>
       </div>
     </div>
 
@@ -139,10 +128,7 @@
         </div>
 
         <div class="field-row">
-          <div style="flex: 0 0 6.25rem;">
-            <label>ไอคอน</label>
-            <input type="text" id="ann_icon" value="" style="text-align: center;">
-          </div>
+          <input type="hidden" id="ann_icon" value="">
           <div>
             <label>หัวข้อประกาศด่วน</label>
             <input type="text" id="ann_title" placeholder="เช่น ด่วน! แจ้งกำหนดการส่งงานวิชา...">
@@ -368,10 +354,6 @@
               <label>ชื่อ-สกุล นักศึกษา:</label>
               <input type="text" id="newAdminStudentName" placeholder="ชื่อจะแสดงอัตโนมัติเมื่อพบในระบบ..." style="margin:0;">
             </div>
-            <div style="flex:1;">
-              <label>รหัสผ่านเฉพาะตัว:</label>
-              <input type="password" id="newAdminStudentPin" placeholder="เว้นว่างได้" style="margin:0;">
-            </div>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.875rem; flex-wrap:wrap; gap:0.5rem;">
             <span id="newAdminLookupMsg" style="font-size:0.75rem; color:var(--text-muted);"></span>
@@ -459,6 +441,20 @@
   </div>
 </div>
 
+<div id="activityTypeDialog" class="activity-type-overlay" style="display:none;" aria-labelledby="activityTypeTitle" onclick="if(event.target===this) closeActivityChooser()">
+  <div class="activity-type-panel">
+    <div class="activity-dialog-header"><h2 id="activityTypeTitle">เพิ่มกิจกรรม</h2><button type="button" class="btn-secondary" onclick="closeActivityChooser()">ปิด</button></div>
+    <div class="activity-type-grid">
+      <button onclick="chooseActivityType('announcement')"><strong>ประกาศ</strong><span>ข่าวสารและกำหนดการ</span></button>
+      <button onclick="chooseActivityType('poll')"><strong>โหวต</strong><span>ตัวเลือกและรูปประกอบ</span></button>
+      <button onclick="chooseActivityType('form')"><strong>แบบฟอร์ม</strong><span>คำถามและรับสมัคร</span></button>
+      <button onclick="chooseActivityType('comment')"><strong>พูดคุย</strong><span>ความคิดเห็นและรูปภาพ</span></button>
+      <button onclick="chooseActivityType('booking')"><strong>จองเสื้อช็อป</strong><span>เปิดหน้าจองเสื้อ DE 06</span></button>
+      <button onclick="chooseActivityType('link')"><strong>ลิงก์</strong><span>เว็บไซต์หรือแบบฟอร์มภายนอก</span></button>
+      <button onclick="chooseActivityType('html')"><strong>HTML</strong><span>เนื้อหากำหนดเอง</span></button>
+    </div>
+  </div>
+</div>
 <script defer src="js/admin.js"></script>
 </body>
 </html>

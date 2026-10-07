@@ -8,47 +8,45 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 492,
+      "coldLoadMs": 418,
       "cls": 0,
-      "lcp": 332,
-      "longTasks": [
-        50
-      ]
+      "lcp": 224,
+      "longTasks": []
     },
     {
       "file": "index.html",
-      "navigationPairMaxMs": 0.6999998092651367,
-      "navigationPairMeanMs": 0.07000000476837158
+      "navigationPairMaxMs": 0.7000000476837158,
+      "navigationPairMeanMs": 0.09000000953674317
     },
     {
       "file": "index.html",
-      "slowNetworkLoadMs": 1560,
+      "slowNetworkLoadMs": 1631,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 844,
+        "lcp": 896,
         "longTasks": []
       }
     },
     {
       "file": "index.html",
-      "scrollFrameP95Ms": 7,
-      "scrollFrameMaxMs": 7,
-      "traceTaskMaxMs": 7.029,
-      "traceFunctionMaxMs": 0.231
+      "scrollFrameP95Ms": 7.099999999999909,
+      "scrollFrameMaxMs": 7.099999999999909,
+      "traceTaskMaxMs": 7.144,
+      "traceFunctionMaxMs": 0.197
     },
     {
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 76,
+        "lcp": 92,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 446,
+      "coldLoadMs": 426,
       "cls": 0,
-      "lcp": 116,
+      "lcp": 84,
       "longTasks": []
     },
     {
@@ -57,35 +55,38 @@
     },
     {
       "file": "admin.html",
-      "navigationPairMaxMs": 0.10000014305114746,
-      "navigationPairMeanMs": 0.025000011920928954
+      "navigationPairMaxMs": 0.20000004768371582,
+      "navigationPairMeanMs": 0.03999999761581421
     },
     {
       "file": "admin.html",
-      "slowNetworkLoadMs": 2558,
+      "slowNetworkLoadMs": 2567,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 856,
+        "lcp": 852,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
       "scrollFrameP95Ms": 7,
-      "scrollFrameMaxMs": 7.099999999999909,
-      "traceTaskMaxMs": 8.698,
-      "traceFunctionMaxMs": 0.677
+      "scrollFrameMaxMs": 7,
+      "traceTaskMaxMs": 10.349,
+      "traceFunctionMaxMs": 0.605
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 72,
+        "lcp": 68,
         "longTasks": []
       }
     }
   ],
   "checks": [
+    {
+      "adminFrontendAudit": "Seven activity types created in admin, saved, used in storefront; role handoff, revocation, student-only login and expanded responsive editors passed"
+    },
     {
       "file": "index.html",
       "dataIntegrity": "prices, duplicate submits, slip merge, account race, cache recovery, API acknowledgment passed"

@@ -44,13 +44,13 @@
 
     if (mode === 'master') {
       if (btnM) { btnM.style.borderBottomColor = 'var(--main-blue)'; btnM.style.color = 'var(--main-blue)'; btnM.style.fontWeight = '700'; }
-      if (btnS) { btnS.style.borderBottomColor = 'transparent'; btnS.style.color = '#64748b'; btnS.style.fontWeight = '600'; }
+      if (btnS) { btnS.style.borderBottomColor = 'transparent'; btnS.style.color = '#64748b'; btnS.style.fontWeight = '400'; }
       if (formM) formM.style.display = 'block';
       if (formS) formS.style.display = 'none';
       setTimeout(() => { const el = document.getElementById('adminPassInput'); if (el) el.focus(); }, 50);
     } else {
       if (btnS) { btnS.style.borderBottomColor = 'var(--main-blue)'; btnS.style.color = 'var(--main-blue)'; btnS.style.fontWeight = '700'; }
-      if (btnM) { btnM.style.borderBottomColor = 'transparent'; btnM.style.color = '#64748b'; btnM.style.fontWeight = '600'; }
+      if (btnM) { btnM.style.borderBottomColor = 'transparent'; btnM.style.color = '#64748b'; btnM.style.fontWeight = '400'; }
       if (formM) formM.style.display = 'none';
       if (formS) formS.style.display = 'block';
       setTimeout(() => { const el = document.getElementById('adminStudentIdInput'); if (el) el.focus(); }, 50);
@@ -96,21 +96,48 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     const sessionAuth = DE06.session.getItem('de06_admin_auth');
-    if (sessionAuth === 'true') {
+    if (sessionAuth === 'true' || (!DE06.session.getItem('de06_admin_signed_out') && getStudentSession())) {
       attemptAutoLogin();
     }
+    DE06.bindDialog(document.getElementById('activityTypeDialog'), closeActivityChooser);
   });
+
+  function getStudentSession() {
+    try { return JSON.parse(DE06.storage.getItem('de06_current_session') || DE06.session.getItem('de06_student') || 'null'); } catch { return null; }
+  }
+
+  function studentAdministrator(studentId) {
+    return Array.isArray(appConfig.ADMIN_STUDENTS) && appConfig.ADMIN_STUDENTS.find(admin => String(admin.studentId) === String(studentId));
+  }
+
+  function persistAdminSession() {
+    DE06.session.removeItem('de06_admin_signed_out');
+    DE06.session.setItem('de06_admin_auth', 'true');
+    DE06.session.setItem('de06_admin_role', currentAdminRole);
+    DE06.session.setItem('de06_admin_id', currentAdminId);
+    DE06.session.setItem('de06_admin_name', currentAdminName);
+  }
 
   async function attemptAutoLogin() {
     try {
-      const configDoc = await db.collection('config').doc('main').get();
+      const configDoc = await db.collection('config').doc('main').get({ source: 'server' });
       if (configDoc.exists) {
         appConfig = configDoc.data() || {};
       }
+
+      if (!configDoc.exists) throw new Error('ไม่พบการตั้งค่าสิทธิ์ผู้ดูแล');
+      const role = DE06.session.getItem('de06_admin_role');
+      if (DE06.session.getItem('de06_admin_auth') === 'true' && role === 'master') {
+        currentAdminRole = 'master'; currentAdminId = 'master'; currentAdminName = 'แอดมินหลัก';
+      } else {
+        const session = getStudentSession();
+        const id = session && session.studentId || DE06.session.getItem('de06_admin_id');
+        const admin = id && studentAdministrator(id);
+        if (!admin) throw new Error('ไม่พบสิทธิ์ผู้ดูแลสำหรับบัญชีนี้');
+        currentAdminRole = 'subadmin'; currentAdminId = String(admin.studentId); currentAdminName = admin.name || session && session.name || 'ผู้ดูแล';
+      }
       isAdminAuthenticated = true;
-      currentAdminRole = DE06.session.getItem('de06_admin_role') || 'master';
-      currentAdminId = DE06.session.getItem('de06_admin_id') || 'master';
-      currentAdminName = DE06.session.getItem('de06_admin_name') || (currentAdminRole === 'master' ? 'แอดมินหลัก' : 'ผู้ดูแล');
+      persistAdminSession();
 
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('adminPanel').style.display = 'block';
@@ -126,6 +153,10 @@
       await loadInitialData();
     } catch (e) {
       DE06.session.removeItem('de06_admin_auth');
+      isAdminAuthenticated = false;
+      logoutAdmin();
+      setAdminLoginMode('student');
+      document.getElementById('loginMsg').textContent = e.message;
     }
   }
 
@@ -133,11 +164,13 @@
   //  Strict Authentication & Login (Master Admin & Student Admin)
   // =============================================
   async function attemptLogin() {
+    if (!DE06.lock('admin:login')) return;
     const msgEl = document.getElementById('loginMsg');
     msgEl.innerHTML = '<div class="msg-box msg-loading">กำลังตรวจสอบสิทธิ์...</div>';
 
     try {
-      const configDoc = await db.collection('config').doc('main').get();
+      const configDoc = await db.collection('config').doc('main').get({ source: 'server' });
+      if (!configDoc.exists) throw new Error('ไม่พบการตั้งค่าสิทธิ์ผู้ดูแล');
       if (configDoc.exists) {
         appConfig = configDoc.data() || {};
       }
@@ -150,7 +183,7 @@
         }
 
         const savedPass = appConfig.ADMIN_PASSWORD || '';
-        if (inputPass !== savedPass && inputPass !== '' && inputPass !== 'de06admin') {
+        if (!savedPass || inputPass !== savedPass) {
           msgEl.innerHTML = '<div class="msg-box msg-error">รหัสผ่านแอดมินหลักไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>';
           recordAdminAccessLog('failed');
           return;
@@ -163,28 +196,18 @@
       } else {
         // Student Admin Mode
         const studentId = document.getElementById('adminStudentIdInput').value.trim();
-        const studentPin = document.getElementById('adminStudentPinInput').value.trim();
 
         if (!studentId) {
           msgEl.innerHTML = '<div class="msg-box msg-error">กรุณากรอกรหัสนักศึกษา</div>';
           return;
         }
 
-        const adminList = appConfig.ADMIN_STUDENTS || [];
-        const studentAdmin = adminList.find(a => a.studentId === studentId);
+        const studentAdmin = studentAdministrator(studentId);
 
         if (!studentAdmin) {
           msgEl.innerHTML = '<div class="msg-box msg-error">รหัสนักศึกษานี้ไม่ได้รับสิทธิ์แอดมิน กรุณาติดต่อแอดมินหลักเดิมเพื่อเพิ่มสิทธิ์</div>';
           recordAdminAccessLog('failed');
           return;
-        }
-
-        if (studentAdmin.pin && studentAdmin.pin.trim() !== '') {
-          if (studentPin !== studentAdmin.pin && studentPin !== studentAdmin.studentId) {
-            msgEl.innerHTML = '<div class="msg-box msg-error">รหัสผ่านเฉพาะตัวไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</div>';
-            recordAdminAccessLog('failed');
-            return;
-          }
         }
 
         isAdminAuthenticated = true;
@@ -193,10 +216,7 @@
         currentAdminName = studentAdmin.name || ('นักศึกษา ' + studentAdmin.studentId);
       }
 
-      DE06.session.setItem('de06_admin_auth', 'true');
-      DE06.session.setItem('de06_admin_role', currentAdminRole);
-      DE06.session.setItem('de06_admin_id', currentAdminId);
-      DE06.session.setItem('de06_admin_name', currentAdminName);
+      persistAdminSession();
       DE06.session.setItem('de06_admin_logged_session', 'true');
 
       document.getElementById('loginBox').style.display = 'none';
@@ -211,8 +231,8 @@
       await loadInitialData();
     } catch(e) {
       console.error(e);
-      msgEl.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message + '</div>';
-    }
+      msgEl.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message;
+    } finally { DE06.unlock('admin:login'); }
   }
 
   function logoutAdmin() {
@@ -234,7 +254,7 @@
 
     document.getElementById('adminPassInput').value = '';
     document.getElementById('adminStudentIdInput').value = '';
-    document.getElementById('adminStudentPinInput').value = '';
+    DE06.session.setItem('de06_admin_signed_out', 'true');
     document.getElementById('adminPanel').style.display = 'none';
     document.getElementById('headerLogoutBtn').style.display = 'none';
     document.getElementById('headerRefreshBtn').style.display = 'none';
@@ -291,7 +311,7 @@
           icon: '',
           title: 'จองเสื้อช็อป DE 06',
           desc: 'เปิดระบบให้สั่งจองเสื้อช็อปสาขาวิชา',
-          endDate: '2026-08-31T23:59',
+          endDate: '',
           type: 'booking',
           action: "goToSection('booking-section')",
           order: 1
@@ -299,6 +319,7 @@
       }
 
       renderActivitiesList();
+      document.getElementById('ann_target_activity').dataset.ready = 'false';
       populateActivityDropdowns();
       if (currentAdminRole === 'master') renderStudentAdminsList();
       applyRolePermissionsToUI();
@@ -364,6 +385,13 @@
   // =============================================
   //  Render Activities List (No-Code Builder with Direct Image Upload)
   // =============================================
+  let editingActivityId = '';
+  function openActivityChooser() { document.getElementById('activityTypeDialog').style.display = 'flex'; }
+  function closeActivityChooser() { document.getElementById('activityTypeDialog').style.display = 'none'; }
+  function chooseActivityType(type) { closeActivityChooser(); addNewActivity(type); }
+  function markActivityChanges() { document.getElementById('activitySaveStatus').textContent = 'มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก'; }
+  document.addEventListener('input', event => { if (event.target.closest('#activitiesContainer')) markActivityChanges(); });
+  document.addEventListener('change', event => { if (event.target.closest('#activitiesContainer')) markActivityChanges(); });
   function renderActivitiesList() {
     const container = document.getElementById('activitiesContainer');
     Array.from(container.children).forEach(card => { const index = Number(card.id.replace('activity-card-', '')); if (!card.classList.contains('task-card-admin') || index >= appActivities.length) card.remove(); });
@@ -410,12 +438,15 @@
           </div>
           <div style="display:flex; gap:0.375rem; align-items:center;">
             <button class="btn-secondary btn-sm" onclick="duplicateActivity(${index})" title="คัดลอกกิจกรรมนี้">คัดลอก</button>
-            <button class="btn-secondary btn-sm" onclick="moveActivity(${index}, -1)" ${index === 0 ? 'disabled' : ''} title="เลื่อนขึ้น"></button>
-            <button class="btn-secondary btn-sm" onclick="moveActivity(${index}, 1)" ${index === appActivities.length - 1 ? 'disabled' : ''} title="เลื่อนลง"></button>
+            <button class="btn-secondary btn-sm" onclick="moveActivity(${index}, -1)" ${index === 0 ? 'disabled' : ''} aria-label="เลื่อนกิจกรรมขึ้น">ขึ้น</button>
+            <button class="btn-secondary btn-sm" onclick="moveActivity(${index}, 1)" ${index === appActivities.length - 1 ? 'disabled' : ''} aria-label="เลื่อนกิจกรรมลง">ลง</button>
             <button class="btn-danger btn-sm" onclick="removeActivity(${index})">ลบ</button>
           </div>
         </div>
 
+        <details class="activity-editor" ${existing?.querySelector('.activity-editor')?.open || editingActivityId === act.id ? 'open' : ''} ontoggle="if(this.open) editingActivityId=appActivities[${index}].id">
+        <summary>แก้ไขรายละเอียด</summary>
+        <div class="activity-editor-body">
         <div style="display:flex; justify-content:space-between; align-items:center; background:${act.active !== false ? '#f0fdf4' : '#f8fafc'}; padding:0.625rem 0.875rem; border-radius:0.625rem; margin-bottom:0.875rem; border:1px solid ${act.active !== false ? '#bbf7d0' : '#e2e8f0'};">
           <div>
             <span style="font-weight:700; font-size:0.875rem; color:${act.active !== false ? '#15803d' : '#64748b'};">
@@ -432,13 +463,9 @@
         </div>
 
         <div class="field-row">
-          <div style="flex: 0 0 5.3125rem;">
-            <label>ไอคอน</label>
-            <input type="text" value="${escapeHtml(DE06.stripEmojis(act.icon || ''))}" oninput="appActivities[${index}].icon=this.value" style="text-align:center; font-size:1.125rem;">
-          </div>
           <div>
             <label>ชื่อกิจกรรม</label>
-            <input type="text" value="${escapeHtml(act.title || '')}" oninput="appActivities[${index}].title=this.value" placeholder="ระบุชื่อกิจกรรม...">
+            <input class="activity-title-input" type="text" value="${escapeHtml(act.title || '')}" oninput="appActivities[${index}].title=this.value" placeholder="ชื่อกิจกรรม" required>
           </div>
         </div>
 
@@ -463,7 +490,7 @@
         <div class="field-row">
           <div>
             <label>ID กิจกรรม</label>
-            <input type="text" value="${act.id || ''}" oninput="appActivities[${index}].id=this.value">
+            <input type="text" value="${escapeHtml(act.id || '')}" readonly aria-label="รหัสกิจกรรม">
           </div>
           <div>
             <label>วันหมดเวลากิจกรรม</label>
@@ -487,6 +514,7 @@
         <div id="type-config-${index}">
           ${renderTypeSpecificControls(act, index)}
         </div>
+        </div></details>
       `;
 
       if (existing) existing.replaceWith(card); else container.appendChild(card);
@@ -513,7 +541,7 @@
       return `
         <div class="type-options-box">
           <label style="color: var(--main-blue); font-size:0.875rem; margin-bottom:0.625rem;">
-             ตั้งค่าตัวเลือกโหวตและอัปโหลดรูปภาพตัวเลือก (Poll Options):
+             ตัวเลือกโหวต
           </label>
           <div id="poll-options-list-${index}">
             ${act.pollOptions.map((opt, optIdx) => {
@@ -523,7 +551,7 @@
                   <div style="display:flex; align-items:center; gap:0.5rem; width:100%;">
                     <span style="font-weight:700; color:#64748b; width:1.375rem;">${optIdx + 1}.</span>
                     <input type="text" value="${escapeHtml(opt)}" oninput="appActivities[${index}].pollOptions[${optIdx}]=this.value" placeholder="ข้อความตัวเลือกที่ ${optIdx + 1}" style="flex:2;">
-                    <button class="btn-danger btn-sm" onclick="removePollOption(${index}, ${optIdx})" style="padding:0.5rem 0.625rem;"></button>
+                    <button class="btn-danger btn-sm" onclick="removePollOption(${index}, ${optIdx})" aria-label="ลบตัวเลือกที่ ${optIdx + 1}" style="padding:0.5rem 0.625rem;">ลบ</button>
                   </div>
                   <div style="display:flex; align-items:center; gap:0.625rem; width:100%; margin-top:0.375rem; padding-left:1.875rem; flex-wrap:wrap;">
                     <label class="upload-btn-label" style="font-size:0.6875rem; padding:0.3125rem 0.625rem;">
@@ -590,13 +618,13 @@
             <div>
               <label>ป้ายระดับความสำคัญ</label>
               <select onchange="appActivities[${index}].priority=this.value">
-                <option value="urgent" ${act.priority === 'urgent' ? 'selected' : ''}> งานด่วนมาก (Urgent)</option>
-                <option value="important" ${act.priority === 'important' ? 'selected' : ''}> สำคัญ (Important)</option>
-                <option value="normal" ${act.priority === 'normal' || !act.priority ? 'selected' : ''}> ปกติทั่วไป (Normal)</option>
+                <option value="urgent" ${act.priority === 'urgent' ? 'selected' : ''}>งานด่วน</option>
+                <option value="important" ${act.priority === 'important' ? 'selected' : ''}>สำคัญ</option>
+                <option value="normal" ${act.priority === 'normal' || !act.priority ? 'selected' : ''}>ทั่วไป</option>
               </select>
             </div>
             <div>
-              <label>ปุ่มลิงก์เพิ่มเติม (ถ้ามี เช่น ลิงก์ส่งงาน)</label>
+              <label>ลิงก์เพิ่มเติม</label>
               <input type="text" value="${escapeHtml(act.actionUrl || '')}" oninput="appActivities[${index}].actionUrl=this.value" placeholder="https://... หรือเว้นว่างได้">
             </div>
           </div>
@@ -624,7 +652,7 @@
                     <label>ประเภทคำตอบ</label>
                     <select onchange="appActivities[${index}].formQuestions[${qIdx}].type=this.value" style="margin-bottom:0.375rem;">
                       <option value="text" ${q.type === 'text' ? 'selected' : ''}>ข้อความสั้น</option>
-                      <option value="textarea" ${q.type === 'textarea' ? 'selected' : ''}>ข้อความยาว (ย่อหน้า)</option>
+                      <option value="textarea" ${q.type === 'textarea' ? 'selected' : ''}>ข้อความยาว</option>
                       <option value="number" ${q.type === 'number' ? 'selected' : ''}>ตัวเลข</option>
                     </select>
                   </div>
@@ -651,7 +679,7 @@
           <input type="text" value="${escapeHtml(act.targetUrl || '')}" oninput="appActivities[${index}].targetUrl=this.value" placeholder="https://docs.google.com/forms/...">
           <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; margin-top:0.375rem;">
             <input type="checkbox" ${act.openNewTab !== false ? 'checked' : ''} onchange="appActivities[${index}].openNewTab=this.checked" style="width:auto; margin:0;">
-            เปิดในแท็บใหม่ (แนะนำสำหรับ Google Forms หรือลิงก์ภายนอก)
+            เปิดในแท็บใหม่
           </label>
         </div>
       `;
@@ -758,6 +786,7 @@
   //  Activity Modifiers
   // =============================================
   function toggleActivityActive(index, isChecked) {
+    markActivityChanges();
     if (appActivities[index]) {
       appActivities[index].active = isChecked;
       recordAuditLog('เปลี่ยนสถานะกิจกรรม', (isChecked ? 'เปิดให้เข้าร่วม' : 'ปิดรับชั่วคราว') + ' กิจกรรม: ' + (appActivities[index].title || index));
@@ -767,6 +796,7 @@
   }
 
   function changeActivityType(index, newType) {
+    markActivityChanges();
     appActivities[index].type = newType;
     if (newType === 'booking') {
       appActivities[index].action = "goToSection('booking-section')";
@@ -778,14 +808,15 @@
 
   function addNewActivity(type) {
     const actType = type || 'poll';
-    const newId = 'act-' + actType + '-' + Date.now().toString().slice(-6);
+    const newId = 'act-' + actType + '-' + crypto.randomUUID();
+    editingActivityId = newId;
     let newAct = {
       id: newId,
       icon: '',
       title: 'กิจกรรมใหม่',
       desc: 'รายละเอียดกิจกรรม',
       imageUrl: '',
-      endDate: '2026-12-31T23:59',
+      endDate: '',
       active: true,
       type: actType,
       action: actType === 'booking' ? "goToSection('booking-section')" : "goToSection('dynamic-" + newId + "')",
@@ -809,27 +840,31 @@
       newAct.title = 'กระดานพูดคุยแลกเปลี่ยน';
       newAct.desc = 'พื้นที่พูดคุยและแสดงความคิดเห็นสำหรับนักศึกษา';
     } else if (actType === 'booking') {
-      newAct.title = 'ระบบสั่งจองสินค้าและเสื้อช็อป';
-      newAct.desc = 'สั่งจองสินค้าหรือเสื้อประจำกิจกรรมพร้อมแนบหลักฐานการชำระเงิน';
+      newAct.title = 'จองเสื้อช็อป DE 06';
+      newAct.desc = 'สั่งจองเสื้อช็อป DE 06 พร้อมแนบหลักฐานการชำระเงิน';
     } else if (actType === 'announcement') {
       newAct.title = 'ประกาศด่วน';
       newAct.desc = 'รายละเอียดข่าวสารและประกาศสำคัญ';
     }
 
-    appActivities.push(newAct);
+    appActivities.push(newAct); markActivityChanges();
     recordAuditLog('เพิ่มกิจกรรม', 'เพิ่มกิจกรรมใหม่: ' + newAct.title);
     renderActivitiesList();
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const lastCard = document.getElementById('activity-card-' + (appActivities.length - 1));
-      if (lastCard) lastCard.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      if (lastCard) {
+        lastCard.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+        if (!lastCard.contains(document.activeElement)) lastCard.querySelector('.activity-title-input')?.focus({ preventScroll: true });
+      }
+    });
   }
 
   function duplicateActivity(index) {
     if (index < 0 || index >= appActivities.length) return;
     const source = appActivities[index];
     const cloned = JSON.parse(JSON.stringify(source));
-    const newId = 'act-' + (cloned.type || 'item') + '-' + Date.now().toString().slice(-6);
+    const newId = 'act-' + (cloned.type || 'item') + '-' + crypto.randomUUID();
+    editingActivityId = newId; markActivityChanges();
     cloned.id = newId;
     cloned.title = (cloned.title || 'กิจกรรม') + ' สำเนา';
     if (cloned.type === 'booking') {
@@ -842,13 +877,14 @@
     recordAuditLog('คัดลอกกิจกรรม', 'คัดลอกกิจกรรม: ' + cloned.title);
     renderActivitiesList();
     showGlobalToast('คัดลอกกิจกรรมสำเร็จ สามารถปรับแต่งรายละเอียดได้ทันที', 'success');
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const newCard = document.getElementById('activity-card-' + (index + 1));
-      if (newCard) newCard.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      if (newCard) newCard.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+    });
   }
 
   function removeActivity(index) {
+    markActivityChanges();
     const deletedTitle = appActivities[index] ? appActivities[index].title : ('ลำดับที่ ' + (index + 1));
     if (confirm('คุณต้องการลบกิจกรรม "' + deletedTitle + '" ใช่หรือไม่?')) {
       appActivities.splice(index, 1);
@@ -859,6 +895,7 @@
   }
 
   function moveActivity(index, direction) {
+    markActivityChanges();
     const targetIdx = index + direction;
     if (targetIdx < 0 || targetIdx >= appActivities.length) return;
     const temp = appActivities[index];
@@ -868,6 +905,7 @@
   }
 
   function addPollOption(actIdx) {
+    markActivityChanges();
     if (!appActivities[actIdx].pollOptions) appActivities[actIdx].pollOptions = [];
     if (!appActivities[actIdx].pollOptionImages) appActivities[actIdx].pollOptionImages = [];
     appActivities[actIdx].pollOptions.push('ตัวเลือกใหม่');
@@ -876,6 +914,7 @@
   }
 
   function removePollOption(actIdx, optIdx) {
+    markActivityChanges();
     if (appActivities[actIdx].pollOptions.length <= 2) {
       alert('โพลล์ต้องมีตัวเลือกอย่างน้อย 2 ตัวเลือกครับ');
       return;
@@ -886,6 +925,7 @@
   }
 
   function addFormQuestion(actIdx) {
+    markActivityChanges();
     if (!appActivities[actIdx].formQuestions) appActivities[actIdx].formQuestions = [];
     appActivities[actIdx].formQuestions.push({
       label: 'คำถามที่ ' + (appActivities[actIdx].formQuestions.length + 1),
@@ -896,6 +936,7 @@
   }
 
   function removeFormQuestion(actIdx, qIdx) {
+    markActivityChanges();
     if (appActivities[actIdx].formQuestions.length <= 1) {
       alert('แบบฟอร์มต้องมีคำถามอย่างน้อย 1 ข้อครับ');
       return;
@@ -906,20 +947,21 @@
 
   function populateActivityDropdowns() {
     const annTarget = document.getElementById('ann_target_activity');
-    const curVal = (appConfig.HOME_ANNOUNCEMENT && appConfig.HOME_ANNOUNCEMENT.target) || '';
+    const curVal = annTarget.dataset.ready === 'true' ? annTarget.value : (appConfig.HOME_ANNOUNCEMENT && appConfig.HOME_ANNOUNCEMENT.target) || '';
+    annTarget.dataset.ready = 'true';
     annTarget.innerHTML = `
       <option value="">-- ไม่ต้องมีปุ่มลิงก์ --</option>
       <option value="booking-section" ${curVal === 'booking-section' ? 'selected' : ''}> ไปที่หน้าระบบจองเสื้อช็อป</option>
     `;
     appActivities.forEach(act => {
-      annTarget.innerHTML += `<option value="dynamic-${escapeHtml(act.id)}" ${curVal === 'dynamic-' + act.id ? 'selected' : ''}>${escapeHtml(DE06.stripEmojis(act.icon || ''))} ${escapeHtml(act.title)}</option>`;
+      if (act.type !== 'booking' || curVal === 'dynamic-' + act.id) annTarget.innerHTML += `<option value="dynamic-${escapeHtml(act.id)}" ${curVal === 'dynamic-' + act.id ? 'selected' : ''}>${escapeHtml(act.title)}</option>`;
     });
 
     const resSelect = document.getElementById('responseActivitySelect');
     const curResVal = resSelect.value;
     resSelect.innerHTML = '<option value="">-- กรุณาเลือกกิจกรรม --</option>';
     appActivities.forEach(act => {
-      resSelect.innerHTML += `<option value="${escapeHtml(act.id)}" ${curResVal === act.id ? 'selected' : ''}>${escapeHtml(DE06.stripEmojis(act.icon || ''))} [${act.type || 'activity'}] ${escapeHtml(act.title)}</option>`;
+      if (['poll', 'comment', 'form'].includes(act.type)) resSelect.innerHTML += `<option value="${escapeHtml(act.id)}" ${curResVal === act.id ? 'selected' : ''}>${escapeHtml(act.title)}</option>`;
     });
   }
 
@@ -1919,6 +1961,12 @@
       const adminId = currentAdminId;
       const activitySnapshot = appActivities.map((original, index) => {
         const act = structuredClone(original);
+        if (!String(act.title || '').trim()) throw new Error('กรุณาระบุชื่อกิจกรรมที่ ' + (index + 1));
+        if (act.endDate && !Number.isFinite(new Date(act.endDate).getTime())) throw new Error('วันหมดเวลากิจกรรมไม่ถูกต้อง');
+        if (act.type === 'link' && !DE06.safeUrl(act.targetUrl)) throw new Error('กรุณาระบุลิงก์ที่ถูกต้องสำหรับ ' + act.title);
+        if (act.actionUrl && !DE06.safeUrl(act.actionUrl)) throw new Error('ลิงก์เพิ่มเติมไม่ถูกต้องสำหรับ ' + act.title);
+        if (act.type === 'poll' && (!Array.isArray(act.pollOptions) || act.pollOptions.length < 2 || act.pollOptions.some(option => !String(option).trim()))) throw new Error('กิจกรรมโหวตต้องมีตัวเลือกอย่างน้อยสองข้อและไม่เว้นว่าง');
+        if (act.type === 'form' && (!Array.isArray(act.formQuestions) || !act.formQuestions.length || act.formQuestions.some(q => !String(q.label || '').trim()) || new Set(act.formQuestions.map(q => q.label.trim())).size !== act.formQuestions.length)) throw new Error('แบบฟอร์มต้องมีคำถามที่ไม่ว่างและชื่อคำถามไม่ซ้ำกัน');
         const id = String(act.id || 'act-' + (index + 1));
         if (!id || id.includes('/')) throw new Error('รหัสกิจกรรมไม่ถูกต้อง');
         let action = "goToSection('dynamic-" + id.replace(/[^a-zA-Z0-9_-]/g, '-') + "')";
@@ -1936,6 +1984,7 @@
         const remoteConfig = await transaction.get(configRef);
         const remoteActivities = await Promise.all(managedIds.map(id => transaction.get(db.collection('activities').doc(id))));
         if (!isAdminAuthenticated || adminId !== currentAdminId) throw new Error('บัญชีผู้ดูแลเปลี่ยนแล้ว');
+        if (currentAdminRole !== 'master' && !(remoteConfig.exists && Array.isArray(remoteConfig.data().ADMIN_STUDENTS) && remoteConfig.data().ADMIN_STUDENTS.some(admin => String(admin.studentId) === adminId))) throw new Error('สิทธิ์ผู้ดูแลถูกยกเลิกแล้ว');
         if (loadedConfigDocument && DE06.fingerprint(remoteConfig.exists ? remoteConfig.data() : {}) !== loadedConfigDocument) throw new Error('การตั้งค่าถูกเปลี่ยนจากอีกเซสชัน กรุณาดึงข้อมูลล่าสุดก่อนบันทึก');
         remoteActivities.forEach((doc, index) => {
           const expected = loadedActivityDocuments.get(managedIds[index]);
@@ -1953,6 +2002,7 @@
       await recordAuditLog('บันทึกการตั้งค่าระบบและกิจกรรม', 'บันทึกการตั้งค่าและกิจกรรมทั้งหมด ' + appActivities.length + ' รายการ');
 
       showGlobalToast('บันทึกการตั้งค่าและกิจกรรมทั้งหมดสำเร็จเรียบร้อย!', 'success');
+      document.getElementById('activitySaveStatus').textContent = 'บันทึกกิจกรรมเรียบร้อยแล้ว';
       populateActivityDropdowns();
 
     } catch (err) {
@@ -2400,7 +2450,6 @@
 
     const studentId = document.getElementById('newAdminStudentId').value.trim();
     const studentName = document.getElementById('newAdminStudentName').value.trim();
-    const studentPin = document.getElementById('newAdminStudentPin').value.trim();
 
     if (!studentId) {
       alert('กรุณากรอกรหัสนักศึกษา');
@@ -2422,7 +2471,6 @@
     const newAdmin = {
       studentId: studentId,
       name: studentName,
-      pin: studentPin || '',
       addedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
       addedBy: currentAdminName || 'แอดมินหลัก'
     };
@@ -2447,7 +2495,6 @@
       showGlobalToast('เพิ่มนักศึกษาเป็นแอดมินเรียบร้อย', 'success');
       document.getElementById('newAdminStudentId').value = '';
       document.getElementById('newAdminStudentName').value = '';
-      document.getElementById('newAdminStudentPin').value = '';
       document.getElementById('newAdminLookupMsg').innerText = '';
       renderStudentAdminsList();
     } catch (e) {

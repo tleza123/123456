@@ -83,6 +83,8 @@ const server = http.createServer((req, res) => {
   const browser = await ({ chromium, firefox, webkit }[engine]).launch({ headless: true, ...(engine === 'chromium' ? { channel: process.env.BROWSER_CHANNEL || 'msedge' } : {}) });
   const results = { engine, browserVersion: browser.version(), platform: process.platform, fixtureOrders: 650, mode: baseline ? 'baseline' : 'updated', environment: 'Local HTTP with mocked Firebase SDK and in-memory data; 2 Mbps / 150ms for static assets and 150ms mock database latency', measurements: [], checks: [] };
   try {
+    if (!baseline) results.checks.push({ adminFrontendAudit: await require('./admin_frontend_audit.cjs')(browser, `http://127.0.0.1:${server.address().port}`, mockFirebase, fixture) });
+    if (process.env.ADMIN_AUDIT_ONLY) { console.log(JSON.stringify(results.checks)); return; }
     for (const file of ['index.html', 'admin.html']) {
       const page = await browser.newPage(); const errors = [];
       page.on('pageerror', e => errors.push(e.message));
@@ -214,7 +216,8 @@ const server = http.createServer((req, res) => {
           for (const section of sections) {
             await page.evaluate(([file, section]) => file === 'index.html' ? switchSection(section) : switchTab(section), [file, section]);
             await page.waitForTimeout(20);
-            assert(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), `${file}/${section}: overflow at ${width}`);
+            const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth ? Array.from(document.querySelectorAll('body *')).filter(el => el.getClientRects().length && el.getBoundingClientRect().right > innerWidth + 1).slice(0, 8).map(el => el.tagName + '#' + el.id + '.' + el.className) : []);
+            assert.deepEqual(overflow, [], `${file}/${section}: overflow at ${width}: ${JSON.stringify(overflow)}`);
             const handlerErrors = await page.evaluate(() => Array.from(document.querySelectorAll('*')).flatMap(element => Array.from(element.attributes).filter(attribute => attribute.name.startsWith('on')).flatMap(attribute => { try { new Function('event', attribute.value); return []; } catch (error) { return [element.tagName + ':' + attribute.name + ':' + error.message]; } })));
             assert.deepEqual(handlerErrors, [], `${file}/${section}: malformed inline handler`);
           }
@@ -241,7 +244,7 @@ const server = http.createServer((req, res) => {
           await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
           const slowStart = Date.now(); await page.goto(`http://127.0.0.1:${server.address().port}/${file}?slow&student`); await page.waitForTimeout(300);
           if (file === 'admin.html') {
-            await page.locator('#adminPassInput').click();
+            await page.locator('#loginBox input:visible').first().click();
             await page.evaluate(async () => { isAdminAuthenticated = true; currentAdminRole = 'master'; document.getElementById('adminPanel').style.display = 'block'; document.getElementById('loginBox').style.display = 'none'; await loadInitialData(); });
             await page.locator('.nav-tab[onclick*="tab-bookings"]').click(); await page.evaluate(() => loadBookingsData(false));
           }
@@ -286,7 +289,7 @@ const server = http.createServer((req, res) => {
         await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
         const slowStart = Date.now(); await page.goto(`http://127.0.0.1:${server.address().port}/${file}?slow&student`); await page.waitForTimeout(300);
         if (file === 'admin.html') {
-          await page.locator('#adminPassInput').click();
+          await page.locator('#loginBox input:visible').first().click();
           await page.evaluate(async () => { isAdminAuthenticated = true; currentAdminRole = 'master'; document.getElementById('adminPanel').style.display = 'block'; document.getElementById('loginBox').style.display = 'none'; await loadInitialData(); });
           await page.locator('.nav-tab[onclick*="tab-bookings"]').click(); await page.evaluate(() => loadBookingsData());
         }
@@ -302,4 +305,3 @@ const server = http.createServer((req, res) => {
     console.log(JSON.stringify(results, null, 2));
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; }).finally(() => server.close());
-

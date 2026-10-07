@@ -8,9 +8,9 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 418,
+      "coldLoadMs": 435,
       "cls": 0,
-      "lcp": 60,
+      "lcp": 88,
       "longTasks": []
     },
     {
@@ -22,15 +22,15 @@
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 76,
+        "lcp": 84,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 407,
+      "coldLoadMs": 408,
       "cls": 0,
-      "lcp": 50,
+      "lcp": 52,
       "longTasks": []
     },
     {
@@ -40,18 +40,21 @@
     {
       "file": "admin.html",
       "navigationPairMaxMs": 1,
-      "navigationPairMeanMs": 0.05
+      "navigationPairMeanMs": 0.1
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 36,
+        "lcp": 44,
         "longTasks": []
       }
     }
   ],
   "checks": [
+    {
+      "adminFrontendAudit": "Seven activity types created in admin, saved, used in storefront; role handoff, revocation, student-only login and expanded responsive editors passed"
+    },
     {
       "file": "index.html",
       "dataIntegrity": "prices, duplicate submits, slip merge, account race, cache recovery, API acknowledgment passed"
