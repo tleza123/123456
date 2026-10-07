@@ -8,21 +8,21 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 435,
+      "coldLoadMs": 414,
       "cls": 0,
-      "lcp": 88,
+      "lcp": 57,
       "longTasks": []
     },
     {
       "file": "index.html",
-      "navigationPairMaxMs": 1,
-      "navigationPairMeanMs": 0.15
+      "navigationPairMaxMs": 2,
+      "navigationPairMeanMs": 0.35
     },
     {
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 84,
+        "lcp": 96,
         "longTasks": []
       }
     },
@@ -30,7 +30,7 @@
       "file": "admin.html",
       "coldLoadMs": 408,
       "cls": 0,
-      "lcp": 52,
+      "lcp": 58,
       "longTasks": []
     },
     {
@@ -39,14 +39,14 @@
     },
     {
       "file": "admin.html",
-      "navigationPairMaxMs": 1,
-      "navigationPairMeanMs": 0.1
+      "navigationPairMaxMs": 2,
+      "navigationPairMeanMs": 0.2
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 44,
+        "lcp": 65,
         "longTasks": []
       }
     }

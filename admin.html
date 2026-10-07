@@ -173,6 +173,12 @@
         </div>
 
         <!-- Bookings Summary Stats (4-Card Grid) -->
+        <label for="bookingDataScope">ข้อมูลในรายงาน</label>
+        <select id="bookingDataScope" onchange="loadBookingsData(true)">
+          <option value="current">การจองปัจจุบัน</option>
+          <option value="combined">รวมการจองจากระบบเดิม</option>
+        </select>
+        <div id="bookings-status" class="data-status" role="status"></div>
         <div class="stats-summary-grid">
           <div class="stat-card-premium" style="border-left: 0.25rem solid var(--main-blue);">
             <div class="stat-icon"></div>
@@ -274,7 +280,6 @@
             </tbody>
           </table>
           <div id="bookings-pager" class="pager"></div>
-          <div id="bookings-status" class="data-status" role="status"></div>
 
         </div>
       </div>

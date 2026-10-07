@@ -1380,6 +1380,7 @@
   }
 
   let bookingsComplete = false;
+  function bookingDataScope() { return document.getElementById('bookingDataScope')?.value === 'combined' ? 'combined' : 'current'; }
   let bookingListenerStops = [];
   let bookingLiveTimer = null;
   let bookingFingerprint = '';
@@ -1392,18 +1393,20 @@
   }
   function watchBookings() {
     if (document.hidden || !isAdminAuthenticated || !bookingsComplete || !document.getElementById('tab-bookings').classList.contains('active') || bookingListenerStops.length) return;
-    const queries = [db.collection('bookings'), db.collection('orders_shirts')];
+    const scope = bookingDataScope();
+    const queries = [db.collection('bookings')];
+    if (scope === 'combined') queries.push(db.collection('orders_shirts'));
     if (!queries.every(query => typeof query.onSnapshot === 'function')) return;
-    const identity = currentAdminId; const snapshots = [];
+    const identity = currentAdminId; const snapshots = Array(queries.length).fill(null);
     queries.forEach((query, index) => {
       const stop = query.onSnapshot(snapshot => {
-        if (identity !== currentAdminId || !isAdminAuthenticated || document.hidden || snapshot.metadata?.fromCache) return;
+        if (identity !== currentAdminId || scope !== bookingDataScope() || !isAdminAuthenticated || document.hidden || snapshot.metadata?.fromCache) return;
         snapshots[index] = snapshot;
-        if (!snapshots[0] || !snapshots[1] || fingerprintBookings(snapshots) === bookingFingerprint) return;
+        if (!snapshots.every(Boolean) || fingerprintBookings(snapshots) === bookingFingerprint) return;
         clearTimeout(bookingLiveTimer);
         bookingLiveTimer = setTimeout(() => {
           if (!document.hidden && isAdminAuthenticated && identity === currentAdminId && document.getElementById('tab-bookings').classList.contains('active')) {
-            DE06.invalidate('admin:bookings:'); readBookingsData(snapshots).catch(() => {});
+            DE06.invalidate('admin:bookings:'); readBookingsData(snapshots, scope).catch(() => {});
           }
         }, 150);
       }, () => { stopBookingsListeners(); document.getElementById('bookings-status').textContent = 'การอัปเดตสดหยุดลง กรุณาดึงข้อมูลล่าสุด'; });
@@ -1419,7 +1422,8 @@
   async function loadBookingsData(forceRefresh = true) {
     if (!isAdminAuthenticated) return;
     const identity = currentAdminId;
-    return DE06.request('admin:bookings:' + identity, () => { if (isAdminAuthenticated && identity === currentAdminId) return readBookingsData(); }, 30000, forceRefresh).then(watchBookings).catch(() => {});
+    const scope = bookingDataScope();
+    return DE06.request('admin:bookings:' + identity + ':' + scope, () => { if (isAdminAuthenticated && identity === currentAdminId && scope === bookingDataScope()) return readBookingsData(undefined, scope); }, 30000, forceRefresh).then(watchBookings).catch(() => {});
   }
   function setBookingTotalsPending() {
     ['stat_paid_shirts_val', 'stat_total_shirts', 'stat_pending_shirts_val', 'stat_paid_orders_val', 'stat_total_orders', 'stat_paid_count', 'stat_pending_count', 'stat_total_income', 'stat_income_subtext', 'stat_payment_percentage'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
@@ -1431,7 +1435,7 @@
     const pending = document.getElementById('pendingAlertBanner'); if (pending) pending.style.display = 'none';
     const fill = document.getElementById('stat_payment_progress_fill'); if (fill) fill.style.transform = 'scaleX(0)';
   }
-  async function readBookingsData(liveSnapshots) {
+  async function readBookingsData(liveSnapshots, scope = bookingDataScope()) {
     if (!isAdminAuthenticated) return;
     if (!liveSnapshots) stopBookingsListeners();
     const tableBody = document.getElementById('bookingsTableBody');
@@ -1442,11 +1446,15 @@
     setBookingTotalsPending();
 
     try {
-      const snapshots = liveSnapshots || await Promise.all([DE06.allDocuments(db.collection('bookings'), 200, false, true), DE06.allDocuments(db.collection('orders_shirts'), 200, false, true)]);
-      if (generation !== bookingsGeneration || !isAdminAuthenticated || adminId !== currentAdminId) return;
+      const names = scope === 'combined' ? ['bookings', 'orders_shirts'] : ['bookings'];
+      const results = liveSnapshots ? liveSnapshots.map(value => ({ status: 'fulfilled', value })) : await Promise.allSettled(names.map(name => DE06.allDocuments(db.collection(name), 200, false, true)));
+      if (generation !== bookingsGeneration || !isAdminAuthenticated || adminId !== currentAdminId || scope !== bookingDataScope()) return;
+      const failures = results.flatMap((result, index) => result.status === 'rejected' ? [{ name: names[index], error: result.reason }] : []);
+      const snapshots = results.map(result => result.status === 'fulfilled' ? result.value : { docs: [], forEach() {} });
+      if (results.every(result => result.status === 'rejected')) throw failures[0].error;
       const unique = new Map();
-      snapshots[1].forEach(doc => unique.set(doc.data().studentId || doc.id, doc));
-      snapshots[0].forEach(doc => unique.set(doc.data().studentId || doc.id, doc));
+      if (snapshots[1]) snapshots[1].forEach(doc => unique.set(String(doc.data().studentId || doc.id), doc));
+      snapshots[0].forEach(doc => unique.set(String(doc.data().studentId || doc.id), doc));
       const snap = { forEach: callback => unique.forEach(callback) };
       bookingFingerprint = fingerprintBookings(snapshots);
       allBookingsList = [];
@@ -1528,6 +1536,14 @@
         });
       });
 
+      if (failures.length) {
+        filterBookingsTable(); tableBody.setAttribute('aria-busy', 'false');
+        document.getElementById('bookings-status').textContent = 'แสดงรายการที่อ่านได้ ' + allBookingsList.length + ' รายการ · ยังยืนยันยอดรวมไม่ได้ · ' + failures.map(failure => failure.error?.code === 'permission-denied' ? 'ไม่มีสิทธิ์อ่าน' + (failure.name === 'orders_shirts' ? 'ข้อมูลจากระบบเดิม' : 'การจองปัจจุบัน') : (failure.name === 'orders_shirts' ? 'โหลดข้อมูลจากระบบเดิมไม่สำเร็จ' : 'โหลดการจองปัจจุบันไม่สำเร็จ')).join(' · ');
+        document.getElementById('sizeCardsGrid').innerHTML = '<p class="data-status">โหลดข้อมูลไม่ครบ ยังยืนยันยอดแยกไซส์ไม่ได้</p>';
+        DE06.invalidate('admin:bookings:');
+        return;
+      }
+
       // Update Top Stats Grid
       const totalShirts = currentAggregatedSizeStats.all.totalShirts;
       const paidShirts = currentAggregatedSizeStats.paid.totalShirts;
@@ -1592,14 +1608,16 @@
       bookingsComplete = true;
       renderSizeBreakdown(); filterBookingsTable();
       tableBody.setAttribute('aria-busy', 'false');
-      document.getElementById('bookings-status').textContent = 'โหลดครบ ' + allBookingsList.length + ' รายการ' + (allBookingsList.some(b => b.paidAmount === null) ? ' · บางรายการไม่มีจำนวนเงินชำระที่บันทึกไว้' : '');
+      document.getElementById('bookings-status').textContent = 'โหลดครบ ' + allBookingsList.length + ' รายการ · ' + (scope === 'current' ? 'เฉพาะการจองปัจจุบัน' : 'รวมการจองจากระบบเดิม') + (allBookingsList.some(b => b.paidAmount === null) ? ' · บางรายการไม่มีจำนวนเงินชำระที่บันทึกไว้' : '');
 
     } catch(err) {
-      if (generation !== bookingsGeneration || !isAdminAuthenticated) return;
+      if (generation !== bookingsGeneration || !isAdminAuthenticated || scope !== bookingDataScope()) return;
       allBookingsList = []; tableBody.setAttribute('aria-busy', 'false');
       tableBody.innerHTML = '<tr><td colspan="8">โหลดข้อมูลไม่ครบ กรุณาดึงข้อมูลล่าสุดอีกครั้ง</td></tr>';
       document.getElementById('bookings-status').textContent = 'ยังยืนยันยอดสรุปไม่ได้';
-      document.getElementById('bookings-pager').replaceChildren(); setBookingTotalsPending(); throw err;
+      document.getElementById('bookings-pager').replaceChildren(); setBookingTotalsPending();
+      document.getElementById('sizeCardsGrid').innerHTML = '<p class="data-status">โหลดข้อมูลไม่ครบ กรุณาดึงข้อมูลล่าสุด</p>';
+      throw err;
     }
   }
 
@@ -1694,6 +1712,7 @@
   }
 
   function copySizeSummaryToClipboard() {
+    if (!bookingsComplete) return alert('กรุณาโหลดข้อมูลให้ครบก่อนคัดลอกสรุป');
     const all = currentAggregatedSizeStats.all;
     const paid = currentAggregatedSizeStats.paid;
     const pending = currentAggregatedSizeStats.pending;
@@ -1706,6 +1725,7 @@
     const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
     let summaryText = ` สรุปยอดสั่งจองเสื้อช็อป DE 06\n`;
+    summaryText += bookingDataScope() === 'current' ? 'เฉพาะการจองปัจจุบัน\n' : 'รวมการจองจากระบบเดิม\n';
     summaryText += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     summaryText += ` ยอดสั่งเสื้อรวมทั้งหมด: ${all.totalShirts.toLocaleString()} ตัว\n`;
     summaryText += `   • ชำระเงินแล้ว: ${paid.totalShirts.toLocaleString()} ตัว\n`;

@@ -8,15 +8,15 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 475,
+      "coldLoadMs": 449,
       "cls": 0,
-      "lcp": 104,
+      "lcp": 85,
       "longTasks": []
     },
     {
       "file": "index.html",
       "navigationPairMaxMs": 1,
-      "navigationPairMeanMs": 0.05
+      "navigationPairMeanMs": 0.15
     },
     {
       "file": "index.html",
@@ -28,9 +28,9 @@
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 456,
+      "coldLoadMs": 434,
       "cls": 0,
-      "lcp": 88,
+      "lcp": 75,
       "longTasks": []
     },
     {
@@ -46,7 +46,7 @@
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 52,
+        "lcp": 60,
         "longTasks": []
       }
     }

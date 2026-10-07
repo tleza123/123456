@@ -10,43 +10,43 @@
       "file": "index.html",
       "coldLoadMs": 423,
       "cls": 0,
-      "lcp": 220,
+      "lcp": 252,
       "longTasks": []
     },
     {
       "file": "index.html",
-      "navigationPairMaxMs": 1,
-      "navigationPairMeanMs": 0.11500000953674316
+      "navigationPairMaxMs": 2,
+      "navigationPairMeanMs": 0.17000000476837157
     },
     {
       "file": "index.html",
-      "slowNetworkLoadMs": 1590,
+      "slowNetworkLoadMs": 1605,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 828,
+        "lcp": 848,
         "longTasks": []
       }
     },
     {
       "file": "index.html",
-      "scrollFrameP95Ms": 7.099999999999909,
-      "scrollFrameMaxMs": 7.100000000000136,
-      "traceTaskMaxMs": 6.989,
-      "traceFunctionMaxMs": 0.116
+      "scrollFrameP95Ms": 7,
+      "scrollFrameMaxMs": 7.099999999999909,
+      "traceTaskMaxMs": 7.029,
+      "traceFunctionMaxMs": 0.182
     },
     {
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 80,
+        "lcp": 84,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 425,
+      "coldLoadMs": 430,
       "cls": 0,
-      "lcp": 68,
+      "lcp": 72,
       "longTasks": []
     },
     {
@@ -55,12 +55,12 @@
     },
     {
       "file": "admin.html",
-      "navigationPairMaxMs": 0.10000014305114746,
-      "navigationPairMeanMs": 0.025
+      "navigationPairMaxMs": 0.2999999523162842,
+      "navigationPairMeanMs": 0.03999999761581421
     },
     {
       "file": "admin.html",
-      "slowNetworkLoadMs": 2546,
+      "slowNetworkLoadMs": 2564,
       "slowNetworkMetrics": {
         "cls": 0,
         "lcp": 832,
@@ -70,15 +70,15 @@
     {
       "file": "admin.html",
       "scrollFrameP95Ms": 7,
-      "scrollFrameMaxMs": 7.100000000000364,
-      "traceTaskMaxMs": 11.327,
-      "traceFunctionMaxMs": 0.49
+      "scrollFrameMaxMs": 7,
+      "traceTaskMaxMs": 10.241,
+      "traceFunctionMaxMs": 2.387
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 76,
+        "lcp": 88,
         "longTasks": []
       }
     }

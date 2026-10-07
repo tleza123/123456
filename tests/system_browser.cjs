@@ -40,7 +40,7 @@ function mockFirebase(data) {
       },
       async get() {
         window.mockReads.push(name); if (window.mockDelay) await new Promise(r => setTimeout(r, window.mockDelay));
-        if (window.mockFailure === name || window.mockFailure === name + ':' + cursor) throw new Error('fixture unavailable');
+        if (window.mockFailure === name || window.mockFailure === name + ':' + cursor) { const error = new Error('fixture unavailable'); error.code = window.mockFailureCode || 'unavailable'; throw error; }
         let entries = Object.entries(window.mockData[name] || {}).filter(([id, row]) => filters.every(([key, val]) => row[key] === val));
         if (ordering) entries.sort((a, b) => String(ordering[0] === '__name__' ? a[0] : a[1][ordering[0]]).localeCompare(String(ordering[0] === '__name__' ? b[0] : b[1][ordering[0]])) * (ordering[1] === 'desc' ? -1 : 1));
         if (cursor) entries = entries.slice(entries.findIndex(([id]) => id === cursor) + 1);
@@ -175,6 +175,26 @@ const server = http.createServer((req, res) => {
           assert.equal(await page.locator('#stat_total_shirts').innerText(), '650');
           assert.equal(await page.locator('#stat_paid_shirts_val').innerText(), '325');
           assert.equal(await page.locator('#imageModalBody img').count(), 1);
+          await page.evaluate(async () => { mockFailure = 'orders_shirts'; mockFailureCode = 'permission-denied'; await loadBookingsData(true); });
+          assert.equal(await page.evaluate(() => bookingsComplete), true, 'Denied legacy data must not block the explicitly current report');
+          assert.equal(await page.locator('#stat_total_shirts').innerText(), '650');
+          await page.selectOption('#bookingDataScope', 'combined');
+          await page.evaluate(() => loadBookingsData(true));
+          assert.equal(await page.evaluate(() => bookingsComplete), false);
+          assert.equal(await page.evaluate(() => allBookingsList.length), 650, 'Available current rows remain accessible when the requested legacy source fails');
+          assert.equal(await page.locator('#stat_total_shirts').innerText(), '—');
+          assert((await page.locator('#bookings-status').innerText()).includes('ยังยืนยันยอดรวมไม่ได้'));
+          await page.evaluate(() => exportBookingsToCSV());
+          assert((await page.evaluate(() => lastAlert)).includes('ให้ครบ'));
+          await page.evaluate(() => copySizeSummaryToClipboard());
+          assert((await page.evaluate(() => lastAlert)).includes('ให้ครบ'));
+          await page.evaluate(() => { mockFailure = ''; mockFailureCode = ''; mockData.orders_shirts = { duplicate: { studentId: '66000000', m: 9 }, legacy: { studentId: 'legacy-student', m: 2, totalPrice: 758 } }; });
+          await page.evaluate(() => loadBookingsData(true));
+          assert.equal(await page.evaluate(() => allBookingsList.length), 651);
+          assert.equal(await page.evaluate(() => currentAggregatedSizeStats.all.totalShirts), 652);
+          await page.selectOption('#bookingDataScope', 'current');
+          await page.evaluate(() => loadBookingsData(true));
+          assert.equal(await page.evaluate(() => allBookingsList.length), 650);
           await page.evaluate(async () => { mockFailure = 'bookings:66000199'; await loadBookingsData(true); });
           assert.equal(await page.evaluate(() => bookingsComplete), false);
           assert((await page.locator('#bookings-status').innerText()).includes('ยังยืนยัน'));
