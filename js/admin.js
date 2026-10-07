@@ -939,10 +939,15 @@
 
   async function displaySelectedActivityResponses() {
     if (!isAdminAuthenticated) return;
-    const identity = currentAdminId; const selected = document.getElementById('responseActivitySelect').value; const generation = ++responsesGeneration;
-    return DE06.request('admin:responses:' + identity + ':' + selected, () => {
-      if (identity === currentAdminId && selected === document.getElementById('responseActivitySelect').value && isAdminAuthenticated) return readSelectedActivityResponses(generation);
-    }, 30000);
+    const identity = currentAdminId; const selected = document.getElementById('responseActivitySelect').value;
+    const selectionKey = identity + ':' + selected;
+    if (responseSelectionKey !== selectionKey) {
+      responseSelectionKey = selectionKey; responsesGeneration++;
+      DE06.invalidate('admin:responses:');
+    }
+    return DE06.request('admin:responses:' + selectionKey, () => {
+      if (identity === currentAdminId && selected === document.getElementById('responseActivitySelect').value && isAdminAuthenticated) return readSelectedActivityResponses(++responsesGeneration);
+    });
   }
   async function readSelectedActivityResponses(generation) {
     const adminId = currentAdminId;
@@ -1184,7 +1189,7 @@
     } catch(err) {
       console.error(err);
       if (generation !== responsesGeneration || !isAdminAuthenticated) return;
-      content.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการโหลดผล: ' + err.message + '</div>';
+      content.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการโหลดผล: ' + escapeHtml(err.message) + '</div>';
     }
   }
 
@@ -1431,6 +1436,7 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopBookingsListeners(); else watchBookings(); });
   let bookingsGeneration = 0;
   let responsesGeneration = 0;
+  let responseSelectionKey = '';
   let bookingsPage = 0;
   let bookingsFilterKey = '';
   let filterDebounceTimer;
@@ -2268,7 +2274,7 @@
     } catch(err) {
       console.error(err);
       if (!isAdminAuthenticated || identity !== currentAdminId || epoch !== initialGeneration) return;
-      container.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการดึงข้อความ: ' + err.message + '</div>';
+      container.innerHTML = '<div class="msg-box msg-error">เกิดข้อผิดพลาดในการดึงข้อความ: ' + escapeHtml(err.message) + '</div>';
     }
   }
 

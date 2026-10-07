@@ -64,6 +64,7 @@
   var PRICE_PER_SHIRT = 379;
   var EXTRA_PRICE = 30;
   var currentStudentId = '';
+  var studentLoginGeneration = 0;
   var currentStudentName = '';
   var appConfig = {};
   var allTasks = [];
@@ -606,6 +607,7 @@
   });
 
   function logout() {
+    studentLoginGeneration++;
     eligibleAdminStudentId = '';
     if (DE06.session.getItem('de06_admin_role') === 'subadmin') ['de06_admin_auth', 'de06_admin_role', 'de06_admin_id', 'de06_admin_name', 'de06_admin_logged_session'].forEach(function(key) { DE06.session.removeItem(key); });
     stopActivityListener();
@@ -621,6 +623,7 @@
     currentStudentId = ''; currentStudentName = '';
     var inputEl = document.getElementById('studentId');
     if (inputEl) inputEl.value = '';
+    document.getElementById('btnLogin').disabled = false; document.getElementById('btnLogin').innerText = 'เข้าสู่ระบบ →';
     DE06.session.removeItem('de06_student');
     DE06.storage.removeItem('de06_current_session');
     pollDataCache = {};
@@ -1456,7 +1459,7 @@
   async function handleDynamicFormSubmit(...args) {
     if (args[0] && typeof args[0].preventDefault === 'function') args[0].preventDefault();
     const identity = currentStudentId;
-    if (!identity) return;
+    if (!identity || document.getElementById('custom-form-' + args[1])?.dataset.complete) return;
     if (!navigator.onLine) return alert('ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาลองใหม่เมื่อออนไลน์');
     const key = 'student:write:handleDynamicFormSubmit:' + identity + ':' + args.filter(a => typeof a === 'string').join(':');
     if (!DE06.lock(key)) return;
@@ -1497,14 +1500,14 @@
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      msgEl.innerHTML = '<span style="color:#15803d; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">' + Icons.check + ' บันทึกคำตอบของคุณเรียบร้อยแล้ว ขอบคุณครับ</span>';
       if (identity !== currentStudentId) return;
+      form.dataset.complete = 'true';
+      if (btn) btn.textContent = 'บันทึกแล้ว';
+      msgEl.innerHTML = '<span style="color:#15803d; font-weight:700; display:inline-flex; align-items:center; gap:0.25rem;">' + Icons.check + ' บันทึกคำตอบของคุณเรียบร้อยแล้ว ขอบคุณครับ</span>';
       form.reset();
-      setTimeout(function() {
-        switchSection('home-section');
-      }, 1800);
     } catch(err) {
-      msgEl.innerHTML = '<span style="color:#dc2626;">เกิดข้อผิดพลาด: ' + err.message + '</span>';
+      if (identity !== currentStudentId) return;
+      msgEl.innerHTML = '<span style="color:#dc2626;">เกิดข้อผิดพลาด: ' + escapeHtml(err.message) + '</span>';
       if (btn) { btn.disabled = false; btn.innerHTML = '<span style="display:inline-flex; align-items:center; gap:0.375rem;">' + Icons.send + ' ส่งข้อมูลแบบฟอร์ม</span>'; }
     }
   }
@@ -1513,6 +1516,17 @@
   //  Student Verification — Firestore
   // =============================================
   async function checkStudent() {
+    const id = document.getElementById('studentId').value.trim();
+    if (!id) return;
+    const key = 'student:login:' + id;
+    if (!DE06.lock(key)) return;
+    const generation = ++studentLoginGeneration;
+    try { return await performCheckStudent(generation); } finally {
+      DE06.unlock(key);
+      if (generation === studentLoginGeneration) { const button = document.getElementById('btnLogin'); button.disabled = false; button.innerText = 'เข้าสู่ระบบ →'; }
+    }
+  }
+  async function performCheckStudent(generation) {
     var id = document.getElementById('studentId').value.trim();
     if (!id) return;
     var btn = document.getElementById('btnLogin');
@@ -1538,7 +1552,7 @@
     btn.disabled = true; btn.innerText = 'กำลังตรวจสอบ...';
     try {
       var snap = await db.collection('students').doc(id).get();
-      if (document.getElementById('studentId').value.trim() !== id) return;
+      if (generation !== studentLoginGeneration || document.getElementById('studentId').value.trim() !== id) return;
       if (snap.exists) {
         var name = snap.data().name;
         currentStudentId = id; currentStudentName = name;
@@ -1552,9 +1566,9 @@
         errorEl.innerText = 'ไม่พบรหัสนักศึกษานี้ในระบบ';
       }
     } catch (e) {
-      errorEl.innerText = 'ติดต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่';
+      if (generation === studentLoginGeneration) errorEl.innerText = 'ติดต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่';
     } finally {
-      btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →';
+      if (generation === studentLoginGeneration) { btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ →'; }
     }
   }
 
@@ -2299,3 +2313,14 @@ async function submitProductOrder(id) {
   } catch (error) { if (identity === currentStudentId) { message.textContent = error.message; button.disabled = false; } }
   finally { DE06.unlock(key); }
 }
+
+// Editing a completed form explicitly starts a new submission; repeated Enter does not.
+document.addEventListener('input', function(event) {
+  const form = event.target.closest('form[id^="custom-form-"]');
+  if (!form || !form.dataset.complete) return;
+  delete form.dataset.complete;
+  const button = form.querySelector('button[type="submit"]');
+  if (button) { button.disabled = false; button.textContent = 'ส่งข้อมูลแบบฟอร์ม'; }
+  const message = form.querySelector('[id^="form-msg-"]');
+  if (message) message.textContent = '';
+});

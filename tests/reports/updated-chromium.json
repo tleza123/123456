@@ -8,45 +8,45 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 415,
+      "coldLoadMs": 432,
       "cls": 0,
-      "lcp": 232,
+      "lcp": 224,
       "longTasks": []
     },
     {
       "file": "index.html",
-      "navigationPairMaxMs": 1.2000000476837158,
-      "navigationPairMeanMs": 0.125
+      "navigationPairMaxMs": 0.20000004768371582,
+      "navigationPairMeanMs": 0.05
     },
     {
       "file": "index.html",
-      "slowNetworkLoadMs": 1647,
+      "slowNetworkLoadMs": 1653,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 872,
+        "lcp": 860,
         "longTasks": []
       }
     },
     {
       "file": "index.html",
-      "scrollFrameP95Ms": 7.099999999999909,
-      "scrollFrameMaxMs": 7.100000000000364,
-      "traceTaskMaxMs": 7.221,
-      "traceFunctionMaxMs": 0.287
+      "scrollFrameP95Ms": 7,
+      "scrollFrameMaxMs": 14.400000000000091,
+      "traceTaskMaxMs": 7.808,
+      "traceFunctionMaxMs": 0.143
     },
     {
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 80,
+        "lcp": 76,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 423,
+      "coldLoadMs": 422,
       "cls": 0,
-      "lcp": 60,
+      "lcp": 68,
       "longTasks": []
     },
     {
@@ -55,15 +55,15 @@
     },
     {
       "file": "admin.html",
-      "navigationPairMaxMs": 0.20000004768371582,
-      "navigationPairMeanMs": 0.02999999523162842
+      "navigationPairMaxMs": 0.2999999523162842,
+      "navigationPairMeanMs": 0.03000000715255737
     },
     {
       "file": "admin.html",
-      "slowNetworkLoadMs": 2588,
+      "slowNetworkLoadMs": 2591,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 824,
+        "lcp": 852,
         "longTasks": []
       }
     },
@@ -71,14 +71,14 @@
       "file": "admin.html",
       "scrollFrameP95Ms": 7.099999999999909,
       "scrollFrameMaxMs": 7.099999999999909,
-      "traceTaskMaxMs": 10.052,
-      "traceFunctionMaxMs": 0.901
+      "traceTaskMaxMs": 8.746,
+      "traceFunctionMaxMs": 0.684
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 68,
+        "lcp": 96,
         "longTasks": []
       }
     }
@@ -86,6 +86,9 @@
   "checks": [
     {
       "adminFrontendAudit": "Seven activity types created in admin, saved, used in storefront; role handoff, revocation, student-only login and expanded responsive editors passed"
+    },
+    {
+      "rapidInteractionAudit": "300 storefront transitions and 90 admin transitions under pending reads; 30 repeated logins/submissions/response switches; logout race, completed-form retry and modal clicks passed"
     },
     {
       "file": "index.html",

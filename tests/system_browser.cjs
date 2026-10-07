@@ -84,6 +84,7 @@ const server = http.createServer((req, res) => {
   const results = { engine, browserVersion: browser.version(), platform: process.platform, fixtureOrders: 650, mode: baseline ? 'baseline' : 'updated', environment: 'Local HTTP with mocked Firebase SDK and in-memory data; 2 Mbps / 150ms for static assets and 150ms mock database latency', measurements: [], checks: [] };
   try {
     if (!baseline) results.checks.push({ adminFrontendAudit: await require('./admin_frontend_audit.cjs')(browser, `http://127.0.0.1:${server.address().port}`, mockFirebase, fixture) });
+    if (!baseline) results.checks.push({ rapidInteractionAudit: await require('./rapid_interaction_audit.cjs')(browser, `http://127.0.0.1:${server.address().port}`, mockFirebase, fixture) });
     if (process.env.ADMIN_AUDIT_ONLY) { console.log(JSON.stringify(results.checks)); return; }
     for (const file of ['index.html', 'admin.html']) {
       const page = await browser.newPage(); const errors = [];
@@ -118,6 +119,13 @@ const server = http.createServer((req, res) => {
           await page.evaluate(async () => { window.savedForm = document.getElementById('custom-form-form'); switchSection('home-section'); switchSection('dynamic-form'); await loadConfigFromFirestore(); });
           assert(await page.evaluate(() => savedForm === document.getElementById('custom-form-form')));
           assert.equal(await formInput.inputValue(), 'เก็บข้อความที่ยังไม่ได้ส่ง');
+          // A submitted form must not steal navigation after its completion timer.
+          await page.evaluate(async () => {
+            await handleDynamicFormSubmit({ preventDefault() {} }, 'form');
+            switchSection('shop-section');
+          });
+          await page.waitForTimeout(1900);
+          assert(await page.locator('#shop-section').evaluate(el => el.classList.contains('active')), 'Completed form must not redirect a later navigation');
           // Price boundaries use the shipped calculation, not a copied implementation.
           for (const [normal, special, expected] of [[0, 0, 0], [1, 0, 379], [2, 0, 748], [0, 2, 808], [-1, 0, 0]]) {
             const amount = await page.evaluate(([normal, special]) => { document.getElementById('qty-m').value = normal; document.getElementById('qty-other-num').value = special; calculateTotal(); return document.getElementById('total-price').textContent; }, [normal, special]);
@@ -203,6 +211,20 @@ const server = http.createServer((req, res) => {
           const readsBefore = await page.evaluate(() => mockReads.length);
           await page.evaluate(async () => { await Promise.all([loadBookingsData(false), loadBookingsData(false)]); });
           assert.equal(await page.evaluate(() => mockReads.length), readsBefore);
+          // Repeated response loads share work without invalidating its render token.
+          await page.evaluate(async () => {
+            DE06.invalidate('admin:responses:'); mockDelay = 75;
+            document.getElementById('responseActivitySelect').value = 'form';
+            document.getElementById('responsesContent').textContent = 'pending repeated load';
+            await Promise.all(Array.from({ length: 20 }, () => displaySelectedActivityResponses()));
+            mockDelay = 0;
+          });
+          assert(!(await page.locator('#responsesContent').innerText()).includes('pending repeated load'));
+          await page.evaluate(async () => {
+            document.getElementById('responseActivitySelect').value = 'poll'; await displaySelectedActivityResponses();
+            document.getElementById('responseActivitySelect').value = 'form'; await displaySelectedActivityResponses();
+          });
+          assert((await page.locator('#responsesContent').innerText()).includes('การตอบรับแบบฟอร์ม'), 'Return to a cached selection must restore its table');
           const saveWrites = await page.evaluate(() => mockWrites.length);
           await page.evaluate(async () => { mockData.activities.concurrent = { title: 'เพิ่มจากอีกเซสชัน', type: 'announcement', order: 7 }; await saveAllChanges(); });
           assert((await page.evaluate(() => mockWrites.length)) >= saveWrites + 7, 'Successful atomic save must actually write the config and six managed activities');

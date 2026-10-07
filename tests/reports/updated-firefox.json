@@ -8,29 +8,29 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 445,
+      "coldLoadMs": 456,
       "cls": 0,
-      "lcp": 76,
+      "lcp": 90,
       "longTasks": []
     },
     {
       "file": "index.html",
       "navigationPairMaxMs": 1,
-      "navigationPairMeanMs": 0.05
+      "navigationPairMeanMs": 0.1
     },
     {
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 75,
+        "lcp": 0,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 431,
+      "coldLoadMs": 460,
       "cls": 0,
-      "lcp": 64,
+      "lcp": 84,
       "longTasks": []
     },
     {
@@ -40,13 +40,13 @@
     {
       "file": "admin.html",
       "navigationPairMaxMs": 1,
-      "navigationPairMeanMs": 0.15
+      "navigationPairMeanMs": 0.1
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 58,
+        "lcp": 57,
         "longTasks": []
       }
     }
@@ -54,6 +54,9 @@
   "checks": [
     {
       "adminFrontendAudit": "Seven activity types created in admin, saved, used in storefront; role handoff, revocation, student-only login and expanded responsive editors passed"
+    },
+    {
+      "rapidInteractionAudit": "300 storefront transitions and 90 admin transitions under pending reads; 30 repeated logins/submissions/response switches; logout race, completed-form retry and modal clicks passed"
     },
     {
       "file": "index.html",
