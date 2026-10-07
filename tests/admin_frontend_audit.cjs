@@ -42,13 +42,21 @@ module.exports = async function auditAdminFrontend(browser, base, init, original
     await admin.waitForFunction(() => isAdminAuthenticated && appActivities.length === 6);
     assert.equal(await admin.locator('.activity-editor[open]').count(), 0);
     const added = {};
-    for (const type of ['announcement', 'poll', 'form', 'comment', 'booking', 'link', 'html']) {
+    for (const type of ['announcement', 'poll', 'form', 'comment', 'product', 'link', 'html']) {
       await admin.getByRole('button', { name: 'เพิ่มกิจกรรม', exact: true }).click();
       await admin.locator(`#activityTypeDialog button[onclick="chooseActivityType('${type}')"]`).click();
       const index = await admin.evaluate(() => appActivities.length - 1);
       const editor = admin.locator('#activity-card-' + index);
       await editor.locator('.activity-title-input').fill('ทดสอบ ' + type);
       added[type] = await admin.evaluate(index => appActivities[index].id, index);
+      if (type === 'product') {
+        await editor.getByRole('spinbutton', { name: 'ราคา บาท', exact: true }).fill('379');
+        await editor.getByRole('spinbutton', { name: 'ราคาลด บาท', exact: true }).fill('350');
+        await editor.getByRole('textbox', { name: 'สี', exact: true }).fill('ขาว, ดำ');
+        await editor.getByRole('textbox', { name: 'ไซส์', exact: true }).fill('S, M');
+        await editor.locator('input[onchange*=hasCustomSize]').check();
+        await editor.getByRole('spinbutton', { name: 'ราคาเพิ่มสำหรับไซส์พิเศษ บาท', exact: true }).fill('30');
+      }
       if (type === 'poll') {
         await editor.locator('input[onchange*="allowChangeVote"]').uncheck();
         await editor.locator('input[onchange*="showResults"]').uncheck();
@@ -111,7 +119,7 @@ module.exports = async function auditAdminFrontend(browser, base, init, original
     });
     const configured = await admin.evaluate(() => mockData);
     assert.equal(configured.config.main.HOME_ANNOUNCEMENT.target, 'booking-section');
-    assert.equal(await admin.evaluate(() => Array.from(document.getElementById('responseActivitySelect').options).filter(o => o.value).every(o => ['poll', 'comment', 'form'].includes(appActivities.find(a => a.id === o.value).type))), true);
+    assert.equal(await admin.evaluate(() => Array.from(document.getElementById('responseActivitySelect').options).filter(o => o.value).every(o => ['poll', 'comment', 'form', 'product'].includes(appActivities.find(a => a.id === o.value).type))), true);
 
     const home = await createPage(configured);
     try {
@@ -123,7 +131,7 @@ module.exports = async function auditAdminFrontend(browser, base, init, original
       assert(await home.locator('#booking-section').evaluate(el => el.classList.contains('active')));
       await home.evaluate(() => { window.open = (url, target) => { window.openedLink = { url, target }; }; });
       const taskButton = type => home.locator(`#active-tasks-container button`).filter({ hasText: type === 'booking' ? 'สั่งจองเสื้อช็อป' : type === 'poll' ? 'ร่วมลงคะแนนโหวต' : type === 'comment' ? 'เปิดกระดานพูดคุย' : type === 'form' ? 'เปิดแบบฟอร์ม' : 'เข้าสู่กิจกรรม' });
-      for (const type of ['announcement', 'poll', 'form', 'comment', 'booking', 'link', 'html']) {
+      for (const type of ['announcement', 'poll', 'form', 'comment', 'product', 'link', 'html']) {
         await home.evaluate(() => switchSection('home-section'));
         const card = home.locator('.task-card').filter({ hasText: 'ทดสอบ ' + type });
         await card.locator('button').click();
@@ -163,6 +171,27 @@ module.exports = async function auditAdminFrontend(browser, base, init, original
           await home.locator('#btn-submit-form-' + added[type]).click();
           await home.waitForFunction(id => Object.values(mockData.dynamic_submissions || {}).some(row => row.activityId === id), added[type]);
           assert.equal(await home.evaluate(id => Object.values(mockData.dynamic_submissions).find(row => row.activityId === id).formData['จำนวนที่ต้องการ'], added[type]), '3');
+        }
+        if (type === 'product') {
+          const productForm = home.locator('#product-order-' + added[type]);
+          await productForm.locator('select[name=colors]').selectOption('ดำ');
+          await productForm.locator('select[name=sizes]').selectOption('ไซส์พิเศษ');
+          await productForm.locator('input[name=customSize]').fill('รอบอก 50 นิ้ว');
+          await productForm.locator('input[name=quantity]').fill('2');
+          assert((await home.locator('#product-total-' + added[type]).innerText()).includes('760'));
+          await home.evaluate(id => Promise.all([submitProductOrder(id), submitProductOrder(id)]), added[type]);
+          const orders = await home.evaluate(id => Object.values(mockData.dynamic_submissions || {}).filter(row => row.activityId === id), added[type]);
+          assert.equal(orders.length, 1); assert.equal(orders[0].productSnapshot.totalPrice, 760);
+          assert.equal(orders[0].formType, 'product_order');
+          assert.equal(orders[0].formData['สี'], 'ดำ');
+          assert(await home.evaluate(id => {
+            const task = allTasks.find(t => t.id === id);
+            try { DE06.productQuote(task, { colors: 'ไม่มี', sizes: 'M' }, 1); return false; } catch { return true; }
+          }, added[type]));
+          await admin.evaluate(rows => { mockData.dynamic_submissions = Object.fromEntries(rows.map((row, i) => ['product-test-' + i, row])); }, orders);
+          await admin.evaluate(async id => { document.getElementById('responseActivitySelect').value = id; await displaySelectedActivityResponses(); }, added[type]);
+          assert((await admin.locator('#responsesContent').innerText()).includes('760'));
+
         }
         if (type === 'html') assert.equal(await home.locator('#dynamic-' + added[type] + ' iframe').getAttribute('sandbox'), 'allow-forms allow-scripts allow-popups');
       }

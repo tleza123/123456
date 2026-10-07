@@ -250,7 +250,10 @@
       var bodyHtml = '';
 
       // 1. POLL / VOTING SECTION
-      if (task.type === 'poll') {
+      if (task.type === 'product') {
+        bodyHtml = renderProductOrder(task, coverImgHtml);
+      }
+      else if (task.type === 'poll') {
         bodyHtml = `
           <div class="responsive-two-col">
             <div>
@@ -688,7 +691,7 @@
       form: 'แบบฟอร์ม',
       inquiry: 'สอบถาม',
       booking: 'จองเสื้อช็อป',
-      shop: 'สินค้า',
+      shop: 'สินค้า', product: 'สินค้า',
       link: 'ลิงก์',
       html: 'พิเศษ'
     };
@@ -748,7 +751,7 @@
     var container = document.getElementById('shopCatalogContainer');
     if (!container) return;
 
-    var customProducts = allTasks.filter(function(t) { return t.type === 'booking' || t.type === 'product'; });
+    var customProducts = allTasks.filter(function(t) { return (t.type === 'booking' || t.type === 'product') && activityIsOpen(t); });
 
     var baseHtml = `
       <!-- Product 1: Official Workshop Shirt (Active Booking) -->
@@ -815,7 +818,7 @@
             <img src="${DE06.image(img)}" class="product-thumb" loading="lazy" decoding="async" onclick="openLightbox(${DE06.arg(img)})" alt="ภาพประกอบ DE 06" role="button" tabindex="0">
             <div class="product-tag-row">
               <span class="product-status-open">เปิดจำหน่าย</span>
-              <span class="product-price-tag">${escapeHtml(item.price || 'ราคาพิเศษ')}</span>
+              <span class="product-price-tag">${escapeHtml(item.type === 'product' ? String(item.salePrice !== '' && item.salePrice != null ? item.salePrice : item.price) + ' บาท' : item.price || 'ราคาพิเศษ')}</span>
             </div>
             <h3 style="font-size:1rem; margin-bottom:0.375rem; color:var(--main-blue);">${escapeHtml(item.title)}</h3>
             <p style="font-size:0.8125rem; color:var(--text-muted); line-height: 1.6; margin-bottom:0.75rem;">
@@ -2128,7 +2131,7 @@
       var answers = data.formData && typeof data.formData === 'object' ? data.formData : {};
       body = Object.keys(answers).map(function(q) { return '<div class="history-answer"><p>' + historyText(q) + '</p><p>คำตอบ: ' + historyText(Array.isArray(answers[q]) ? answers[q].join(', ') : answers[q]) + '</p></div>'; }).join('') || '<p>ไม่มีรายละเอียดคำตอบที่บันทึกไว้</p>';
     }
-    return { type: type, title: ({ vote: 'โหวต', comment: 'แสดงความคิดเห็น', inquiry: 'ส่งคำสอบถาม', form: 'ตอบแบบสอบถาม' }[type] || 'ส่งข้อมูล') + ' · ' + title, time: historyDate(data.timestamp || data.createdAt || data.votedAt || data.submittedAt || data.formattedTime || data.createdAtStr), timeLabel: 'บันทึกเมื่อ', body: body };
+    return { type: type, title: ({ vote: 'โหวต', comment: 'แสดงความคิดเห็น', inquiry: 'ส่งคำสอบถาม', form: 'ตอบแบบสอบถาม', product_order: 'สั่งซื้อสินค้า' }[type] || 'ส่งข้อมูล') + ' · ' + title, time: historyDate(data.timestamp || data.createdAt || data.votedAt || data.submittedAt || data.formattedTime || data.createdAtStr), timeLabel: 'บันทึกเมื่อ', body: body };
   }
 
   function renderUsageHistory() {
@@ -2250,3 +2253,49 @@
   }
 
   DE06.bindDialog(document.getElementById('lightboxOverlay'), closeLightbox);
+
+function renderProductOrder(task, cover) {
+  const fields = [['designs', 'แบบสินค้า'], ['colors', 'สี'], ['sizes', 'ไซส์']].map(([key, label]) => {
+    const options = DE06.productOptions(task[key]);
+    if (key === 'sizes' && task.hasCustomSize) options.push('ไซส์พิเศษ');
+    return options.length ? `<label>${label}<select name="${key}" required onchange="updateProductTotal(${DE06.arg(task.id)})"><option value="">เลือก${label}</option>${options.map(x => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>` : '';
+  }).join('');
+  return `<div class="responsive-two-col"><div>${cover}<h2>${escapeHtml(task.title)}</h2><p>${escapeHtml(task.desc || '')}</p><p>ราคา ${escapeHtml(String(task.salePrice !== '' && task.salePrice != null ? task.salePrice : task.price))} บาท</p><p style="white-space:pre-wrap">${escapeHtml(task.productDetails || '')}</p></div>
+    <form id="product-order-${escapeHtml(task.id)}" onsubmit="event.preventDefault(); submitProductOrder(${DE06.arg(task.id)})">
+    ${fields}<label hidden>รายละเอียดไซส์พิเศษ<input name="customSize" maxlength="200"></label>
+    <label>จำนวน<input name="quantity" type="number" min="1" max="${Number(task.maxQuantity) || 99}" step="1" value="1" required oninput="updateProductTotal(${DE06.arg(task.id)})"></label>
+    <p id="product-total-${escapeHtml(task.id)}" aria-live="polite">เลือกสินค้าเพื่อดูยอดสั่งซื้อ</p>
+    <button type="submit" class="btn-success">ยืนยันการสั่งซื้อ</button><p id="product-message-${escapeHtml(task.id)}" role="status"></p></form></div>`;
+}
+function updateProductTotal(id) {
+  const form = document.getElementById('product-order-' + id), task = allTasks.find(t => t.id === id);
+  if (!form || !task) return;
+  const data = Object.fromEntries(new FormData(form)), output = document.getElementById('product-total-' + id);
+  const custom = form.elements.customSize;
+  custom.parentElement.hidden = data.sizes !== 'ไซส์พิเศษ'; custom.required = data.sizes === 'ไซส์พิเศษ';
+  try { const quote = DE06.productQuote(task, data, Number(data.quantity)); output.textContent = 'ยอดสั่งซื้อ ' + quote.totalPrice.toLocaleString('th-TH') + ' บาท'; }
+  catch (error) { output.textContent = error.message; }
+}
+async function submitProductOrder(id) {
+  const identity = currentStudentId, name = currentStudentName;
+  const form = document.getElementById('product-order-' + id), task = allTasks.find(t => t.id === id);
+  if (!identity || !form || !task) return;
+  updateProductTotal(id);
+  if (!form.reportValidity()) return;
+  const message = document.getElementById('product-message-' + id), button = form.querySelector('button[type="submit"]');
+  if (!activityIsOpen(task)) { message.textContent = 'สินค้านี้ปิดรับแล้ว'; return; }
+  if (!navigator.onLine) { message.textContent = 'กรุณาลองใหม่เมื่อออนไลน์'; return; }
+  const key = 'student:write:product:' + identity + ':' + id;
+  if (form.dataset.complete || !DE06.lock(key)) return;
+  button.disabled = true;
+  try {
+    const selection = Object.fromEntries(new FormData(form));
+    const quote = DE06.productQuote(task, selection, Number(selection.quantity));
+    const formData = { 'แบบสินค้า': selection.designs || '-', 'สี': selection.colors || '-', 'ไซส์': selection.sizes === 'ไซส์พิเศษ' ? 'ไซส์พิเศษ: ' + selection.customSize.trim() : selection.sizes || '-', 'จำนวน': quote.quantity, 'ราคาต่อชิ้น': quote.unitPrice, 'ยอดสั่งซื้อ': quote.totalPrice, 'สถานะ': 'รอดำเนินการ' };
+    await db.collection('dynamic_submissions').add({ activityId: id, activityTitle: task.title, studentId: identity, studentName: name, formType: 'product_order', formData, productSnapshot: { title: task.title, ...quote, selection }, status: 'pending', submittedAt: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }), timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+    DE06.invalidate('student:'); usageHistory.loadedAt = 0;
+    if (identity !== currentStudentId) return;
+    form.dataset.complete = 'true'; message.textContent = 'บันทึกการสั่งซื้อแล้ว รอดำเนินการ'; button.textContent = 'บันทึกแล้ว';
+  } catch (error) { if (identity === currentStudentId) { message.textContent = error.message; button.disabled = false; } }
+  finally { DE06.unlock(key); }
+}

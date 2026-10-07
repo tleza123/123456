@@ -8,45 +8,45 @@
   "measurements": [
     {
       "file": "index.html",
-      "coldLoadMs": 423,
+      "coldLoadMs": 415,
       "cls": 0,
-      "lcp": 252,
+      "lcp": 232,
       "longTasks": []
     },
     {
       "file": "index.html",
-      "navigationPairMaxMs": 2,
-      "navigationPairMeanMs": 0.17000000476837157
+      "navigationPairMaxMs": 1.2000000476837158,
+      "navigationPairMeanMs": 0.125
     },
     {
       "file": "index.html",
-      "slowNetworkLoadMs": 1605,
+      "slowNetworkLoadMs": 1647,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 848,
+        "lcp": 872,
         "longTasks": []
       }
     },
     {
       "file": "index.html",
-      "scrollFrameP95Ms": 7,
-      "scrollFrameMaxMs": 7.099999999999909,
-      "traceTaskMaxMs": 7.029,
-      "traceFunctionMaxMs": 0.182
+      "scrollFrameP95Ms": 7.099999999999909,
+      "scrollFrameMaxMs": 7.100000000000364,
+      "traceTaskMaxMs": 7.221,
+      "traceFunctionMaxMs": 0.287
     },
     {
       "file": "index.html",
       "warm": {
         "cls": 0,
-        "lcp": 84,
+        "lcp": 80,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "coldLoadMs": 430,
+      "coldLoadMs": 423,
       "cls": 0,
-      "lcp": 72,
+      "lcp": 60,
       "longTasks": []
     },
     {
@@ -55,30 +55,30 @@
     },
     {
       "file": "admin.html",
-      "navigationPairMaxMs": 0.2999999523162842,
-      "navigationPairMeanMs": 0.03999999761581421
+      "navigationPairMaxMs": 0.20000004768371582,
+      "navigationPairMeanMs": 0.02999999523162842
     },
     {
       "file": "admin.html",
-      "slowNetworkLoadMs": 2564,
+      "slowNetworkLoadMs": 2588,
       "slowNetworkMetrics": {
         "cls": 0,
-        "lcp": 832,
+        "lcp": 824,
         "longTasks": []
       }
     },
     {
       "file": "admin.html",
-      "scrollFrameP95Ms": 7,
-      "scrollFrameMaxMs": 7,
-      "traceTaskMaxMs": 10.241,
-      "traceFunctionMaxMs": 2.387
+      "scrollFrameP95Ms": 7.099999999999909,
+      "scrollFrameMaxMs": 7.099999999999909,
+      "traceTaskMaxMs": 10.052,
+      "traceFunctionMaxMs": 0.901
     },
     {
       "file": "admin.html",
       "warm": {
         "cls": 0,
-        "lcp": 88,
+        "lcp": 68,
         "longTasks": []
       }
     }

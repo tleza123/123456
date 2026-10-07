@@ -124,3 +124,20 @@
     if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('img[role="button"], .poll-option-card[role="button"]')) { event.preventDefault(); event.target.click(); }
   });
 })(window);
+
+// Product orders retain their own price snapshot; legacy shirt calculations remain independent.
+DE06.productOptions = value => [...new Set((Array.isArray(value) ? value : String(value || '').split(',')).map(x => String(x).trim()).filter(Boolean))].slice(0, 50);
+DE06.productQuote = (product, selection, quantity, requireSelection = true) => {
+  const price = Number(product.price), extra = Number(product.customSizePrice || 0);
+  const sale = product.salePrice === '' || product.salePrice == null ? null : Number(product.salePrice);
+  const maximum = Number(product.maxQuantity || 99);
+  if (!Number.isFinite(price) || price < 0 || !Number.isFinite(extra) || extra < 0 || (sale !== null && (!Number.isFinite(sale) || sale < 0 || sale > price)) || !Number.isInteger(maximum) || maximum < 1 || maximum > 999) throw new Error('กรุณาตรวจสอบราคาและจำนวนสูงสุดของสินค้า');
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > maximum) throw new Error('จำนวนสินค้าไม่ถูกต้อง');
+  if (requireSelection) ['designs', 'colors', 'sizes'].forEach(key => {
+    const options = DE06.productOptions(product[key]);
+    if (key === 'sizes' && product.hasCustomSize) options.push('ไซส์พิเศษ');
+    if (options.length && !options.includes(selection[key])) throw new Error('กรุณาเลือกแบบ สี และไซส์ให้ครบ');
+  });
+  const unitPrice = Math.round(((sale ?? price) + (selection.sizes === 'ไซส์พิเศษ' && product.hasCustomSize ? extra : 0)) * 100) / 100;
+  return { unitPrice, totalPrice: Math.round(unitPrice * quantity * 100) / 100, quantity };
+};

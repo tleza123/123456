@@ -368,7 +368,7 @@
         comment: 'กระดานความคิดเห็น',
         announcement: 'ประกาศ / แจ้งเตือนงาน',
         form: 'แบบสอบถาม',
-        booking: 'ระบบจองเสื้อช็อป',
+        booking: 'ระบบจองเสื้อช็อป', product: 'การขายสินค้า',
         link: 'ลิงก์ภายนอก',
         html: 'โค้ด HTML กำหนดเอง'
       };
@@ -455,7 +455,8 @@
           <option value="comment" ${currentType === 'comment' ? 'selected' : ''}>กระดานความคิดเห็น</option>
           <option value="announcement" ${currentType === 'announcement' ? 'selected' : ''}>ประกาศและแจ้งเตือนงาน</option>
           <option value="form" ${currentType === 'form' ? 'selected' : ''}>แบบสอบถาม</option>
-          <option value="booking" ${currentType === 'booking' ? 'selected' : ''}>ระบบจองเสื้อช็อป</option>
+          <option value="product" ${currentType === 'product' ? 'selected' : ''}>การขายสินค้า</option>
+          ${currentType === 'booking' ? '<option value="booking" selected>จองเสื้อช็อปเดิม</option>' : ''}
           <option value="link" ${currentType === 'link' ? 'selected' : ''}>ลิงก์ภายนอก</option>
           <option value="html" ${currentType === 'html' ? 'selected' : ''}>กำหนดเองด้วยโค้ด HTML</option>
         </select>
@@ -477,6 +478,18 @@
   // Type Specific Controls Renderer
   function renderTypeSpecificControls(act, index) {
     const type = act.type || 'announcement';
+
+    if (type === 'product') {
+      const number = (key, label, fallback = 0) => `<div><label>${label}</label><input aria-label="${label}" type="number" min="0" step="0.01" value="${escapeHtml(String(act[key] ?? fallback))}" oninput="appActivities[${index}].${key}=this.value"></div>`;
+      const options = (key, label) => `<div><label>${label}</label><input aria-label="${label}" value="${escapeHtml(DE06.productOptions(act[key]).join(', '))}" placeholder="คั่นแต่ละตัวเลือกด้วยจุลภาค" oninput="appActivities[${index}].${key}=DE06.productOptions(this.value)"></div>`;
+      return `<div class="type-options-box"><div class="field-row">${number('price', 'ราคา บาท')}${number('salePrice', 'ราคาลด บาท', '')}</div>
+        <div class="field-row">${options('designs', 'แบบสินค้า')}${options('colors', 'สี')}</div>
+        <div class="field-row">${options('sizes', 'ไซส์')}${number('customSizePrice', 'ราคาเพิ่มสำหรับไซส์พิเศษ บาท')}</div>
+        <label><input type="checkbox" style="width:auto" ${act.hasCustomSize ? 'checked' : ''} onchange="appActivities[${index}].hasCustomSize=this.checked"> เปิดรับไซส์พิเศษ</label>
+        <label>รายละเอียดสินค้า</label><textarea oninput="appActivities[${index}].productDetails=this.value">${escapeHtml(act.productDetails || '')}</textarea>
+        <label>จำนวนสูงสุดต่อรายการ</label><input aria-label="จำนวนสูงสุดต่อรายการ" type="number" min="1" max="999" step="1" value="${escapeHtml(String(act.maxQuantity || 99))}" oninput="appActivities[${index}].maxQuantity=this.value">
+        </div>`;
+    }
 
     // 1. Poll Builder
     if (type === 'poll') {
@@ -788,6 +801,8 @@
     } else if (actType === 'comment') {
       newAct.title = 'กระดานพูดคุยแลกเปลี่ยน';
       newAct.desc = 'พื้นที่พูดคุยและแสดงความคิดเห็นสำหรับนักศึกษา';
+    } else if (actType === 'product') {
+      Object.assign(newAct, { title: 'สินค้าใหม่', desc: '', price: 0, salePrice: '', designs: [], colors: [], sizes: [], hasCustomSize: false, customSizePrice: 0, maxQuantity: 99, productDetails: '' });
     } else if (actType === 'booking') {
       newAct.title = 'จองเสื้อช็อป DE 06';
       newAct.desc = 'สั่งจองเสื้อช็อป DE 06 พร้อมแนบหลักฐานการชำระเงิน';
@@ -910,7 +925,7 @@
     const curResVal = resSelect.value;
     resSelect.innerHTML = '<option value="">-- กรุณาเลือกกิจกรรม --</option>';
     appActivities.forEach(act => {
-      if (['poll', 'comment', 'form'].includes(act.type)) resSelect.innerHTML += `<option value="${escapeHtml(act.id)}" ${curResVal === act.id ? 'selected' : ''}>${escapeHtml(act.title)}</option>`;
+      if (['poll', 'comment', 'form', 'product'].includes(act.type)) resSelect.innerHTML += `<option value="${escapeHtml(act.id)}" ${curResVal === act.id ? 'selected' : ''}>${escapeHtml(act.title)}</option>`;
     });
   }
 
@@ -1107,13 +1122,13 @@
         DE06.paginate(content);
       }
       // 3. FORM RESPONSES
-      else if (activity.type === 'form') {
+      else if (activity.type === 'form' || activity.type === 'product') {
         const subSnap = await DE06.allDocuments(db.collection('dynamic_submissions').where('activityId', '==', actId));
           if (generation !== responsesGeneration || !isAdminAuthenticated || adminId !== currentAdminId || document.getElementById('responseActivitySelect').value !== actId) return;
         const subs = [];
         subSnap.forEach(doc => subs.push({ docId: doc.id, ...doc.data() }));
 
-        const questions = (activity.formQuestions || []).map(q => q.label || '');
+        const questions = activity.type === 'product' ? ['แบบสินค้า', 'สี', 'ไซส์', 'จำนวน', 'ราคาต่อชิ้น', 'ยอดสั่งซื้อ', 'สถานะ'] : (activity.formQuestions || []).map(q => q.label || '');
         const headers = ['รหัสนักศึกษา', 'ชื่อ-สกุล', ...questions, 'วัน-เวลาที่ส่ง'];
 
         currentLoadedResponses = {
@@ -1130,12 +1145,12 @@
 
         content.innerHTML = `
           <div class="export-actions-bar">
-            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()">ส่งออกคำตอบแบบฟอร์มเป็น CSV</button>
+            <button class="btn-sheets btn-sm" onclick="exportCurrentResponsesToCSV()">${activity.type === 'product' ? 'ส่งออกรายการสั่งซื้อเป็น CSV' : 'ส่งออกคำตอบแบบฟอร์มเป็น CSV'}</button>
             <button class="btn-secondary btn-sm" onclick="copyCurrentResponsesToClipboard()">คัดลอกไป Google Sheets</button>
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.9375rem;">
-            <h3 style="margin:0; color:var(--main-blue); font-size:1.125rem;">การตอบรับแบบฟอร์ม (${subs.length} รายการ)</h3>
+            <h3 style="margin:0; color:var(--main-blue); font-size:1.125rem;">${activity.type === 'product' ? 'รายการสั่งซื้อ' : 'การตอบรับแบบฟอร์ม'} ${subs.length} รายการ</h3>
           </div>
 
           <div class="data-table-container">
@@ -1149,7 +1164,7 @@
                 ${subs.length === 0 ? `<tr><td colspan="${headers.length}" style="text-align:center; color:gray;">ยังไม่มีคำตอบที่ส่งเข้ามา</td></tr>` :
                   currentLoadedResponses.data.map(row => `
                     <tr>
-                      ${row.map((cell, idx) => `<td>${idx === 0 ? `<b>${cell}</b>` : escapeHtml(cell)}</td>`).join('')}
+                      ${row.map((cell, idx) => `<td>${idx === 0 ? `<b>${escapeHtml(cell)}</b>` : escapeHtml(cell)}</td>`).join('')}
                     </tr>
                   `).join('')
                 }
@@ -1935,6 +1950,7 @@
         if (act.type === 'link' && !DE06.safeUrl(act.targetUrl)) throw new Error('กรุณาระบุลิงก์ที่ถูกต้องสำหรับ ' + act.title);
         if (act.actionUrl && !DE06.safeUrl(act.actionUrl)) throw new Error('ลิงก์เพิ่มเติมไม่ถูกต้องสำหรับ ' + act.title);
         if (act.type === 'poll' && (!Array.isArray(act.pollOptions) || act.pollOptions.length < 2 || act.pollOptions.some(option => !String(option).trim()))) throw new Error('กิจกรรมโหวตต้องมีตัวเลือกอย่างน้อยสองข้อและไม่เว้นว่าง');
+        if (act.type === 'product') DE06.productQuote(act, {}, 1, false);
         if (act.type === 'form' && (!Array.isArray(act.formQuestions) || !act.formQuestions.length || act.formQuestions.some(q => !String(q.label || '').trim()) || new Set(act.formQuestions.map(q => q.label.trim())).size !== act.formQuestions.length)) throw new Error('แบบฟอร์มต้องมีคำถามที่ไม่ว่างและชื่อคำถามไม่ซ้ำกัน');
         const id = String(act.id || 'act-' + (index + 1));
         if (!id || id.includes('/')) throw new Error('รหัสกิจกรรมไม่ถูกต้อง');
